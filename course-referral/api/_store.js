@@ -4,10 +4,7 @@ let redis;
 
 function getRedis() {
   if (!redis) {
-    redis = new Redis({
-      url: process.env.STORAGE_URL,
-      token: process.env.STORAGE_TOKEN,
-    });
+    redis = Redis.fromEnv();
   }
   return redis;
 }
