@@ -1,0 +1,8 @@
+{
+  "name": "course-referral-system",
+  "version": "1.0.0",
+  "description": "Course registration and referral tracking system",
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}
