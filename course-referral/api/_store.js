@@ -1,23 +1,21 @@
-// Vercel KV-based data store
-// Uses @vercel/kv which is available as an env variable VERCEL_KV_*
+import { Redis } from '@upstash/redis';
 
-let kv;
+let redis;
 
-async function getKV() {
-  if (!kv) {
-    const { createClient } = await import('@vercel/kv');
-    kv = createClient({
-      url: process.env.KV_REST_API_URL,
-      token: process.env.KV_REST_API_TOKEN,
+function getRedis() {
+  if (!redis) {
+    redis = new Redis({
+      url: process.env.STORAGE_URL,
+      token: process.env.STORAGE_TOKEN,
     });
   }
-  return kv;
+  return redis;
 }
 
 export async function getData() {
   try {
-    const store = await getKV();
-    const data = await store.get('app-data');
+    const r = getRedis();
+    const data = await r.get('app-data');
     if (!data) return { reps: [], students: [] };
     return typeof data === 'string' ? JSON.parse(data) : data;
   } catch (e) {
@@ -28,8 +26,8 @@ export async function getData() {
 
 export async function setData(data) {
   try {
-    const store = await getKV();
-    await store.set('app-data', JSON.stringify(data));
+    const r = getRedis();
+    await r.set('app-data', JSON.stringify(data));
     return true;
   } catch (e) {
     console.error('setData error:', e);
