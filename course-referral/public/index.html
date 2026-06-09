@@ -202,7 +202,7 @@ tr:last-child td{border-bottom:none}
 <header class="site-header">
   <div class="container-wide">
     <div class="inner">
-      <div class="logo">Ghost<span style="color:red">Digitals Academy</span>
+      <div class="logo">Ghost<span style="color:red">Digitals Academy</span></div>
       <div class="header-nav">
         <button class="nav-btn" onclick="showPage('rep-portal-page')">Sales rep login</button>
         <button class="nav-btn primary" onclick="showPage('register-page')">Register now</button>
@@ -512,10 +512,10 @@ tr:last-child td{border-bottom:none}
         <div style="overflow-x:auto">
           <table>
             <thead><tr>
-              <th>Name</th><th>Course</th><th>Fee (ETB)</th><th>Date</th>
+              <th>Name</th><th>Course</th><th>Fee (ETB)</th><th>Date</th><th>Payment</th>
             </tr></thead>
             <tbody id="rep-students-tbody">
-              <tr><td colspan="4"><div class="empty">No students yet. Share your link to start!</div></td></tr>
+              <tr><td colspan="5"><div class="empty">No students yet. Share your link to start!</div></td></tr>
             </tbody>
           </table>
         </div>
@@ -843,12 +843,13 @@ function renderRepDashboard(data){
   document.getElementById('rep-bd-both').textContent = (breakdown.both||0)+' students';
 
   const tbody = document.getElementById('rep-students-tbody');
-  if(!students.length){tbody.innerHTML='<tr><td colspan="4"><div class="empty">No students yet. Share your link to start!</div></td></tr>';return;}
+  if(!students.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty">No students yet. Share your link to start!</div></td></tr>';return;}
   tbody.innerHTML = students.map(s=>`<tr>
     <td style="font-weight:500">${s.name}</td>
     <td><span class="badge badge-green">${s.course}</span></td>
     <td>${(s.fee||0).toLocaleString()}</td>
     <td style="color:var(--muted)">${s.date}</td>
+    <td>${s.paid ? '<span style="padding:3px 10px;border-radius:20px;background:#edf5ec;color:#1e4019;font-size:12px;font-weight:600">✅ Paid</span>' : '<span style="padding:3px 10px;border-radius:20px;background:#fdf6e3;color:#c4860a;font-size:12px;font-weight:600">⏳ Unpaid</span>'}</td>
   </tr>`).join('');
 }
 
