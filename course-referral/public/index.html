@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ghost Digitals Academy — Course Registration</title>
+<title>ProSkills — Course Registration</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
@@ -202,7 +202,7 @@ tr:last-child td{border-bottom:none}
 <header class="site-header">
   <div class="container-wide">
     <div class="inner">
-      <div class="logo">Ghost<span style="color:red">Digitals Academy</span></div>
+      <div class="logo">Pro<span>Skills</span></div>
       <div class="header-nav">
         <button class="nav-btn" onclick="showPage('rep-portal-page')">Sales rep login</button>
         <button class="nav-btn primary" onclick="showPage('register-page')">Register now</button>
@@ -403,13 +403,21 @@ tr:last-child td{border-bottom:none}
               <h3 id="students-count-label">All students</h3>
               <button class="action-btn" onclick="exportCSV()">⬇ Export CSV</button>
             </div>
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap">
+              <input type="text" id="student-search" placeholder="🔍 Search by name or phone..." oninput="filterStudents()" style="flex:1;min-width:180px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--bg)">
+              <select id="payment-filter" onchange="filterStudents()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--bg);color:var(--text)">
+                <option value="all">All payments</option>
+                <option value="paid">Paid ✅</option>
+                <option value="unpaid">Unpaid ⏳</option>
+              </select>
+            </div>
             <div style="overflow-x:auto">
               <table>
                 <thead><tr>
-                  <th>Name</th><th>Phone</th><th>Course</th><th>Fee</th><th>Referred by</th><th>Date</th>
+                  <th>Name</th><th>Phone</th><th>Course</th><th>Fee</th><th>Referred by</th><th>Date</th><th>Payment</th><th></th>
                 </tr></thead>
                 <tbody id="students-tbody">
-                  <tr><td colspan="6"><div class="empty"><div class="empty-icon">🎓</div>No registrations yet</div></td></tr>
+                  <tr><td colspan="8"><div class="empty"><div class="empty-icon">🎓</div>No registrations yet</div></td></tr>
                 </tbody>
               </table>
             </div>
@@ -693,20 +701,57 @@ function renderRepsTable(reps){
 
 function renderStudentsTable(students,reps){
   const tbody = document.getElementById('students-tbody');
-  if(!students.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-icon">🎓</div>No registrations yet</div></td></tr>';return;}
+  if(!students.length){tbody.innerHTML='<tr><td colspan="8"><div class="empty"><div class="empty-icon">🎓</div>No registrations yet</div></td></tr>';return;}
   tbody.innerHTML = [...students].reverse().map(s=>{
     const rep = s.ref ? reps.find(r=>r.id===s.ref) : null;
     const refCell = rep ? `<span class="badge badge-blue">${rep.name}</span>` : '<span style="color:var(--muted)">Direct</span>';
     const courseBadge = s.course==='both'?'badge-gold':s.course==='digital'?'badge-blue':'badge-green';
-    return `<tr>
+    const paidBtn = s.paid
+      ? `<button onclick="togglePayment('${s.id}')" style="padding:4px 10px;border-radius:20px;border:none;background:#edf5ec;color:#1e4019;font-size:12px;font-weight:600;cursor:pointer">✅ Paid</button>`
+      : `<button onclick="togglePayment('${s.id}')" style="padding:4px 10px;border-radius:20px;border:none;background:#fdf6e3;color:#c4860a;font-size:12px;font-weight:600;cursor:pointer">⏳ Unpaid</button>`;
+    return `<tr data-name="${s.name.toLowerCase()}" data-phone="${s.phone}" data-paid="${s.paid?'paid':'unpaid'}">
       <td style="font-weight:500">${s.name}</td>
       <td style="color:var(--muted)">${s.phone}</td>
       <td><span class="badge ${courseBadge}">${s.courseLabel}</span></td>
       <td>${(s.fee||0).toLocaleString()}</td>
       <td>${refCell}</td>
       <td style="color:var(--muted)">${s.date}</td>
+      <td>${paidBtn}</td>
+      <td><button class="action-btn sm danger" onclick="deleteStudent('${s.id}')">Delete</button></td>
     </tr>`;
   }).join('');
+}
+
+function filterStudents(){
+  const q = document.getElementById('student-search').value.toLowerCase();
+  const filter = document.getElementById('payment-filter').value;
+  document.querySelectorAll('#students-tbody tr').forEach(row=>{
+    if(!row.dataset.name) return;
+    const matchSearch = !q || row.dataset.name.includes(q) || row.dataset.phone.includes(q);
+    const matchPay = filter==='all' || row.dataset.paid===filter;
+    row.style.display = matchSearch && matchPay ? '' : 'none';
+  });
+}
+
+async function togglePayment(id){
+  try{
+    const res = await fetch('/api/students?id='+id,{method:'PATCH',headers:{'x-admin-key':adminKey}});
+    if(!res.ok) throw new Error('Failed');
+    const d = await res.json();
+    const student = adminData.students.find(s=>s.id===id);
+    if(student) student.paid = d.paid;
+    renderAdminDashboard();
+  }catch(e){alert(e.message);}
+}
+
+async function deleteStudent(id){
+  if(!confirm('Delete this student? This cannot be undone.')) return;
+  try{
+    const res = await fetch('/api/students?id='+id,{method:'DELETE',headers:{'x-admin-key':adminKey}});
+    if(!res.ok) throw new Error('Failed');
+    adminData.students = adminData.students.filter(s=>s.id!==id);
+    renderAdminDashboard();
+  }catch(e){alert(e.message);}
 }
 
 function openAddRepModal(){document.getElementById('add-rep-modal').classList.add('show');}
@@ -745,9 +790,9 @@ async function deleteRep(id){
 function exportCSV(){
   if(!adminData||!adminData.students.length){alert('No students to export yet.');return;}
   const {students,reps} = adminData;
-  const rows=[['Name','Phone','Email','Course','Fee (ETB)','Referred By','Date'],
+  const rows=[['Name','Phone','Email','Course','Fee (ETB)','Referred By','Date','Payment'],
     ...students.map(s=>[s.name,s.phone,s.email||'',s.courseLabel,s.fee,
-      s.ref?(reps.find(r=>r.id===s.ref)?.name||s.ref):'Direct',s.date])];
+      s.ref?(reps.find(r=>r.id===s.ref)?.name||s.ref):'Direct',s.date,s.paid?'Paid':'Unpaid'])];
   const csv=rows.map(r=>r.map(c=>'"'+String(c||'').replace(/"/g,'""')+'"').join(',')).join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='students.csv';a.click();
 }
