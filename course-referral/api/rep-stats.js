@@ -34,7 +34,8 @@ export default async function handler(req, res) {
       name: s.name,
       course: s.courseLabel,
       fee: s.fee,
-      date: s.date
+      date: s.date,
+      paid: s.paid || false
     }))
   });
 }
