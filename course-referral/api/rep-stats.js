@@ -35,7 +35,9 @@ export default async function handler(req, res) {
       course: s.courseLabel,
       fee: s.fee,
       date: s.date,
-      paid: s.paid || false
+      paid: s.paid || false,
+      paymentStatus: s.paymentStatus || (s.paid ? 'verified' : 'pending'),
+      paymentMethodLabel: s.paymentMethodLabel || ''
     }))
   });
 }

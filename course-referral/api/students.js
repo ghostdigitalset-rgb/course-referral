@@ -30,6 +30,17 @@ export default async function handler(req, res) {
   if (req.method === 'PATCH') {
     const student = data.students.find(s => s.id === id);
     if (!student) return res.status(404).json({ error: 'Student not found' });
+
+    const { status } = req.query;
+
+    if (status === 'verified' || status === 'rejected') {
+      student.paymentStatus = status;
+      student.paid = status === 'verified';
+      await setData(data);
+      return res.status(200).json({ ok: true, paymentStatus: student.paymentStatus, paid: student.paid });
+    }
+
+    // Legacy/manual toggle (no status param)
     student.paid = !student.paid;
     await setData(data);
     return res.status(200).json({ ok: true, paid: student.paid });

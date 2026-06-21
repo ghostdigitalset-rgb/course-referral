@@ -2,6 +2,7 @@ import { getData, setData } from './_store.js';
 
 const FEES = { digital: 10000, event: 8000, both: 15000 };
 const LABELS = { digital: 'Digital Marketing', event: 'Event Organizing', both: 'Both courses' };
+const PAYMENT_METHODS = { telebirr: 'Telebirr', cbe: 'CBE' };
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,11 +12,13 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { name, phone, email, course, notes, ref } = req.body;
+  const { name, phone, email, course, notes, ref, paymentMethod, proofUrl } = req.body;
 
   if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
   if (!phone || !phone.trim()) return res.status(400).json({ error: 'Phone is required' });
   if (!course || !FEES[course]) return res.status(400).json({ error: 'Invalid course' });
+  if (!paymentMethod || !PAYMENT_METHODS[paymentMethod]) return res.status(400).json({ error: 'Please select a payment method' });
+  if (!proofUrl || !proofUrl.trim()) return res.status(400).json({ error: 'Please attach your proof of payment' });
 
   const data = await getData();
 
@@ -29,6 +32,11 @@ export default async function handler(req, res) {
     courseLabel: LABELS[course],
     fee: FEES[course],
     ref: ref || '',
+    paymentMethod,
+    paymentMethodLabel: PAYMENT_METHODS[paymentMethod],
+    proofUrl: proofUrl.trim(),
+    paymentStatus: 'pending', // pending | verified | rejected
+    paid: false,
     date: new Date().toLocaleDateString('en-GB'),
     createdAt: new Date().toISOString()
   };
@@ -46,3 +54,4 @@ export default async function handler(req, res) {
   await setData(data);
   return res.status(201).json({ ok: true, studentId: student.id });
 }
+
