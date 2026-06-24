@@ -769,6 +769,23 @@ tr:last-child td{border-bottom:none}
         </select>
       </div>
     </div>
+    <div class="field">
+      <label>Proof of payment (optional)</label>
+      <div class="upload-box" id="ms-upload-box" onclick="document.getElementById('ms-proof-file').click()" style="padding:14px">
+        <div id="ms-upload-empty">
+          <div class="upload-icon" style="font-size:20px">📎</div>
+          <div class="upload-text" style="font-size:13px">Tap to attach screenshot or receipt</div>
+          <div class="upload-subtext">JPG, PNG or WEBP — max 5MB</div>
+        </div>
+        <div id="ms-upload-preview" style="display:none">
+          <img id="ms-preview-img" src="" alt="Payment proof" style="max-width:100%;max-height:120px;border-radius:8px;display:block;margin:0 auto">
+          <div class="upload-filename" id="ms-upload-filename"></div>
+          <button type="button" class="btn-outline" style="margin-top:8px;font-size:12px" onclick="event.stopPropagation();clearMsProof()">Remove</button>
+        </div>
+      </div>
+      <input type="file" id="ms-proof-file" accept="image/png,image/jpeg,image/webp,image/heic,image/heif" style="display:none" onchange="handleMsProofSelect(event)">
+      <div id="ms-upload-status" class="upload-status"></div>
+    </div>
     <div class="field" style="margin-bottom:0">
       <label>Notes (optional)</label>
       <textarea id="ms-notes" rows="2" placeholder="Any notes about this student..." style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);resize:vertical;line-height:1.5"></textarea>
@@ -1303,6 +1320,10 @@ async function bulkDelete(){
 }
 
 // ── Add Student Manually ──────────────────────────────────
+let msProofUrl = '';
+let msProofPathname = '';
+let msProofUploading = false;
+
 function openAddStudentModal(){
   document.getElementById('add-student-modal').classList.add('show');
   document.getElementById('ms-name').focus();
@@ -1322,6 +1343,7 @@ function closeAddStudentModal(){
   document.getElementById('ms-submit-btn').disabled=false;
   document.getElementById('ms-submit-text').textContent='Add student';
   document.getElementById('ms-spinner').style.display='none';
+  clearMsProof();
 }
 function closeAddStudentModalIf(e){if(e.target===document.getElementById('add-student-modal'))closeAddStudentModal();}
 
@@ -1339,6 +1361,58 @@ function updateManualTotal(){
   discountNote.style.display = all3 ? 'block' : 'none';
 }
 
+async function handleMsProofSelect(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('ms-upload-status');
+  const boxEl = document.getElementById('ms-upload-box');
+  const allowed = ['image/jpeg','image/png','image/webp','image/heic','image/heif'];
+  if(!allowed.includes(file.type)){
+    statusEl.textContent='Please choose a JPG, PNG, or WEBP image';
+    statusEl.className='upload-status error'; return;
+  }
+  if(file.size > 5*1024*1024){
+    statusEl.textContent='File is too large. Max 5MB';
+    statusEl.className='upload-status error'; return;
+  }
+  // Local preview
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('ms-preview-img').src = e.target.result;
+    document.getElementById('ms-upload-empty').style.display = 'none';
+    document.getElementById('ms-upload-preview').style.display = 'block';
+    document.getElementById('ms-upload-filename').textContent = file.name;
+  };
+  reader.readAsDataURL(file);
+  // Upload
+  msProofUploading = true; msProofUrl = ''; msProofPathname = '';
+  statusEl.textContent = 'Uploading...'; statusEl.className = 'upload-status uploading';
+  try{
+    const res = await fetch('/api/upload',{method:'POST',headers:{'Content-Type':file.type},body:file});
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Upload failed');
+    msProofUrl = data.url; msProofPathname = data.pathname;
+    statusEl.textContent = '✓ Uploaded'; statusEl.className = 'upload-status success';
+  }catch(e){
+    statusEl.textContent = e.message; statusEl.className = 'upload-status error';
+    boxEl.classList.add('has-error');
+  }finally{ msProofUploading = false; }
+}
+
+function clearMsProof(){
+  msProofUrl = ''; msProofPathname = '';
+  const fi = document.getElementById('ms-proof-file');
+  if(fi) fi.value = '';
+  const empty = document.getElementById('ms-upload-empty');
+  const preview = document.getElementById('ms-upload-preview');
+  const status = document.getElementById('ms-upload-status');
+  const box = document.getElementById('ms-upload-box');
+  if(empty) empty.style.display = 'block';
+  if(preview) preview.style.display = 'none';
+  if(status){ status.textContent=''; status.className='upload-status'; }
+  if(box) box.classList.remove('has-error');
+}
+
 async function addStudentManually(){
   const name = document.getElementById('ms-name').value.trim();
   const phone = document.getElementById('ms-phone').value.trim();
@@ -1352,6 +1426,7 @@ async function addStudentManually(){
   if(!name){showAlert(alertEl,'Full name is required');return;}
   if(!phone){showAlert(alertEl,'Phone number is required');return;}
   if(!checked.length){showAlert(alertEl,'Please select at least one course');return;}
+  if(msProofUploading){showAlert(alertEl,'Please wait for the proof to finish uploading');return;}
 
   const all3 = ['digital','event','ai'].every(k=>checked.includes(k));
   const fee = all3 ? BUNDLE_PRICE : checked.reduce((s,k)=>s+(FEES[k]||0),0);
@@ -1368,7 +1443,7 @@ async function addStudentManually(){
     const res = await fetch('/api/register',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-admin-key':adminKey},
-      body:JSON.stringify({name,phone,email,notes,course:courseKey,courseLabel,fee,paymentMethod,paymentMethodLabel,paymentStatus,proofUrl:'',proofPathname:'',manualEntry:true})
+      body:JSON.stringify({name,phone,email,notes,course:courseKey,courseLabel,fee,paymentMethod,paymentMethodLabel,paymentStatus,proofUrl:msProofUrl,proofPathname:msProofPathname,manualEntry:true})
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error||'Failed to add student');
