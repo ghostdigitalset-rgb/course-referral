@@ -17,14 +17,27 @@ export default async function handler(req, res) {
   const data = await getData();
 
   if (req.method === 'DELETE') {
-    const student = data.students.find(s => s.id === id);
-    if (student && student.ref) {
-      const rep = data.reps.find(r => r.id === student.ref);
-      if (rep && rep.signups > 0) rep.signups--;
-    }
-    data.students = data.students.filter(s => s.id !== id);
+    // Bulk delete — ids[] in body takes priority over single ?id= in query
+    const bodyIds = req.body?.ids;
+    const idsToDelete = Array.isArray(bodyIds) && bodyIds.length > 0
+      ? bodyIds
+      : (id ? [id] : []);
+
+    if (!idsToDelete.length) return res.status(400).json({ error: 'No student IDs provided' });
+
+    const idSet = new Set(idsToDelete);
+
+    // Adjust rep signup counts for each deleted student in one pass
+    data.students.forEach(s => {
+      if (idSet.has(s.id) && s.ref) {
+        const rep = data.reps.find(r => r.id === s.ref);
+        if (rep && rep.signups > 0) rep.signups--;
+      }
+    });
+
+    data.students = data.students.filter(s => !idSet.has(s.id));
     await setData(data);
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true, deleted: idsToDelete.length });
   }
 
   if (req.method === 'PATCH') {
