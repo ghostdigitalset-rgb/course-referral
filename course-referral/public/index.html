@@ -295,17 +295,23 @@ tr:last-child td{border-bottom:none}
             <div class="fee">8,000 ETB</div>
             <div class="desc">Planning, logistics & execution</div>
           </div>
+          <div class="course-card" onclick="selectCourse('ai',this)" style="grid-column:1/-1">
+            <div class="icon">🤖</div>
+            <h3>Applied AI: Tools, Techniques, and Real-World Use Cases</h3>
+            <div class="fee">10,000 ETB</div>
+            <div class="desc">AI tools, prompt engineering & practical applications</div>
+          </div>
         </div>
-        <div class="course-both" onclick="selectCourse('both',this)">
+        <div class="course-both" onclick="selectCourse('all3',this)">
           <div class="course-both-left">
             <span style="font-size:22px">⭐</span>
             <div>
-              <h3>Both courses together</h3>
-              <div style="font-size:12px;color:var(--muted)">Get both for less</div>
+              <h3>All 3 courses together</h3>
+              <div style="font-size:12px;color:var(--muted)">Get all three for less</div>
             </div>
           </div>
           <div style="text-align:right">
-            <div class="fee" style="font-size:16px;color:var(--gold);font-weight:600">15,000 ETB</div>
+            <div class="fee" style="font-size:16px;color:var(--gold);font-weight:600">25,000 ETB</div>
             <div style="font-size:11px;color:var(--muted)">Save 3,000 ETB</div>
           </div>
         </div>
@@ -456,7 +462,7 @@ tr:last-child td{border-bottom:none}
               <div class="lbl">Est. revenue (ETB)</div>
             </div>
           </div>
-          <div class="metrics-row">
+          <div class="metrics-row" style="grid-template-columns:repeat(4,1fr)">
             <div class="metric-card">
               <div class="val" id="a-digital">—</div>
               <div class="lbl">Digital Marketing</div>
@@ -466,8 +472,12 @@ tr:last-child td{border-bottom:none}
               <div class="lbl">Event Organizing</div>
             </div>
             <div class="metric-card">
+              <div class="val" id="a-ai">—</div>
+              <div class="lbl">Applied AI</div>
+            </div>
+            <div class="metric-card">
               <div class="val" id="a-both">—</div>
-              <div class="lbl">Both courses</div>
+              <div class="lbl">All 3 courses</div>
             </div>
           </div>
         </div>
@@ -632,7 +642,11 @@ tr:last-child td{border-bottom:none}
             <span id="rep-bd-event" style="font-weight:600">0 students</span>
           </div>
           <div class="breakdown-row">
-            <span>⭐ Both courses</span>
+            <span>🤖 Applied AI</span>
+            <span id="rep-bd-ai" style="font-weight:600">0 students</span>
+          </div>
+          <div class="breakdown-row">
+            <span>⭐ All 3 courses</span>
             <span id="rep-bd-both" style="font-weight:600">0 students</span>
           </div>
         </div>
@@ -671,8 +685,8 @@ tr:last-child td{border-bottom:none}
 </div>
 
 <script>
-const FEES = {digital:10000,event:8000,both:15000};
-const COURSE_LABELS = {digital:'Digital Marketing',event:'Event Organizing',both:'Both courses'};
+const FEES = {digital:10000,event:8000,ai:10000,all3:25000};
+const COURSE_LABELS = {digital:'Digital Marketing',event:'Event Organizing',ai:'Applied AI',all3:'All 3 courses'};
 
 let currentCourse = 'digital';
 let currentPaymentMethod = 'telebirr';
@@ -910,7 +924,8 @@ function renderAdminDashboard(){
   document.getElementById('a-revenue').textContent = revenue.toLocaleString();
   document.getElementById('a-digital').textContent = breakdown.digital||0;
   document.getElementById('a-event').textContent = breakdown.event||0;
-  document.getElementById('a-both').textContent = breakdown.both||0;
+  document.getElementById('a-ai').textContent = breakdown.ai||0;
+  document.getElementById('a-both').textContent = breakdown.all3||0;
   document.getElementById('reps-count-label').textContent = `All reps (${reps.length})`;
   document.getElementById('students-count-label').textContent = `All students (${students.length})`;
   renderRepsTable(reps);
@@ -1146,7 +1161,8 @@ function renderRepDashboard(data){
 
   document.getElementById('rep-bd-digital').textContent = (breakdown.digital||0)+' students';
   document.getElementById('rep-bd-event').textContent = (breakdown.event||0)+' students';
-  document.getElementById('rep-bd-both').textContent = (breakdown.both||0)+' students';
+  document.getElementById('rep-bd-ai').textContent = (breakdown.ai||0)+' students';
+  document.getElementById('rep-bd-both').textContent = (breakdown.all3||0)+' students';
 
   const tbody = document.getElementById('rep-students-tbody');
   if(!students.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty">No students yet. Share your link to start!</div></td></tr>';return;}
