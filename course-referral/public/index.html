@@ -1326,10 +1326,15 @@ async function bulkDelete(){
   if(!ids.length) return;
   if(!confirm(`Delete ${ids.length} student${ids.length>1?'s':''}? This cannot be undone.`)) return;
   try{
-    await Promise.all(ids.map(id=>fetch('/api/students?id='+id,{method:'DELETE',headers:{'x-admin-key':adminKey}})));
+    const res = await fetch('/api/students',{
+      method:'DELETE',
+      headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body: JSON.stringify({ids})
+    });
+    if(!res.ok) throw new Error('Bulk delete failed');
     adminData.students = adminData.students.filter(s=>!ids.includes(s.id));
     renderAdminDashboard();
-  }catch(e){alert('Some deletes failed: '+e.message);}
+  }catch(e){alert('Delete failed: '+e.message);}
 }
 
 // ── Add Student Manually ──────────────────────────────────
