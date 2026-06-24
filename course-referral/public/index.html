@@ -1100,7 +1100,20 @@ function renderAdminDashboard(){
   if(!adminData) return;
   const {reps,students} = adminData;
   const revenue = students.reduce((s,st)=>s+st.fee,0);
-  const breakdown = students.reduce((b,s)=>{b[s.course]=(b[s.course]||0)+1;return b},{});
+
+  // Count each course key — a student counts for each course they enrolled in
+  // e.g. course='digital+ai' counts for both digital AND ai
+  const breakdown = {digital:0, event:0, ai:0, all3:0};
+  students.forEach(s=>{
+    const c = s.course || '';
+    if(c === 'all3' || c === 'both'){
+      breakdown.all3++;
+    } else {
+      if(c.includes('digital')) breakdown.digital++;
+      if(c.includes('event'))   breakdown.event++;
+      if(c.includes('ai'))      breakdown.ai++;
+    }
+  });
   document.getElementById('a-reps').textContent = reps.length;
   document.getElementById('a-students').textContent = students.length;
   document.getElementById('a-revenue').textContent = revenue.toLocaleString();
