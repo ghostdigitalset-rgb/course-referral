@@ -12,22 +12,20 @@ export default async function handler(req, res) {
   }
 
   const { id } = req.query;
-  if (!id) return res.status(400).json({ error: 'Student ID required' });
-
   const data = await getData();
 
+  // ── Bulk or single DELETE ─────────────────────────────────
   if (req.method === 'DELETE') {
-    // Bulk delete — ids[] in body takes priority over single ?id= in query
     const bodyIds = req.body?.ids;
     const idsToDelete = Array.isArray(bodyIds) && bodyIds.length > 0
       ? bodyIds
       : (id ? [id] : []);
 
-    if (!idsToDelete.length) return res.status(400).json({ error: 'No student IDs provided' });
+    if (!idsToDelete.length) return res.status(400).json({ error: 'No student ID(s) provided' });
 
     const idSet = new Set(idsToDelete);
 
-    // Adjust rep signup counts for each deleted student in one pass
+    // Adjust rep signup counts in one pass
     data.students.forEach(s => {
       if (idSet.has(s.id) && s.ref) {
         const rep = data.reps.find(r => r.id === s.ref);
@@ -40,7 +38,10 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, deleted: idsToDelete.length });
   }
 
+  // ── PATCH (single student only) ───────────────────────────
   if (req.method === 'PATCH') {
+    if (!id) return res.status(400).json({ error: 'Student ID required' });
+
     const student = data.students.find(s => s.id === id);
     if (!student) return res.status(404).json({ error: 'Student not found' });
 
@@ -53,7 +54,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, paymentStatus: student.paymentStatus, paid: student.paid });
     }
 
-    // Legacy/manual toggle (no status param)
+    // Legacy toggle
     student.paid = !student.paid;
     await setData(data);
     return res.status(200).json({ ok: true, paid: student.paid });
