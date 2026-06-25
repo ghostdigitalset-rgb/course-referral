@@ -1106,8 +1106,12 @@ function renderAdminDashboard(){
   const breakdown = {digital:0, event:0, ai:0, all3:0};
   students.forEach(s=>{
     const c = s.course || '';
-    if(c === 'all3' || c === 'both'){
+    if(c === 'all3'){
       breakdown.all3++;
+    } else if(c === 'both'){
+      // Legacy "both" = Digital Marketing + Event Organizing
+      breakdown.digital++;
+      breakdown.event++;
     } else {
       if(c.includes('digital')) breakdown.digital++;
       if(c.includes('event'))   breakdown.event++;
