@@ -19,13 +19,10 @@ export default async function handler(req, res) {
 
   if (!codeObj) return res.status(404).json({ error: 'Invalid code. Please check and try again.' });
   if (!codeObj.active) return res.status(403).json({ error: 'This code has been deactivated.' });
-  if (codeObj.usedBy) return res.status(403).json({ error: 'This code has already been used by another student.' });
+  if (codeObj.usedBy) return res.status(403).json({ error: 'This code has already been used.' });
 
-  // Find the session
   const session = data.sessions.find(s => s.id === codeObj.sessionId);
-  if (!session || !session.active) {
-    return res.status(403).json({ error: 'This session is no longer active.' });
-  }
+  if (!session || !session.active) return res.status(403).json({ error: 'This session is no longer active.' });
 
   // Mark code as used
   const studentId = 'stu_' + Date.now();
@@ -36,6 +33,9 @@ export default async function handler(req, res) {
   return res.status(200).json({
     ok: true,
     studentId,
+    studentCodeId: codeObj.id,
+    studentName:   codeObj.studentName || null,
+    studentPhone:  codeObj.studentPhone || null,
     session: {
       id:            session.id,
       title:         session.title,
@@ -43,6 +43,7 @@ export default async function handler(req, res) {
       description:   session.description,
       materials:     session.materials,
       courseLabel:   session.courseLabel,
+      durationMinutes: session.durationMinutes || 45,
     },
     code: normalized,
   });
