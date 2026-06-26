@@ -7,24 +7,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
-:root{
-  --accent:#2d5a27;--accent-light:#edf5ec;--accent-text:#1e4019;
-  --gold:#c4860a;--gold-light:#fdf6e3;
-  --bg:#f8f9f7;--surface:#fff;--border:#e5e7e3;
-  --text:#1a1a1a;--muted:#6b7280;
-  --danger:#c0392b;--danger-light:#fdf0ee;
-  --radius:10px;--radius-lg:14px;
-}
+:root{--accent:#2d5a27;--accent-light:#edf5ec;--accent-text:#1e4019;--gold:#c4860a;--gold-light:#fdf6e3;--bg:#f8f9f7;--surface:#fff;--border:#e5e7e3;--text:#1a1a1a;--muted:#6b7280;--danger:#c0392b;--danger-light:#fdf0ee;--radius:10px;--radius-lg:14px}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
-/* Header */
 .header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .logo{font-family:'DM Serif Display',serif;font-size:18px;color:var(--accent)}
 .header-right{display:flex;align-items:center;gap:12px}
 .teacher-badge{background:var(--accent-light);color:var(--accent-text);padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600}
 .logout-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit}
 .logout-btn:hover{border-color:var(--danger);color:var(--danger)}
-/* Login */
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
 .login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px;width:100%;max-width:400px}
 .login-card h1{font-family:'DM Serif Display',serif;font-size:24px;margin-bottom:6px}
@@ -43,11 +34,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn-danger:hover{background:#f9e0dd}
 .btn-gold{background:var(--gold-light);color:var(--gold);border:1px solid #f0d890}
 .btn-gold:hover{background:#fbeec0}
+.btn-green{background:var(--accent);color:#fff}
 .btn-full{width:100%;justify-content:center}
 .alert{padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-bottom:14px;display:none}
 .alert.show{display:block}
 .alert-danger{background:var(--danger-light);color:var(--danger);border:1px solid #f0c0bb}
-/* Main layout */
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
 .main{max-width:1100px;margin:0 auto;padding:28px 20px}
 .page-title{font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:4px}
 .page-sub{color:var(--muted);font-size:14px;margin-bottom:28px}
@@ -56,7 +49,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
 .tab-content{display:none}
 .tab-content.active{display:block}
-/* Cards */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px}
 .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .card-title{font-weight:700;font-size:15px}
@@ -64,40 +56,38 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;text-align:center}
 .stat-num{font-size:28px;font-weight:800;color:var(--accent)}
 .stat-lbl{font-size:12px;color:var(--muted);margin-top:2px}
-/* Session list */
 .session-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
 .session-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
 .session-num{background:var(--accent-light);color:var(--accent-text);font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
 .session-title{font-weight:600;font-size:15px}
 .session-desc{color:var(--muted);font-size:13px;margin-bottom:12px}
-.session-actions{display:flex;gap:8px;flex-wrap:wrap}
+.session-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
 .badge-green{background:#edf5ec;color:#1e4019}
 .badge-gray{background:#f3f4f6;color:#6b7280}
-/* Codes grid */
+/* Timer control */
+.timer-control{background:var(--gold-light);border:1px solid #f0d890;border-radius:var(--radius-lg);padding:16px;margin-top:12px}
+.timer-control-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.timer-display-sm{font-family:monospace;font-size:28px;font-weight:800;color:var(--gold)}
+.timer-control-btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn-sm{padding:6px 14px;font-size:13px}
 .codes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:12px}
-.code-chip{background:var(--gold-light);border:1px solid #f0d890;border-radius:8px;padding:10px 12px;text-align:center;position:relative}
+.code-chip{background:var(--gold-light);border:1px solid #f0d890;border-radius:8px;padding:10px 12px;text-align:center}
 .code-chip.used{background:#f3f4f6;border-color:#e5e7e3;opacity:.7}
 .code-chip .code-val{font-family:monospace;font-size:16px;font-weight:800;letter-spacing:2px;color:var(--gold)}
 .code-chip.used .code-val{color:var(--muted)}
 .code-chip .code-status{font-size:10px;color:var(--muted);margin-top:2px}
-.code-chip .code-used-by{font-size:10px;color:var(--accent);margin-top:2px}
-/* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:.2s}
 .modal-overlay.open{opacity:1;pointer-events:all}
 .modal{background:var(--surface);border-radius:var(--radius-lg);padding:28px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
 .modal h3{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:20px}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
-.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
-@keyframes spin{to{transform:rotate(360deg)}}
-hr{border:none;border-top:1px solid var(--border);margin:16px 0}
 .empty{text-align:center;padding:40px 20px;color:var(--muted)}
 .empty-icon{font-size:36px;margin-bottom:8px}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-wrap">
     <div class="login-card">
@@ -105,7 +95,7 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
       <p>Ghost Digitals Academy — Instructor Access</p>
       <div class="alert alert-danger" id="login-alert"></div>
       <div class="field"><label>Username</label><input type="text" id="login-username" placeholder="digital / event / ai"></div>
-      <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="Your teacher password"></div>
+      <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="Your teacher password" onkeydown="if(event.key==='Enter')teacherLogin()"></div>
       <button class="btn btn-primary btn-full" onclick="teacherLogin()">
         <span id="login-btn-text">Sign In</span>
         <div class="spinner" id="login-spinner"></div>
@@ -114,7 +104,6 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
   </div>
 </div>
 
-<!-- MAIN APP -->
 <div id="app-screen" style="display:none">
   <div class="header">
     <div class="logo">GhostDigitals Academy</div>
@@ -123,53 +112,66 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
       <button class="logout-btn" onclick="logout()">Sign out</button>
     </div>
   </div>
-
   <div class="main">
     <div class="page-title" id="page-title">Teacher Dashboard</div>
-    <div class="page-sub" id="page-sub">Manage your sessions and generate class codes</div>
-
+    <div class="page-sub">Manage your sessions and generate class codes</div>
     <div class="stats-row">
       <div class="stat"><div class="stat-num" id="stat-sessions">0</div><div class="stat-lbl">Total Sessions</div></div>
       <div class="stat"><div class="stat-num" id="stat-codes">0</div><div class="stat-lbl">Codes Generated</div></div>
       <div class="stat"><div class="stat-num" id="stat-used">0</div><div class="stat-lbl">Codes Used</div></div>
     </div>
-
     <div class="tabs">
       <button class="tab active" onclick="switchTab('sessions',this)">📚 Sessions</button>
       <button class="tab" onclick="switchTab('codes',this)">🔑 Class Codes</button>
+      <button class="tab" onclick="switchTab('attendance',this)">✅ Attendance</button>
     </div>
-
-    <!-- SESSIONS TAB -->
     <div class="tab-content active" id="tab-sessions">
       <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
         <button class="btn btn-primary" onclick="openNewSessionModal()">+ New Session</button>
       </div>
-      <div id="sessions-list"><div class="empty"><div class="empty-icon">📚</div>No sessions yet. Create your first session!</div></div>
+      <div id="sessions-list"><div class="empty"><div class="empty-icon">📚</div>No sessions yet.</div></div>
     </div>
-
-    <!-- CODES TAB -->
     <div class="tab-content" id="tab-codes">
       <div class="card">
-        <div class="card-header">
-          <div class="card-title">Generate Class Codes</div>
+        <div class="card-header"><div class="card-title">Generate Class Codes</div></div>
+        <div class="field"><label>Select Session</label><select id="code-session-select" onchange="onCodeSessionChange()"><option value="">— Choose a session —</option></select></div>
+        <div class="field"><label>Number of Codes</label><input type="number" id="code-count" value="20" min="1" max="100"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="generateCodes()">🔑 Generate Codes</button>
+          <button class="btn btn-danger" onclick="deactivateSessionCodes()">🚫 Deactivate All</button>
         </div>
-        <div class="field">
-          <label>Select Session</label>
-          <select id="code-session-select">
+      </div>
+      <div id="codes-display"></div>
+    </div>
+
+    <div class="tab-content" id="tab-attendance">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Attendance QR Code</div></div>
+        <div class="field"><label>Select Session</label>
+          <select id="att-session-select" onchange="startAttendanceQR()" style="width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);outline:none">
             <option value="">— Choose a session —</option>
           </select>
         </div>
-        <div class="field">
-          <label>Number of Codes</label>
-          <input type="number" id="code-count" value="20" min="1" max="100">
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="generateCodes()">🔑 Generate Codes</button>
-          <button class="btn btn-danger" onclick="deactivateSessionCodes()">🚫 Deactivate All for Session</button>
+        <div id="att-qr-wrap" style="display:none;text-align:center;padding:20px 0">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Show this QR code to students. It refreshes every 30 seconds.</div>
+          <canvas id="att-qr-canvas" style="border-radius:12px;border:4px solid var(--accent)"></canvas>
+          <div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px">
+            <div style="font-size:12px;color:var(--muted)">Expires in:</div>
+            <div id="att-qr-countdown" style="font-family:monospace;font-size:18px;font-weight:800;color:var(--accent)">30</div>
+            <div style="font-size:12px;color:var(--muted)">seconds</div>
+          </div>
         </div>
       </div>
 
-      <div id="codes-display"></div>
+      <div id="att-list-wrap" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Live Attendance <span id="att-count" style="color:var(--accent)"></span></div>
+            <button class="btn btn-outline" style="font-size:13px;padding:6px 14px" onclick="loadAttendance()">↻ Refresh</button>
+          </div>
+          <div id="att-list"></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -180,12 +182,10 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
     <h3>Create New Session</h3>
     <div class="alert alert-danger" id="session-alert"></div>
     <div class="field"><label>Session Title *</label><input type="text" id="s-title" placeholder="e.g. Introduction to Social Media Marketing"></div>
-    <div class="field"><label>Session Number</label><input type="number" id="s-number" placeholder="Auto-assigned if empty" min="1"></div>
+    <div class="field"><label>Session Number (optional)</label><input type="number" id="s-number" placeholder="Auto-assigned if empty" min="1"></div>
+    <div class="field"><label>Duration (minutes)</label><input type="number" id="s-duration" value="45" min="5" max="300"></div>
     <div class="field"><label>Description</label><textarea id="s-desc" placeholder="What will students learn in this session?"></textarea></div>
-    <div class="field">
-      <label>Materials (one per line)</label>
-      <textarea id="s-materials" rows="5" placeholder="Slide deck: https://...&#10;Reading: Chapter 3 of textbook&#10;Watch: https://youtube.com/..."></textarea>
-    </div>
+    <div class="field"><label>Materials (one per line)</label><textarea id="s-materials" rows="5" placeholder="Slide deck: https://...&#10;Reading: Chapter 3&#10;Watch: https://youtube.com/..."></textarea></div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('session-modal')">Cancel</button>
       <button class="btn btn-primary" onclick="createSession()" id="create-session-btn">
@@ -196,90 +196,145 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
   </div>
 </div>
 
+<!-- Add Time Modal -->
+<div class="modal-overlay" id="addtime-modal" onclick="closeModalIf(event,'addtime-modal')">
+  <div class="modal" style="max-width:360px">
+    <h3>Add Extra Time</h3>
+    <div class="field"><label>Minutes to add</label><input type="number" id="add-minutes-input" value="10" min="1" max="120"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('addtime-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAddTime()">+ Add Time</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 let teacherData = null;
 let sessions = [];
 let codes = [];
+let activeTimers = {}; // sessionId -> interval
+let currentAddTimeSessionId = null;
 
-// ── Auth ──────────────────────────────────────────────────
 async function teacherLogin() {
   const username = document.getElementById('login-username').value.trim();
   const password = document.getElementById('login-password').value.trim();
-  const alert = document.getElementById('login-alert');
+  const alertEl = document.getElementById('login-alert');
   const btn = document.getElementById('login-btn-text');
   const spinner = document.getElementById('login-spinner');
-
-  if (!username || !password) { showAlert(alert, 'Please enter your username and password'); return; }
-
-  btn.textContent = 'Signing in...'; spinner.style.display = 'block';
+  if (!username || !password) { showAlert(alertEl,'Enter username and password'); return; }
+  btn.textContent='Signing in...'; spinner.style.display='block';
   try {
-    const res = await fetch('/api/sessions?action=login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
+    const res = await fetch('/api/sessions?action=login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Invalid credentials');
-
+    if(!res.ok) throw new Error(data.error||'Invalid credentials');
     teacherData = data;
     localStorage.setItem('teacherSession', JSON.stringify(data));
     showApp();
-  } catch(e) {
-    showAlert(alert, e.message);
-  }
-  btn.textContent = 'Sign In'; spinner.style.display = 'none';
+  } catch(e){ showAlert(alertEl,e.message); }
+  btn.textContent='Sign In'; spinner.style.display='none';
 }
 
-function logout() {
-  teacherData = null;
+function logout(){
+  teacherData=null;
   localStorage.removeItem('teacherSession');
-  document.getElementById('login-screen').style.display = '';
-  document.getElementById('app-screen').style.display = 'none';
+  Object.values(activeTimers).forEach(clearInterval);
+  activeTimers={};
+  document.getElementById('login-screen').style.display='';
+  document.getElementById('app-screen').style.display='none';
 }
 
-function showApp() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app-screen').style.display = '';
-  document.getElementById('teacher-badge').textContent = `👨‍🏫 ${teacherData.label} Teacher`;
-  document.getElementById('page-title').textContent = `${teacherData.label} — Teacher Portal`;
-  document.getElementById('page-sub').textContent = 'Manage your sessions and generate class codes';
+function showApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app-screen').style.display='';
+  document.getElementById('teacher-badge').textContent=`👨‍🏫 ${teacherData.label} Teacher`;
+  document.getElementById('page-title').textContent=`${teacherData.label} — Teacher Portal`;
   loadData();
 }
 
-// ── Data ──────────────────────────────────────────────────
-async function loadData() {
-  try {
-    const res = await fetch('/api/sessions', {
-      headers: { 'x-teacher-key': teacherData.username }
-    });
+async function loadData(){
+  try{
+    const res = await fetch('/api/sessions',{headers:{'x-teacher-key':teacherData.username}});
     const data = await res.json();
-    sessions = data.sessions || [];
-    codes    = data.codes || [];
+    sessions = data.sessions||[];
+    codes = data.codes||[];
     renderAll();
-  } catch(e) { console.error(e); }
+  }catch(e){ console.error(e); }
 }
 
-function renderAll() {
-  renderStats();
-  renderSessions();
-  renderCodesTab();
+function renderAll(){ renderStats(); renderSessions(); renderCodesTab(); }
+
+function renderStats(){
+  document.getElementById('stat-sessions').textContent=sessions.length;
+  document.getElementById('stat-codes').textContent=codes.length;
+  document.getElementById('stat-used').textContent=codes.filter(c=>c.usedBy).length;
 }
 
-function renderStats() {
-  document.getElementById('stat-sessions').textContent = sessions.length;
-  document.getElementById('stat-codes').textContent = codes.length;
-  document.getElementById('stat-used').textContent = codes.filter(c => c.usedBy).length;
+function fmtTime(sec){
+  const m=Math.floor(sec/60).toString().padStart(2,'0');
+  const s=(sec%60).toString().padStart(2,'0');
+  return `${m}:${s}`;
 }
 
-function renderSessions() {
-  const el = document.getElementById('sessions-list');
-  if (!sessions.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">📚</div>No sessions yet. Create your first session!</div>';
-    return;
+function startLocalTimer(sessionId, timer){
+  if(activeTimers[sessionId]) clearInterval(activeTimers[sessionId]);
+  const session = sessions.find(s=>s.id===sessionId);
+  if(!session) return;
+
+  // Calculate current seconds
+  let sLeft = timer.secondsLeft;
+  if(!timer.paused && timer.lastUpdated){
+    const elapsed = Math.floor((Date.now() - timer.lastUpdated)/1000);
+    sLeft = Math.max(0, sLeft - elapsed);
   }
-  el.innerHTML = [...sessions].reverse().map(s => {
-    const sessionCodes = codes.filter(c => c.sessionId === s.id);
-    const usedCodes = sessionCodes.filter(c => c.usedBy).length;
+  session._timerSeconds = sLeft;
+  session._timerPaused = timer.paused;
+  updateTimerDisplay(sessionId);
+
+  if(!timer.paused){
+    activeTimers[sessionId] = setInterval(()=>{
+      if(session._timerSeconds > 0){
+        session._timerSeconds--;
+        updateTimerDisplay(sessionId);
+      } else {
+        clearInterval(activeTimers[sessionId]);
+      }
+    }, 1000);
+  }
+}
+
+function updateTimerDisplay(sessionId){
+  const session = sessions.find(s=>s.id===sessionId);
+  if(!session) return;
+  const el = document.getElementById('timer-display-'+sessionId);
+  const pauseBtn = document.getElementById('timer-pause-'+sessionId);
+  if(!el) return;
+  const sLeft = session._timerSeconds||0;
+  el.textContent = fmtTime(sLeft);
+  const isLow = sLeft < 5*60 && sLeft > 0;
+  el.style.color = sLeft===0 ? 'var(--danger)' : isLow ? 'var(--danger)' : 'var(--gold)';
+  if(pauseBtn){
+    pauseBtn.textContent = session._timerPaused ? '▶ Resume' : '⏸ Pause';
+  }
+}
+
+function renderSessions(){
+  const el = document.getElementById('sessions-list');
+  if(!sessions.length){ el.innerHTML='<div class="empty"><div class="empty-icon">📚</div>No sessions yet. Create your first session!</div>'; return; }
+  el.innerHTML = [...sessions].reverse().map(s=>{
+    const sessionCodes = codes.filter(c=>c.sessionId===s.id);
+    const usedCodes = sessionCodes.filter(c=>c.usedBy).length;
+    const dur = s.durationMinutes||45;
+    // Init local timer state
+    if(s._timerSeconds===undefined){
+      const t = s.timer||{paused:true,secondsLeft:dur*60,lastUpdated:null};
+      s._timerSeconds = t.secondsLeft;
+      s._timerPaused = t.paused;
+      if(!t.paused && t.lastUpdated){
+        const elapsed = Math.floor((Date.now()-t.lastUpdated)/1000);
+        s._timerSeconds = Math.max(0,t.secondsLeft-elapsed);
+      }
+    }
     return `
     <div class="session-item">
       <div class="session-header">
@@ -287,192 +342,308 @@ function renderSessions() {
           <span class="session-num">Session ${s.sessionNumber}</span>
           <div class="session-title" style="margin-top:6px">${s.title}</div>
         </div>
-        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-          <span class="badge ${s.active ? 'badge-green' : 'badge-gray'}">${s.active ? '● Active' : '○ Inactive'}</span>
+        <span class="badge ${s.active?'badge-green':'badge-gray'}">${s.active?'● Active':'○ Inactive'}</span>
+      </div>
+      ${s.description?`<div class="session-desc">${s.description}</div>`:''}
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">⏱ ${dur} min session · 🔑 ${sessionCodes.length} codes · ${usedCodes} used</div>
+
+      <!-- Timer control -->
+      <div class="timer-control">
+        <div class="timer-control-header">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Session Timer</div>
+            <div class="timer-display-sm" id="timer-display-${s.id}">${fmtTime(s._timerSeconds||dur*60)}</div>
+          </div>
+          <div class="timer-control-btns">
+            <button class="btn btn-gold btn-sm" id="timer-pause-${s.id}" onclick="toggleTimer('${s.id}')">${s._timerPaused?'▶ Resume':'⏸ Pause'}</button>
+            <button class="btn btn-outline btn-sm" onclick="openAddTime('${s.id}')">+ Add Time</button>
+            <button class="btn btn-danger btn-sm" onclick="resetTimer('${s.id}')">↺ Reset</button>
+          </div>
         </div>
       </div>
-      ${s.description ? `<div class="session-desc">${s.description}</div>` : ''}
-      ${s.materials?.length ? `
-        <div style="margin-bottom:12px">
-          <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px">MATERIALS</div>
-          ${s.materials.map(m => `<div style="font-size:13px;color:var(--text);margin-bottom:3px">• ${m.startsWith('http') ? `<a href="${m}" target="_blank" style="color:var(--accent)">${m}</a>` : m}</div>`).join('')}
-        </div>` : ''}
-      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">🔑 ${sessionCodes.length} codes generated · ${usedCodes} used</div>
+
       <div class="session-actions">
         <button class="btn btn-gold" onclick="quickGenerateCodes('${s.id}')">🔑 Generate Codes</button>
-        <button class="btn btn-outline" onclick="toggleSession('${s.id}')">
-          ${s.active ? '⏸ Deactivate' : '▶ Activate'}
-        </button>
+        <button class="btn btn-outline" onclick="toggleSession('${s.id}')">${s.active?'⏸ Deactivate':'▶ Activate'}</button>
         <button class="btn btn-danger" onclick="deactivateCodesForSession('${s.id}')">🚫 Kill All Codes</button>
       </div>
     </div>`;
   }).join('');
+
+  // Start local timers
+  sessions.forEach(s=>{
+    if(s.timer && !s.timer.paused){
+      startLocalTimer(s.id, s.timer);
+    }
+  });
 }
 
-function renderCodesTab() {
-  // Update session select
-  const sel = document.getElementById('code-session-select');
-  const current = sel.value;
-  sel.innerHTML = '<option value="">— Choose a session —</option>' +
-    sessions.map(s => `<option value="${s.id}" ${s.id === current ? 'selected' : ''}>Session ${s.sessionNumber}: ${s.title}</option>`).join('');
-
-  // Show codes for selected session
-  const selectedId = sel.value;
-  if (selectedId) showCodesForSession(selectedId);
-}
-
-function showCodesForSession(sessionId) {
-  const sessionCodes = codes.filter(c => c.sessionId === sessionId);
-  const el = document.getElementById('codes-display');
-  if (!sessionCodes.length) { el.innerHTML = ''; return; }
-
-  const active = sessionCodes.filter(c => c.active && !c.usedBy);
-  const used   = sessionCodes.filter(c => c.usedBy);
-  const dead   = sessionCodes.filter(c => !c.active && !c.usedBy);
-
-  el.innerHTML = `
-    <div class="card">
-      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">
-        ${sessionCodes.length} codes total · <span style="color:var(--accent)">${active.length} available</span> · ${used.length} used · ${dead.length} deactivated
-      </div>
-      <div class="codes-grid">
-        ${sessionCodes.map(c => `
-          <div class="code-chip ${c.usedBy || !c.active ? 'used' : ''}">
-            <div class="code-val">${c.code}</div>
-            <div class="code-status">${!c.active ? 'Deactivated' : c.usedBy ? '' : 'Available'}</div>
-            ${c.usedBy ? '<div class="code-used-by">✓ Used</div>' : ''}
-          </div>`).join('')}
-      </div>
-    </div>`;
-}
-
-// ── Actions ───────────────────────────────────────────────
-function switchTab(tab, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('tab-' + tab).classList.add('active');
-}
-
-function openNewSessionModal() {
-  document.getElementById('session-modal').classList.add('open');
-  document.getElementById('s-title').focus();
-}
-
-async function createSession() {
-  const title = document.getElementById('s-title').value.trim();
-  const desc  = document.getElementById('s-desc').value.trim();
-  const num   = document.getElementById('s-number').value;
-  const mats  = document.getElementById('s-materials').value.trim()
-    .split('\n').map(m => m.trim()).filter(Boolean);
-  const alert = document.getElementById('session-alert');
-
-  if (!title) { showAlert(alert, 'Session title is required'); return; }
-
-  const btn = document.getElementById('create-session-btn');
-  const spinner = document.getElementById('create-session-spinner');
-  btn.disabled = true; spinner.style.display = 'block';
-  document.getElementById('create-session-text').textContent = 'Creating...';
-
-  try {
-    const res = await fetch('/api/sessions?action=create-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-teacher-key': teacherData.username },
-      body: JSON.stringify({ title, description: desc, materials: mats, sessionNumber: num ? parseInt(num) : undefined })
-    });
+async function toggleTimer(sessionId){
+  const session = sessions.find(s=>s.id===sessionId);
+  if(!session) return;
+  const command = session._timerPaused ? 'resume' : 'pause';
+  try{
+    const res = await fetch('/api/sessions?action=timer',{method:'PATCH',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({sessionId,command})});
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed');
+    if(!res.ok) throw new Error(data.error);
+    session._timerPaused = data.timer.paused;
+    session._timerSeconds = data.timer.secondsLeft;
+    session.timer = data.timer;
+    if(activeTimers[sessionId]) clearInterval(activeTimers[sessionId]);
+    if(!data.timer.paused){
+      activeTimers[sessionId] = setInterval(()=>{
+        if(session._timerSeconds>0){ session._timerSeconds--; updateTimerDisplay(sessionId); }
+        else { clearInterval(activeTimers[sessionId]); }
+      },1000);
+    }
+    updateTimerDisplay(sessionId);
+  }catch(e){ alert(e.message); }
+}
+
+function openAddTime(sessionId){
+  currentAddTimeSessionId = sessionId;
+  document.getElementById('add-minutes-input').value='10';
+  document.getElementById('addtime-modal').classList.add('open');
+}
+
+async function confirmAddTime(){
+  const mins = parseInt(document.getElementById('add-minutes-input').value)||10;
+  if(!currentAddTimeSessionId) return;
+  try{
+    const res = await fetch('/api/sessions?action=timer',{method:'PATCH',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({sessionId:currentAddTimeSessionId,addMinutes:mins})});
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error);
+    const session = sessions.find(s=>s.id===currentAddTimeSessionId);
+    if(session){ session._timerSeconds=(session._timerSeconds||0)+(mins*60); session.timer=data.timer; updateTimerDisplay(currentAddTimeSessionId); }
+    closeModal('addtime-modal');
+  }catch(e){ alert(e.message); }
+}
+
+async function resetTimer(sessionId){
+  if(!confirm('Reset timer to original duration?')) return;
+  try{
+    const res = await fetch('/api/sessions?action=timer',{method:'PATCH',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({sessionId,command:'reset'})});
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error);
+    const session = sessions.find(s=>s.id===sessionId);
+    if(session){ session._timerSeconds=data.timer.secondsLeft; session._timerPaused=true; session.timer=data.timer; if(activeTimers[sessionId]) clearInterval(activeTimers[sessionId]); updateTimerDisplay(sessionId); }
+  }catch(e){ alert(e.message); }
+}
+
+function onCodeSessionChange(){ showCodesForSession(document.getElementById('code-session-select').value); }
+
+function showCodesForSession(sessionId){
+  const sessionCodes = codes.filter(c=>c.sessionId===sessionId);
+  const el = document.getElementById('codes-display');
+  if(!sessionId||!sessionCodes.length){ el.innerHTML=''; return; }
+  const active=sessionCodes.filter(c=>c.active&&!c.usedBy);
+  const used=sessionCodes.filter(c=>c.usedBy);
+  const dead=sessionCodes.filter(c=>!c.active&&!c.usedBy);
+  el.innerHTML=`<div class="card"><div style="font-size:13px;color:var(--muted);margin-bottom:12px">${sessionCodes.length} codes · <span style="color:var(--accent)">${active.length} available</span> · ${used.length} used · ${dead.length} deactivated</div><div class="codes-grid">${sessionCodes.map(c=>`<div class="code-chip ${c.usedBy||!c.active?'used':''}"><div class="code-val">${c.code}</div><div class="code-status">${!c.active?'Dead':c.usedBy?'Used':'Available'}</div></div>`).join('')}</div></div>`;
+}
+
+function switchTab(tab,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+}
+
+function openNewSessionModal(){ document.getElementById('session-modal').classList.add('open'); document.getElementById('s-title').focus(); }
+
+async function createSession(){
+  const title=document.getElementById('s-title').value.trim();
+  const desc=document.getElementById('s-desc').value.trim();
+  const num=document.getElementById('s-number').value;
+  const dur=document.getElementById('s-duration').value||45;
+  const mats=document.getElementById('s-materials').value.trim().split('\n').map(m=>m.trim()).filter(Boolean);
+  const alertEl=document.getElementById('session-alert');
+  if(!title){ showAlert(alertEl,'Session title is required'); return; }
+  const btn=document.getElementById('create-session-btn');
+  const spinner=document.getElementById('create-session-spinner');
+  btn.disabled=true; spinner.style.display='block';
+  document.getElementById('create-session-text').textContent='Creating...';
+  try{
+    const res=await fetch('/api/sessions?action=create-session',{method:'POST',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({title,description:desc,materials:mats,sessionNumber:num?parseInt(num):undefined,durationMinutes:parseInt(dur)})});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed');
     sessions.push(data.session);
     closeModal('session-modal');
-    document.getElementById('s-title').value = '';
-    document.getElementById('s-desc').value = '';
-    document.getElementById('s-number').value = '';
-    document.getElementById('s-materials').value = '';
+    ['s-title','s-desc','s-number','s-materials'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('s-duration').value='45';
     renderAll();
-  } catch(e) { showAlert(alert, e.message); }
-
-  btn.disabled = false; spinner.style.display = 'none';
-  document.getElementById('create-session-text').textContent = 'Create Session';
+  }catch(e){ showAlert(alertEl,e.message); }
+  btn.disabled=false; spinner.style.display='none';
+  document.getElementById('create-session-text').textContent='Create Session';
 }
 
-async function generateCodes() {
-  const sessionId = document.getElementById('code-session-select').value;
-  const count = parseInt(document.getElementById('code-count').value) || 20;
-  if (!sessionId) { alert('Please select a session first'); return; }
-  await doGenerateCodes(sessionId, count);
+async function generateCodes(){
+  const sessionId=document.getElementById('code-session-select').value;
+  const count=parseInt(document.getElementById('code-count').value)||20;
+  if(!sessionId){ alert('Please select a session first'); return; }
+  await doGenerateCodes(sessionId,count);
 }
 
-async function quickGenerateCodes(sessionId) {
-  const count = parseInt(prompt('How many codes to generate?', '20'));
-  if (!count || count < 1) return;
-  await doGenerateCodes(sessionId, count);
-  switchTab('codes', document.querySelectorAll('.tab')[1]);
-  document.getElementById('code-session-select').value = sessionId;
+async function quickGenerateCodes(sessionId){
+  const count=parseInt(prompt('How many codes to generate?','20'));
+  if(!count||count<1) return;
+  await doGenerateCodes(sessionId,count);
+  switchTab('codes',document.querySelectorAll('.tab')[1]);
+  document.getElementById('code-session-select').value=sessionId;
   showCodesForSession(sessionId);
 }
 
-async function doGenerateCodes(sessionId, count) {
-  try {
-    const res = await fetch('/api/sessions?action=generate-codes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-teacher-key': teacherData.username },
-      body: JSON.stringify({ sessionId, count })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed');
-    codes = [...codes, ...data.codes];
+async function doGenerateCodes(sessionId,count){
+  try{
+    const res=await fetch('/api/sessions?action=generate-codes',{method:'POST',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({sessionId,count})});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed');
+    codes=[...codes,...data.codes];
     renderAll();
     showCodesForSession(sessionId);
-  } catch(e) { alert(e.message); }
+  }catch(e){ alert(e.message); }
 }
 
-async function toggleSession(sessionId) {
-  try {
-    const res = await fetch('/api/sessions?action=toggle-session', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'x-teacher-key': teacherData.username },
-      body: JSON.stringify({ sessionId })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error);
-    const s = sessions.find(s => s.id === sessionId);
-    if (s) s.active = data.active;
+async function toggleSession(sessionId){
+  try{
+    const res=await fetch('/api/sessions?action=toggle-session',{method:'PATCH',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({sessionId})});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error);
+    const s=sessions.find(s=>s.id===sessionId);
+    if(s) s.active=data.active;
     renderAll();
-  } catch(e) { alert(e.message); }
+  }catch(e){ alert(e.message); }
 }
 
-async function deactivateCodesForSession(sessionId) {
-  if (!confirm('Deactivate all unused codes for this session? Students who already used a code can still access the content.')) return;
-  try {
-    await fetch('/api/sessions?action=deactivate-codes', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'x-teacher-key': teacherData.username },
-      body: JSON.stringify({ sessionId })
-    });
-    codes = codes.map(c => c.sessionId === sessionId && !c.usedBy ? { ...c, active: false } : c);
+async function deactivateCodesForSession(sessionId){
+  if(!confirm('Deactivate all unused codes for this session?')) return;
+  try{
+    await fetch('/api/sessions?action=deactivate-codes',{method:'PATCH',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({sessionId})});
+    codes=codes.map(c=>c.sessionId===sessionId&&!c.usedBy?{...c,active:false}:c);
     renderAll();
-  } catch(e) { alert(e.message); }
+  }catch(e){ alert(e.message); }
 }
 
-async function deactivateSessionCodes() {
-  const sessionId = document.getElementById('code-session-select').value;
-  if (!sessionId) { alert('Please select a session first'); return; }
+async function deactivateSessionCodes(){
+  const sessionId=document.getElementById('code-session-select').value;
+  if(!sessionId){ alert('Please select a session first'); return; }
   await deactivateCodesForSession(sessionId);
 }
 
-// ── Helpers ───────────────────────────────────────────────
-function showAlert(el, msg) { el.textContent = msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 4000); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function closeModalIf(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+function showAlert(el,msg){ el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),4000); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function closeModalIf(e,id){ if(e.target===document.getElementById(id)) closeModal(id); }
 
-// Auto login from localStorage
-const saved = localStorage.getItem('teacherSession');
-if (saved) {
-  try {
-    teacherData = JSON.parse(saved);
-    showApp();
-  } catch(e) { localStorage.removeItem('teacherSession'); }
+// ── Attendance ─────────────────────────────────────────────
+let qrInterval = null;
+let countdownInterval = null;
+let currentAttSessionId = null;
+let attendance = [];
+
+function renderCodesTab(){
+  const sel = document.getElementById('code-session-select');
+  const current = sel.value;
+  sel.innerHTML='<option value="">— Choose a session —</option>'+sessions.map(s=>`<option value="${s.id}" ${s.id===current?'selected':''}>Session ${s.sessionNumber}: ${s.title}</option>`).join('');
+
+  // Also update attendance session select
+  const attSel = document.getElementById('att-session-select');
+  const attCurrent = attSel.value;
+  attSel.innerHTML='<option value="">— Choose a session —</option>'+sessions.map(s=>`<option value="${s.id}" ${s.id===attCurrent?'selected':''}>Session ${s.sessionNumber}: ${s.title}</option>`).join('');
+
+  if(current) showCodesForSession(current);
 }
+
+async function startAttendanceQR(){
+  const sessionId = document.getElementById('att-session-select').value;
+  if(!sessionId){ document.getElementById('att-qr-wrap').style.display='none'; document.getElementById('att-list-wrap').style.display='none'; return; }
+  currentAttSessionId = sessionId;
+  document.getElementById('att-qr-wrap').style.display='block';
+  document.getElementById('att-list-wrap').style.display='block';
+
+  if(qrInterval) clearInterval(qrInterval);
+  if(countdownInterval) clearInterval(countdownInterval);
+
+  await refreshQR(sessionId);
+  loadAttendance(sessionId);
+
+  // Refresh QR every 30 seconds
+  qrInterval = setInterval(()=> refreshQR(sessionId), 30000);
+
+  // Refresh attendance every 5 seconds
+  setInterval(()=> loadAttendance(sessionId), 5000);
+
+  // Countdown timer
+  let secondsLeft = 30 - (Math.floor(Date.now()/1000) % 30);
+  document.getElementById('att-qr-countdown').textContent = secondsLeft;
+  countdownInterval = setInterval(()=>{
+    secondsLeft--;
+    if(secondsLeft <= 0) secondsLeft = 30;
+    document.getElementById('att-qr-countdown').textContent = secondsLeft;
+  }, 1000);
+}
+
+async function refreshQR(sessionId){
+  try{
+    const res = await fetch(`/api/sessions?action=qr-token&sessionId=${sessionId}`);
+    const data = await res.json();
+    if(!res.ok) return;
+
+    // Encode token + sessionId as JSON in QR
+    const qrData = JSON.stringify({ sessionId, token: data.token });
+    const canvas = document.getElementById('att-qr-canvas');
+    canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+
+    // Use QRCode library
+    const container = document.createElement('div');
+    new QRCode(container, {
+      text: qrData,
+      width: 280,
+      height: 280,
+      colorDark: '#2d5a27',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+    setTimeout(()=>{
+      const img = container.querySelector('img');
+      if(img){
+        const ctx = canvas.getContext('2d');
+        canvas.width=280; canvas.height=280;
+        const image = new Image();
+        image.onload = ()=> ctx.drawImage(image,0,0);
+        image.src = img.src;
+      }
+    }, 100);
+  }catch(e){ console.error('QR refresh error',e); }
+}
+
+async function loadAttendance(sessionId){
+  sessionId = sessionId || currentAttSessionId;
+  if(!sessionId) return;
+  try{
+    const res = await fetch('/api/sessions',{headers:{'x-teacher-key':teacherData.username}});
+    const data = await res.json();
+    const records = (data.attendance||[]).filter(a=>a.sessionId===sessionId);
+    const sessionCodes = (data.codes||[]).filter(c=>c.sessionId===sessionId&&c.studentName);
+    const total = sessionCodes.length;
+    const present = records.length;
+
+    document.getElementById('att-count').textContent=`(${present}/${total} present)`;
+    const el = document.getElementById('att-list');
+    if(!records.length){ el.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted)">No students have scanned yet</div>'; return; }
+    el.innerHTML=records.map(r=>`
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--accent-light);color:var(--accent-text);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">${r.studentName?r.studentName[0].toUpperCase():'?'}</div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:14px">${r.studentName||'Unknown'}</div>
+          <div style="font-size:12px;color:var(--muted)">${r.studentPhone||''}</div>
+        </div>
+        <div style="font-size:12px;color:var(--accent);font-weight:500">✅ ${new Date(r.markedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+      </div>`).join('');
+  }catch(e){ console.error(e); }
+}
+
+const saved=localStorage.getItem('teacherSession');
+if(saved){ try{ teacherData=JSON.parse(saved); showApp(); }catch(e){ localStorage.removeItem('teacherSession'); } }
 </script>
 </body>
 </html>
