@@ -7,21 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
-:root{
-  --accent:#2d5a27;--accent-light:#edf5ec;--accent-text:#1e4019;
-  --gold:#c4860a;--gold-light:#fdf6e3;
-  --bg:#f8f9f7;--surface:#fff;--border:#e5e7e3;
-  --text:#1a1a1a;--muted:#6b7280;
-  --danger:#c0392b;--danger-light:#fdf0ee;
-  --radius:10px;--radius-lg:14px;
-}
+:root{--accent:#2d5a27;--accent-light:#edf5ec;--accent-text:#1e4019;--gold:#c4860a;--gold-light:#fdf6e3;--bg:#f8f9f7;--surface:#fff;--border:#e5e7e3;--text:#1a1a1a;--muted:#6b7280;--danger:#c0392b;--danger-light:#fdf0ee;--radius:10px;--radius-lg:14px}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
 .header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
 .logo{font-family:'DM Serif Display',serif;font-size:18px;color:var(--accent)}
 .leave-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit}
 .leave-btn:hover{border-color:var(--danger);color:var(--danger)}
-/* Code entry screen */
 .entry-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
 .entry-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px;width:100%;max-width:420px;text-align:center}
 .entry-icon{font-size:48px;margin-bottom:16px}
@@ -29,8 +21,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .entry-card p{color:var(--muted);font-size:14px;margin-bottom:28px;line-height:1.6}
 .code-input{width:100%;padding:16px;text-align:center;font-size:24px;font-weight:800;letter-spacing:6px;font-family:monospace;border:2px solid var(--border);border-radius:var(--radius-lg);outline:none;text-transform:uppercase;transition:.15s;background:var(--surface);color:var(--text);margin-bottom:16px}
 .code-input:focus{border-color:var(--accent)}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:var(--radius);font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:.15s}
-.btn-primary{background:var(--accent);color:#fff;width:100%;justify-content:center}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:var(--radius);font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:.15s;justify-content:center}
+.btn-primary{background:var(--accent);color:#fff;width:100%}
 .btn-primary:hover{opacity:.9}
 .btn-primary:disabled{opacity:.6;cursor:not-allowed}
 .alert{padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-bottom:14px;display:none;text-align:left}
@@ -38,7 +30,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .alert-danger{background:var(--danger-light);color:var(--danger);border:1px solid #f0c0bb}
 .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
 @keyframes spin{to{transform:rotate(360deg)}}
-/* Session content */
 .main{max-width:800px;margin:0 auto;padding:28px 20px}
 .session-hero{background:var(--accent);color:#fff;border-radius:var(--radius-lg);padding:28px;margin-bottom:24px}
 .session-hero .course-label{font-size:12px;font-weight:600;opacity:.8;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
@@ -52,16 +43,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .material-text{flex:1;font-size:14px}
 .material-text a{color:var(--accent);text-decoration:none;font-weight:500}
 .material-text a:hover{text-decoration:underline}
-.timer-card{background:var(--gold-light);border:1px solid #f0d890;border-radius:var(--radius-lg);padding:20px;text-align:center;margin-bottom:24px}
-.timer-label{font-size:12px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
-.timer-display{font-size:48px;font-weight:800;font-family:monospace;color:var(--gold);letter-spacing:2px}
-.timer-sub{font-size:12px;color:var(--muted);margin-top:6px}
+.timer-card{border-radius:var(--radius-lg);padding:20px;text-align:center;margin-bottom:24px;transition:background .5s,border .5s}
+.timer-card.normal{background:var(--gold-light);border:1px solid #f0d890}
+.timer-card.warning{background:#fff3cd;border:1px solid #ffc107;animation:pulse 1s infinite}
+.timer-card.critical{background:var(--danger-light);border:1px solid #f0c0bb;animation:pulse .5s infinite}
+.timer-card.paused{background:#f3f4f6;border:1px solid var(--border)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.8}}
+.timer-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.timer-card.normal .timer-label{color:var(--gold)}
+.timer-card.warning .timer-label{color:#856404}
+.timer-card.critical .timer-label{color:var(--danger)}
+.timer-card.paused .timer-label{color:var(--muted)}
+.timer-display{font-size:56px;font-weight:800;font-family:monospace;letter-spacing:2px}
+.timer-card.normal .timer-display{color:var(--gold)}
+.timer-card.warning .timer-display{color:#856404}
+.timer-card.critical .timer-display{color:var(--danger)}
+.timer-card.paused .timer-display{color:var(--muted)}
+.timer-sub{font-size:13px;margin-top:6px;color:var(--muted)}
 .note-card{background:var(--accent-light);border:1px solid #c8ddc6;border-radius:var(--radius-lg);padding:16px;margin-bottom:24px;font-size:14px;color:var(--accent-text);line-height:1.6}
 </style>
 </head>
 <body>
 
-<!-- CODE ENTRY SCREEN -->
 <div id="entry-screen">
   <div class="entry-wrap">
     <div class="entry-card">
@@ -79,15 +82,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
-<!-- SESSION CONTENT SCREEN -->
 <div id="session-screen" style="display:none">
   <div class="header">
     <div class="logo">GhostDigitals Academy</div>
     <button class="leave-btn" onclick="leaveSession()">Leave Session</button>
   </div>
-
   <div class="main">
-    <!-- Hero -->
     <div class="session-hero">
       <div class="course-label" id="s-course-label"></div>
       <h1 id="s-title"></h1>
@@ -95,123 +95,294 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </div>
 
     <!-- Timer -->
-    <div class="timer-card">
-      <div class="timer-label">⏱ Session Timer</div>
-      <div class="timer-display" id="timer">45:00</div>
-      <div class="timer-sub">Your class session duration</div>
+    <div class="timer-card normal" id="timer-card">
+      <div class="timer-label" id="timer-label">⏱ Session Timer</div>
+      <div class="timer-display" id="timer">--:--</div>
+      <div class="timer-sub" id="timer-sub">Syncing with teacher...</div>
     </div>
 
-    <!-- Description -->
     <div id="s-desc-wrap" style="margin-bottom:24px;display:none">
       <div class="section-title">About This Session</div>
       <div class="note-card" id="s-desc"></div>
     </div>
 
-    <!-- Materials -->
     <div id="s-materials-wrap" style="display:none">
       <div class="section-title">Session Materials</div>
       <div class="materials-list" id="s-materials"></div>
     </div>
 
     <div id="s-no-materials" style="display:none">
-      <div class="note-card">📋 Your teacher hasn't uploaded materials for this session yet. They will appear here when available.</div>
+      <div class="note-card">📋 Your teacher hasn't uploaded materials yet. They will appear here when available.</div>
+    </div>
+
+    <!-- Attendance -->
+    <div id="att-section" style="margin-top:8px">
+      <div class="section-title">Attendance</div>
+      <div id="att-status-card" class="note-card" style="display:none"></div>
+      <button id="scan-att-btn" class="btn btn-primary" onclick="startAttScan()" style="width:100%;margin-top:0">
+        📷 Scan Attendance QR
+      </button>
+      <div id="att-scanner-wrap" style="display:none;margin-top:16px;text-align:center">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Point your camera at the QR code on the teacher's screen</div>
+        <video id="att-video" style="width:100%;max-width:400px;border-radius:12px;border:2px solid var(--accent)" autoplay playsinline></video>
+        <canvas id="att-canvas" style="display:none"></canvas>
+        <button class="btn btn-outline" onclick="stopAttScan()" style="margin-top:12px">Cancel</button>
+      </div>
     </div>
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <script>
 let timerInterval = null;
-let secondsLeft = 45 * 60;
+let syncInterval = null;
+let localSeconds = 0;
+let isPaused = true;
 
-async function joinSession() {
+async function joinSession(){
   const code = document.getElementById('code-input').value.trim().toUpperCase();
   const alertEl = document.getElementById('entry-alert');
   const btn = document.getElementById('join-btn');
   const spinner = document.getElementById('join-spinner');
-
-  if (code.length < 6) { showAlert(alertEl, 'Please enter your 6-character class code'); return; }
-
-  btn.disabled = true; spinner.style.display = 'block';
-  document.getElementById('join-text').textContent = 'Joining...';
-
-  try {
-    const res = await fetch('/api/student-auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code })
-    });
+  if(code.length < 6){ showAlert(alertEl,'Please enter your 6-character class code'); return; }
+  btn.disabled=true; spinner.style.display='block';
+  document.getElementById('join-text').textContent='Joining...';
+  try{
+    const res = await fetch('/api/student-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Invalid code');
+    if(!res.ok) throw new Error(data.error||'Invalid code');
+    currentSession = data.session;
+    window._studentCodeId = data.studentCodeId;
+    window._studentName = data.studentName;
+    saveSession(data.session, code, data.studentCodeId, data.studentName);
     showSession(data.session);
-  } catch(e) {
-    showAlert(alertEl, e.message);
-    btn.disabled = false; spinner.style.display = 'none';
-    document.getElementById('join-text').textContent = 'Enter Class';
+  }catch(e){
+    showAlert(alertEl,e.message);
+    btn.disabled=false; spinner.style.display='none';
+    document.getElementById('join-text').textContent='Enter Class';
   }
 }
 
-function showSession(session) {
-  document.getElementById('entry-screen').style.display = 'none';
-  document.getElementById('session-screen').style.display = '';
+function saveSession(session, code, studentCodeId, studentName){
+  localStorage.setItem('studentSession', JSON.stringify({session, code, studentCodeId, studentName, savedAt: Date.now()}));
+}
 
-  document.getElementById('s-course-label').textContent = session.courseLabel || 'Course Session';
-  document.getElementById('s-title').textContent = session.title;
-  document.getElementById('s-meta').textContent = `Session ${session.sessionNumber} · 45 minutes`;
+function showSession(session){
+  document.getElementById('entry-screen').style.display='none';
+  document.getElementById('session-screen').style.display='';
+  document.getElementById('s-course-label').textContent=session.courseLabel||'Course Session';
+  document.getElementById('s-title').textContent=session.title;
+  document.getElementById('s-meta').textContent=`Session ${session.sessionNumber}`;
 
-  if (session.description) {
-    document.getElementById('s-desc-wrap').style.display = '';
-    document.getElementById('s-desc').textContent = session.description;
+  if(session.description){
+    document.getElementById('s-desc-wrap').style.display='';
+    document.getElementById('s-desc').textContent=session.description;
   }
-
-  const materials = session.materials || [];
-  if (materials.length) {
-    document.getElementById('s-materials-wrap').style.display = '';
-    document.getElementById('s-materials').innerHTML = materials.map(m => {
-      const isUrl = m.startsWith('http');
-      const icon = isUrl ? '🔗' : m.toLowerCase().includes('pdf') ? '📄' : m.toLowerCase().includes('video') || m.toLowerCase().includes('watch') ? '▶️' : '📋';
-      return `<div class="material-item">
-        <div class="material-icon">${icon}</div>
-        <div class="material-text">${isUrl ? `<a href="${m}" target="_blank" rel="noopener">${m}</a>` : m}</div>
-      </div>`;
+  const materials = session.materials||[];
+  if(materials.length){
+    document.getElementById('s-materials-wrap').style.display='';
+    document.getElementById('s-materials').innerHTML=materials.map(m=>{
+      const isUrl=m.startsWith('http');
+      const icon=isUrl?'🔗':m.toLowerCase().includes('pdf')?'📄':m.toLowerCase().includes('video')||m.toLowerCase().includes('watch')?'▶️':'📋';
+      return `<div class="material-item"><div class="material-icon">${icon}</div><div class="material-text">${isUrl?`<a href="${m}" target="_blank" rel="noopener">${m}</a>`:m}</div></div>`;
     }).join('');
   } else {
-    document.getElementById('s-no-materials').style.display = '';
+    document.getElementById('s-no-materials').style.display='';
   }
 
-  startTimer();
+  startTimerSync(session.id);
 }
 
-function startTimer() {
-  secondsLeft = 45 * 60;
-  updateTimerDisplay();
-  timerInterval = setInterval(() => {
-    secondsLeft--;
-    updateTimerDisplay();
-    if (secondsLeft <= 0) {
-      clearInterval(timerInterval);
-      document.getElementById('timer').textContent = '00:00';
+async function startTimerSync(sessionId){
+  // Sync every 5 seconds
+  await syncTimer(sessionId);
+  syncInterval = setInterval(()=>syncTimer(sessionId), 5000);
+}
+
+async function syncTimer(sessionId){
+  try{
+    const res = await fetch(`/api/sessions?action=timer&sessionId=${sessionId}`);
+    const data = await res.json();
+    if(!res.ok) return;
+    const timer = data.timer;
+    isPaused = timer.paused;
+
+    // Calculate accurate seconds
+    let sLeft = timer.secondsLeft;
+    if(!timer.paused && timer.lastUpdated){
+      const elapsed = Math.floor((Date.now()-timer.lastUpdated)/1000);
+      sLeft = Math.max(0, sLeft-elapsed);
     }
-  }, 1000);
+    localSeconds = sLeft;
+    updateTimerUI();
+
+    // Start/stop local countdown
+    if(!timer.paused){
+      if(!timerInterval){
+        timerInterval = setInterval(()=>{
+          if(localSeconds>0){ localSeconds--; updateTimerUI(); }
+          else { clearInterval(timerInterval); timerInterval=null; }
+        },1000);
+      }
+    } else {
+      if(timerInterval){ clearInterval(timerInterval); timerInterval=null; }
+    }
+  }catch(e){ console.error('Timer sync error',e); }
 }
 
-function updateTimerDisplay() {
-  const m = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
-  const s = (secondsLeft % 60).toString().padStart(2, '0');
-  document.getElementById('timer').textContent = `${m}:${s}`;
+function updateTimerUI(){
+  const m=Math.floor(localSeconds/60).toString().padStart(2,'0');
+  const s=(localSeconds%60).toString().padStart(2,'0');
+  document.getElementById('timer').textContent=`${m}:${s}`;
+  const card=document.getElementById('timer-card');
+  const label=document.getElementById('timer-label');
+  const sub=document.getElementById('timer-sub');
+
+  if(isPaused){
+    card.className='timer-card paused';
+    label.textContent='⏸ Timer Paused';
+    sub.textContent='Your teacher has paused the session';
+  } else if(localSeconds===0){
+    card.className='timer-card critical';
+    label.textContent='⏰ Time\'s Up!';
+    sub.textContent='Session time has ended';
+  } else if(localSeconds<=5*60){
+    card.className='timer-card critical';
+    label.textContent='⚠️ Time Almost Up!';
+    sub.textContent=`Less than ${Math.ceil(localSeconds/60)} minute${localSeconds<120?'':'s'} remaining`;
+  } else if(localSeconds<=10*60){
+    card.className='timer-card warning';
+    label.textContent='⏱ Session Timer';
+    sub.textContent='10 minutes remaining';
+  } else {
+    card.className='timer-card normal';
+    label.textContent='⏱ Session Timer';
+    sub.textContent='Time remaining in this session';
+  }
 }
 
-function leaveSession() {
-  if (!confirm('Leave this session? You will need a new code to re-enter.')) return;
-  clearInterval(timerInterval);
-  document.getElementById('session-screen').style.display = 'none';
-  document.getElementById('entry-screen').style.display = '';
-  document.getElementById('code-input').value = '';
+function leaveSession(){
+  if(!confirm('Leave this session?')) return;
+  clearInterval(timerInterval); timerInterval=null;
+  clearInterval(syncInterval); syncInterval=null;
+  localStorage.removeItem('studentSession');
+  currentSession=null;
+  document.getElementById('session-screen').style.display='none';
+  document.getElementById('entry-screen').style.display='';
+  document.getElementById('code-input').value='';
 }
 
-function showAlert(el, msg) {
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 5000);
+function showAlert(el,msg){ el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),5000); }
+
+// Restore session from localStorage on refresh
+const saved = localStorage.getItem('studentSession');
+if(saved){
+  try{
+    const {session, studentCodeId, studentName} = JSON.parse(saved);
+    currentSession = session;
+    window._studentCodeId = studentCodeId;
+    window._studentName = studentName;
+    showSession(session);
+  }catch(e){ localStorage.removeItem('studentSession'); }
+}
+
+// ── Attendance QR Scanner ─────────────────────────────────
+let scanStream = null;
+let scanInterval = null;
+
+async function startAttScan(){
+  document.getElementById('att-scanner-wrap').style.display='block';
+  document.getElementById('scan-att-btn').style.display='none';
+  try{
+    scanStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    const video = document.getElementById('att-video');
+    video.srcObject = scanStream;
+    scanInterval = setInterval(()=> scanQRFrame(), 500);
+  }catch(e){
+    alert('Camera access denied. Please allow camera access to scan the QR code.');
+    stopAttScan();
+  }
+}
+
+function stopAttScan(){
+  if(scanStream) scanStream.getTracks().forEach(t=>t.stop());
+  scanStream = null;
+  clearInterval(scanInterval); scanInterval = null;
+  document.getElementById('att-scanner-wrap').style.display='none';
+  document.getElementById('scan-att-btn').style.display='';
+}
+
+async function scanQRFrame(){
+  const video = document.getElementById('att-video');
+  if(video.readyState !== video.HAVE_ENOUGH_DATA) return;
+  const canvas = document.getElementById('att-canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  const imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+
+  // Use BarcodeDetector if available
+  if('BarcodeDetector' in window){
+    try{
+      const detector = new BarcodeDetector({formats:['qr_code']});
+      const codes = await detector.detect(canvas);
+      if(codes.length > 0){
+        stopAttScan();
+        await processAttendanceQR(codes[0].rawValue);
+      }
+    }catch(e){}
+  } else {
+    // Fallback: jsQR
+    if(window.jsQR){
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      if(code){
+        stopAttScan();
+        await processAttendanceQR(code.data);
+      }
+    }
+  }
+}
+
+async function processAttendanceQR(rawValue){
+  const statusCard = document.getElementById('att-status-card');
+  statusCard.style.display='block';
+  statusCard.textContent='Marking attendance...';
+  statusCard.style.background='var(--accent-light)';
+  statusCard.style.color='var(--accent-text)';
+
+  try{
+    const parsed = JSON.parse(rawValue);
+    const { sessionId, token } = parsed;
+    const studentCodeId = window._studentCodeId;
+
+    if(!studentCodeId){
+      statusCard.textContent='❌ Could not identify you. Please re-enter your class code.';
+      statusCard.style.background='var(--danger-light)';
+      statusCard.style.color='var(--danger)';
+      return;
+    }
+
+    const res = await fetch('/api/sessions?action=attend',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({token, sessionId, studentCodeId})
+    });
+    const data = await res.json();
+
+    if(!res.ok) throw new Error(data.error||'Failed');
+
+    if(data.alreadyMarked){
+      statusCard.textContent=`✅ Already marked present, ${data.studentName||''}!`;
+    } else {
+      statusCard.textContent=`✅ Attendance marked! Welcome, ${data.studentName||''}!`;
+    }
+    document.getElementById('scan-att-btn').style.display='none';
+  }catch(e){
+    statusCard.textContent=`❌ ${e.message}`;
+    statusCard.style.background='var(--danger-light)';
+    statusCard.style.color='var(--danger)';
+  }
 }
 </script>
 </body>
