@@ -545,6 +545,7 @@ tr:last-child td{border-bottom:none}
             <!-- Bulk action bar — shown when 1+ selected -->
             <div id="bulk-bar" style="display:none;align-items:center;gap:12px;padding:10px 16px;background:#fdf0ee;border-bottom:1px solid #f0c0bb">
               <span id="bulk-count" style="font-size:13px;font-weight:600;color:var(--danger)">0 selected</span>
+              <button class="action-btn sm primary" onclick="openGenerateCodesModal()">🔑 Generate Class Codes</button>
               <button class="action-btn sm danger" onclick="bulkDelete()">🗑 Delete selected</button>
               <button class="action-btn sm" onclick="clearSelection()" style="margin-left:auto">✕ Clear selection</button>
             </div>
@@ -704,7 +705,32 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- Add rep modal -->
+<!-- Generate Class Codes modal -->
+<div class="modal-overlay" id="gen-codes-modal" onclick="if(event.target===this)closeGenCodesModal()">
+  <div class="modal" style="width:500px;max-width:95vw">
+    <h3>🔑 Generate Class Codes</h3>
+    <div id="gen-codes-alert" class="alert alert-danger"></div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Generate a unique session code for each selected student. Each code is tied to the student's name for attendance tracking.</p>
+    <div class="field">
+      <label>Select Session *</label>
+      <select id="gen-codes-session" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)">
+        <option value="">Loading sessions...</option>
+      </select>
+    </div>
+    <div id="gen-codes-students-preview" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px;max-height:200px;overflow-y:auto;font-size:13px">
+      Select students first...
+    </div>
+    <div id="gen-codes-result" style="display:none">
+      <div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:12px">✅ Codes generated! Share each code with the corresponding student.</div>
+      <div id="gen-codes-list" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:300px;overflow-y:auto"></div>
+      <button class="action-btn primary" style="margin-top:12px;width:100%;justify-content:center" onclick="copyAllCodes()">📋 Copy All Codes</button>
+    </div>
+    <div class="modal-actions" id="gen-codes-actions">
+      <button class="action-btn" onclick="closeGenCodesModal()">Cancel</button>
+      <button class="action-btn primary" onclick="generateClassCodes()" id="gen-codes-btn">Generate Codes</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="add-rep-modal" onclick="closeModalIf(event)">
   <div class="modal">
     <h3>Add sales rep</h3>
@@ -1341,7 +1367,96 @@ async function bulkDelete(){
   }catch(e){alert('Delete failed: '+e.message);}
 }
 
-// ── Add Student Manually ──────────────────────────────────
+// ── Generate Class Codes ───────────────────────────────────
+async function openGenerateCodesModal() {
+  const ids = getCheckedIds();
+  if (!ids.length) { alert('Select students first'); return; }
+
+  // Show selected students preview
+  const selected = adminData.students.filter(s => ids.includes(s.id));
+  document.getElementById('gen-codes-students-preview').innerHTML =
+    `<div style="font-weight:600;margin-bottom:8px">${selected.length} student${selected.length>1?'s':''} selected:</div>` +
+    selected.map(s => `<div style="padding:3px 0;border-bottom:1px solid var(--border)">👤 ${s.name} — ${s.courseLabel||s.course}</div>`).join('');
+
+  // Load sessions from teacher API
+  const sel = document.getElementById('gen-codes-session');
+  sel.innerHTML = '<option value="">Loading...</option>';
+  try {
+    const res = await fetch('/api/sessions', { headers: { 'x-admin-key': adminKey } });
+    const data = await res.json();
+    const sessions = data.sessions || [];
+    if (!sessions.length) {
+      sel.innerHTML = '<option value="">No sessions found — create one in Teacher Portal first</option>';
+    } else {
+      sel.innerHTML = '<option value="">— Choose a session —</option>' +
+        sessions.map(s => `<option value="${s.id}">Session ${s.sessionNumber}: ${s.title}</option>`).join('');
+    }
+  } catch(e) {
+    sel.innerHTML = '<option value="">Failed to load sessions</option>';
+  }
+
+  document.getElementById('gen-codes-result').style.display = 'none';
+  document.getElementById('gen-codes-actions').style.display = 'flex';
+  document.getElementById('gen-codes-modal').classList.add('show');
+}
+
+function closeGenCodesModal() {
+  document.getElementById('gen-codes-modal').classList.remove('show');
+}
+
+async function generateClassCodes() {
+  const sessionId = document.getElementById('gen-codes-session').value;
+  const alertEl = document.getElementById('gen-codes-alert');
+  if (!sessionId) { showAlert(alertEl, 'Please select a session'); return; }
+
+  const ids = getCheckedIds();
+  const selected = adminData.students.filter(s => ids.includes(s.id));
+
+  const btn = document.getElementById('gen-codes-btn');
+  btn.disabled = true; btn.textContent = 'Generating...';
+
+  try {
+    const res = await fetch('/api/sessions?action=generate-codes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+      body: JSON.stringify({
+        sessionId,
+        count: selected.length,
+        students: selected.map(s => ({ id: s.id, name: s.name, phone: s.phone, course: s.course }))
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+
+    // Show results
+    document.getElementById('gen-codes-result').style.display = 'block';
+    document.getElementById('gen-codes-actions').style.display = 'none';
+    document.getElementById('gen-codes-list').innerHTML = data.codes.map((c, i) => `
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:4px">
+        <div style="font-size:11px;color:var(--muted)">${selected[i]?.name || ''}</div>
+        <div style="font-family:monospace;font-size:18px;font-weight:800;color:var(--accent);letter-spacing:2px">${c.code}</div>
+        <div style="font-size:11px;color:var(--muted)">${selected[i]?.phone || ''}</div>
+      </div>`).join('');
+  } catch(e) { showAlert(alertEl, e.message); }
+
+  btn.disabled = false; btn.textContent = 'Generate Codes';
+}
+
+function copyAllCodes() {
+  const ids = getCheckedIds();
+  const selected = adminData.students.filter(s => ids.includes(s.id));
+  const items = document.getElementById('gen-codes-list').querySelectorAll('div[style]');
+  let text = 'Ghost Digitals Academy — Class Codes\n\n';
+  items.forEach((item, i) => {
+    const name = item.querySelector('div:first-child')?.textContent || '';
+    const code = item.querySelector('div:nth-child(2)')?.textContent || '';
+    const phone = item.querySelector('div:last-child')?.textContent || '';
+    text += `${name} (${phone}): ${code}\n`;
+  });
+  navigator.clipboard.writeText(text).then(() => alert('All codes copied to clipboard!'));
+}
+
+
 let msProofUrl = '';
 let msProofPathname = '';
 let msProofUploading = false;
