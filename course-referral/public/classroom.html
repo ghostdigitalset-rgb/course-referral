@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ghost Digitals Academy — Virtual Classroom</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://meet.jit.si/external_api.js"></script>
+<style>
+:root{
+  --accent:#2d5a27;--accent-light:#edf5ec;--accent-text:#1e4019;
+  --gold:#c4860a;--gold-light:#fdf6e3;
+  --bg:#0f1117;--surface:#1a1d27;--border:#2a2d3a;
+  --text:#e8eaf0;--muted:#8b8fa8;
+  --danger:#e53e3e;--danger-light:#2d1515;
+  --hand:#f6ad55;--hand-light:#2d2010;
+  --radius:10px;--radius-lg:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* Header */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:100}
+.header-left{display:flex;align-items:center;gap:12px}
+.logo{font-family:'DM Serif Display',serif;font-size:16px;color:var(--accent)}
+.session-name{font-size:14px;font-weight:600;color:var(--text)}
+.live-badge{background:#e53e3e;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.header-right{display:flex;align-items:center;gap:10px}
+
+/* Layout */
+.classroom-layout{display:flex;flex:1;overflow:hidden}
+.video-area{flex:1;position:relative;background:#000}
+#jitsi-container{width:100%;height:100%}
+
+/* Sidebar */
+.sidebar{width:320px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:width .3s}
+.sidebar.collapsed{width:0;overflow:hidden}
+.sidebar-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.sidebar-tab{flex:1;padding:12px 8px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
+.sidebar-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.sidebar-content{flex:1;overflow-y:auto;display:none;flex-direction:column}
+.sidebar-content.active{display:flex}
+
+/* Hand raises */
+.hands-section{padding:16px;flex:1}
+.hands-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
+.hand-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--hand-light);border:1px solid #4a3810;border-radius:var(--radius);margin-bottom:8px}
+.hand-avatar{width:32px;height:32px;border-radius:50%;background:var(--gold);color:#000;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.hand-name{flex:1;font-size:13px;font-weight:600;color:var(--text)}
+.hand-time{font-size:11px;color:var(--muted)}
+.hand-actions{display:flex;gap:6px}
+.btn-sm{padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:inherit}
+.btn-allow{background:var(--accent);color:#fff}
+.btn-dismiss{background:var(--border);color:var(--muted)}
+.no-hands{text-align:center;padding:32px 16px;color:var(--muted);font-size:13px}
+.no-hands-icon{font-size:32px;margin-bottom:8px}
+
+/* Notes */
+.notes-section{padding:16px;flex:1;display:flex;flex-direction:column}
+.notes-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.notes-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.notes-save{font-size:11px;color:var(--accent);cursor:pointer;background:none;border:none;font-family:inherit;font-weight:600}
+textarea#notes-area{flex:1;width:100%;min-height:300px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:12px;font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.6;resize:none;outline:none}
+textarea#notes-area:focus{border-color:var(--accent)}
+.notes-saved-msg{font-size:11px;color:var(--accent);margin-top:6px;display:none}
+
+/* Student controls */
+.student-controls{padding:16px;flex:1;display:flex;flex-direction:column;gap:12px}
+.hand-btn{width:100%;padding:16px;border-radius:var(--radius-lg);font-size:15px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:.2s;display:flex;align-items:center;justify-content:center;gap:10px}
+.hand-btn.raise{background:var(--hand-light);border:2px solid var(--hand);color:var(--hand)}
+.hand-btn.raise:hover{background:#3d2a10}
+.hand-btn.lower{background:var(--accent-light);border:2px solid var(--accent);color:var(--accent-text)}
+.hand-btn.lower:hover{opacity:.9}
+.hand-raised-indicator{background:var(--hand-light);border:1px solid var(--hand);border-radius:var(--radius);padding:12px;text-align:center;font-size:13px;color:var(--hand);display:none}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:var(--radius);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-danger{background:#c53030;color:#fff}
+.btn-ghost{background:var(--border);color:var(--text)}
+.btn-ghost:hover{background:#3a3d4a}
+
+/* Join screen */
+.join-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:500;flex-direction:column;gap:24px;padding:24px}
+.join-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:36px;max-width:480px;width:100%;text-align:center}
+.join-card h1{font-family:'DM Serif Display',serif;font-size:24px;margin-bottom:8px}
+.join-card p{color:var(--muted);font-size:14px;margin-bottom:24px;line-height:1.6}
+.join-field{text-align:left;margin-bottom:16px}
+.join-field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.join-field input,.join-field select{width:100%;padding:10px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:inherit;font-size:14px;outline:none}
+.join-field input:focus,.join-field select:focus{border-color:var(--accent)}
+.join-btn{width:100%;padding:14px;border-radius:var(--radius-lg);font-size:15px;font-weight:700;cursor:pointer;border:none;font-family:inherit;background:var(--accent);color:#fff;margin-top:8px}
+.join-btn:hover{opacity:.9}
+.join-btn:disabled{opacity:.5;cursor:not-allowed}
+.join-role-tabs{display:flex;gap:8px;margin-bottom:20px}
+.join-role-tab{flex:1;padding:10px;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--border);background:none;color:var(--muted);font-family:inherit;transition:.15s}
+.join-role-tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.alert{padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-bottom:14px;display:none}
+.alert.show{display:block}
+.alert-danger{background:#2d1515;color:#fc8181;border:1px solid #c53030}
+.spinner-inline{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.waiting-room{text-align:center;padding:40px;color:var(--muted)}
+.waiting-room .icon{font-size:48px;margin-bottom:16px}
+.waiting-room h2{font-size:20px;color:var(--text);margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<!-- JOIN SCREEN -->
+<div class="join-screen" id="join-screen">
+  <div class="join-card">
+    <div style="font-size:40px;margin-bottom:12px">🎓</div>
+    <h1>Virtual Classroom</h1>
+    <p>Ghost Digitals Academy live class session</p>
+
+    <div class="join-role-tabs">
+      <button class="join-role-tab active" onclick="setRole('student',this)">👨‍🎓 Student</button>
+      <button class="join-role-tab" onclick="setRole('teacher',this)">👨‍🏫 Teacher</button>
+    </div>
+
+    <div class="alert alert-danger" id="join-alert"></div>
+
+    <!-- Student fields -->
+    <div id="student-fields">
+      <div class="join-field">
+        <label>Your Session Code</label>
+        <input type="text" id="student-code" placeholder="Enter your class code" style="text-transform:uppercase;letter-spacing:3px;font-size:18px;font-weight:700;font-family:monospace" maxlength="6" oninput="this.value=this.value.toUpperCase()">
+      </div>
+    </div>
+
+    <!-- Teacher fields -->
+    <div id="teacher-fields" style="display:none">
+      <div class="join-field">
+        <label>Username</label>
+        <input type="text" id="teacher-username" placeholder="digital / event / ai">
+      </div>
+      <div class="join-field">
+        <label>Password</label>
+        <input type="password" id="teacher-password" placeholder="Your teacher password">
+      </div>
+      <div class="join-field">
+        <label>Session</label>
+        <select id="teacher-session">
+          <option value="">Loading sessions...</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="join-btn" onclick="joinClassroom()" id="join-btn">
+      <span id="join-btn-text">Join Class</span>
+    </button>
+  </div>
+</div>
+
+<!-- CLASSROOM -->
+<div id="classroom" style="display:none;height:100%;flex-direction:column;flex:1">
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">GDA</div>
+      <div class="session-name" id="header-session-name">Loading...</div>
+      <div class="live-badge">● LIVE</div>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-ghost" onclick="toggleSidebar()" id="sidebar-toggle-btn">📋 Panel</button>
+      <button class="btn btn-danger" onclick="leaveClass()" id="leave-btn">Leave</button>
+    </div>
+  </div>
+
+  <div class="classroom-layout">
+    <div class="video-area">
+      <div id="jitsi-container"></div>
+      <!-- Waiting for teacher -->
+      <div id="waiting-room" class="waiting-room" style="display:none">
+        <div class="icon">⏳</div>
+        <h2>Waiting for teacher to start class...</h2>
+        <p>The video will appear here when your teacher starts the session.</p>
+      </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-tabs">
+        <button class="sidebar-tab active" onclick="switchSideTab('hands',this)" id="hands-tab-btn">🖐 Hands <span id="hand-count-badge"></span></button>
+        <button class="sidebar-tab" onclick="switchSideTab('notes',this)">📝 Notes</button>
+        <button class="sidebar-tab" onclick="switchSideTab('controls',this)" id="controls-tab">🎛 Controls</button>
+      </div>
+
+      <!-- Hand raises (teacher sees this) -->
+      <div class="sidebar-content active" id="tab-hands">
+        <div class="hands-section">
+          <div class="hands-title">Students with Hand Raised</div>
+          <div id="hands-list"><div class="no-hands"><div class="no-hands-icon">🖐</div>No hands raised yet</div></div>
+        </div>
+      </div>
+
+      <!-- Notes (everyone) -->
+      <div class="sidebar-content" id="tab-notes">
+        <div class="notes-section">
+          <div class="notes-header">
+            <div class="notes-label">📝 My Notes</div>
+            <button class="notes-save" onclick="saveNotes()">Save</button>
+          </div>
+          <textarea id="notes-area" placeholder="Take notes here during the class...&#10;&#10;They are saved automatically on your device."></textarea>
+          <div class="notes-saved-msg" id="notes-saved-msg">✓ Notes saved</div>
+        </div>
+      </div>
+
+      <!-- Student controls -->
+      <div class="sidebar-content" id="tab-controls">
+        <div class="student-controls">
+          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Participation</div>
+          <button class="hand-btn raise" id="hand-raise-btn" onclick="toggleHand()">
+            🖐 Raise My Hand
+          </button>
+          <div class="hand-raised-indicator" id="hand-raised-indicator">
+            🖐 Your hand is raised — the teacher will call on you soon!
+          </div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-top:8px">
+            Raise your hand when you have a question. The teacher will see your name and allow you to speak.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let role = 'student';
+let jitsiApi = null;
+let sessionId = null;
+let sessionTitle = '';
+let studentName = '';
+let studentCodeId = null;
+let teacherUsername = null;
+let handRaised = false;
+let pollInterval = null;
+let sidebarOpen = true;
+
+// ── Role selection ────────────────────────────────────────
+function setRole(r, el) {
+  role = r;
+  document.querySelectorAll('.join-role-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('student-fields').style.display = r === 'student' ? '' : 'none';
+  document.getElementById('teacher-fields').style.display = r === 'teacher' ? '' : 'none';
+  document.getElementById('join-btn-text').textContent = r === 'teacher' ? 'Start Class' : 'Join Class';
+  if (r === 'teacher') loadTeacherSessions();
+}
+
+async function loadTeacherSessions() {
+  const u = document.getElementById('teacher-username').value.trim();
+  const p = document.getElementById('teacher-password').value.trim();
+  if (!u || !p) return;
+  try {
+    const res = await fetch('/api/sessions', { headers: { 'x-teacher-key': u } });
+    const data = await res.json();
+    const sel = document.getElementById('teacher-session');
+    sel.innerHTML = '<option value="">— Choose a session —</option>' +
+      (data.sessions || []).map(s => `<option value="${s.id}" data-title="${s.title}">Session ${s.sessionNumber}: ${s.title}</option>`).join('');
+  } catch(e) {}
+}
+
+document.getElementById('teacher-username').addEventListener('blur', loadTeacherSessions);
+document.getElementById('teacher-password').addEventListener('blur', loadTeacherSessions);
+
+// ── Join ──────────────────────────────────────────────────
+async function joinClassroom() {
+  const alertEl = document.getElementById('join-alert');
+  const btn = document.getElementById('join-btn');
+  btn.disabled = true;
+
+  try {
+    if (role === 'teacher') {
+      await joinAsTeacher();
+    } else {
+      await joinAsStudent();
+    }
+  } catch(e) {
+    showAlert(alertEl, e.message);
+    btn.disabled = false;
+  }
+}
+
+async function joinAsTeacher() {
+  const username = document.getElementById('teacher-username').value.trim();
+  const password = document.getElementById('teacher-password').value.trim();
+  const sel = document.getElementById('teacher-session');
+  const sid = sel.value;
+  const title = sel.options[sel.selectedIndex]?.dataset.title || 'Class Session';
+
+  if (!username || !password) throw new Error('Enter your username and password');
+  if (!sid) throw new Error('Select a session');
+
+  // Verify teacher credentials
+  const loginRes = await fetch('/api/sessions?action=login', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  const loginData = await loginRes.json();
+  if (!loginRes.ok) throw new Error(loginData.error || 'Invalid credentials');
+
+  teacherUsername = username;
+  sessionId = sid;
+  sessionTitle = title;
+
+  // Start classroom
+  const startRes = await fetch('/api/classroom?action=start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-teacher-key': username },
+    body: JSON.stringify({ sessionId: sid, sessionTitle: title })
+  });
+  const startData = await startRes.json();
+  if (!startRes.ok) throw new Error(startData.error || 'Failed to start classroom');
+
+  showClassroom('Teacher', startData.roomName, true);
+}
+
+async function joinAsStudent() {
+  const code = document.getElementById('student-code').value.trim().toUpperCase();
+  if (!code || code.length < 6) throw new Error('Enter your 6-character class code');
+
+  // Authenticate student
+  const authRes = await fetch('/api/student-auth', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code })
+  });
+  const authData = await authRes.json();
+  if (!authRes.ok) throw new Error(authData.error || 'Invalid code');
+
+  sessionId = authData.session.id;
+  sessionTitle = authData.session.title;
+  studentName = authData.studentName || 'Student';
+  studentCodeId = authData.studentCodeId;
+
+  // Check if classroom is active
+  const roomRes = await fetch(`/api/classroom?sessionId=${sessionId}`);
+  const roomData = await roomRes.json();
+
+  if (!roomData.room?.active) {
+    showWaitingRoom(authData.session);
+    return;
+  }
+
+  showClassroom(studentName, roomData.room.roomName, false);
+}
+
+// ── Waiting room ──────────────────────────────────────────
+function showWaitingRoom(session) {
+  document.getElementById('join-screen').style.display = 'none';
+  document.getElementById('classroom').style.display = 'flex';
+  document.getElementById('jitsi-container').style.display = 'none';
+  document.getElementById('waiting-room').style.display = 'block';
+  document.getElementById('header-session-name').textContent = session.title;
+
+  // Hide teacher-only tabs
+  document.getElementById('hands-tab-btn').style.display = 'none';
+  document.getElementById('controls-tab').style.display = '';
+  switchSideTab('controls', document.getElementById('controls-tab'));
+
+  // Poll until teacher starts
+  pollInterval = setInterval(async () => {
+    try {
+      const res = await fetch(`/api/classroom?sessionId=${sessionId}`);
+      const data = await res.json();
+      if (data.room?.active) {
+        clearInterval(pollInterval);
+        document.getElementById('waiting-room').style.display = 'none';
+        document.getElementById('jitsi-container').style.display = '';
+        loadJitsi(studentName, data.room.roomName, false);
+        startPolling();
+      }
+    } catch(e) {}
+  }, 3000);
+}
+
+// ── Classroom ─────────────────────────────────────────────
+function showClassroom(displayName, roomName, isTeacher) {
+  document.getElementById('join-screen').style.display = 'none';
+  document.getElementById('classroom').style.display = 'flex';
+  document.getElementById('header-session-name').textContent = sessionTitle;
+
+  // Hide/show teacher vs student tabs
+  if (isTeacher) {
+    document.getElementById('controls-tab').style.display = 'none';
+    switchSideTab('hands', document.querySelector('.sidebar-tab'));
+  } else {
+    document.getElementById('hands-tab-btn').style.display = 'none';
+    switchSideTab('controls', document.getElementById('controls-tab'));
+  }
+
+  // Load saved notes
+  const savedNotes = localStorage.getItem(`notes_${sessionId}`);
+  if (savedNotes) document.getElementById('notes-area').value = savedNotes;
+
+  // Auto-save notes
+  document.getElementById('notes-area').addEventListener('input', () => {
+    localStorage.setItem(`notes_${sessionId}`, document.getElementById('notes-area').value);
+  });
+
+  loadJitsi(displayName, roomName, isTeacher);
+  startPolling();
+}
+
+function loadJitsi(displayName, roomName, isTeacher) {
+  if (jitsiApi) { jitsiApi.dispose(); jitsiApi = null; }
+
+  const domain = 'meet.jit.si';
+  const options = {
+    roomName,
+    width: '100%',
+    height: '100%',
+    parentNode: document.getElementById('jitsi-container'),
+    userInfo: { displayName },
+    configOverwrite: {
+      startWithAudioMuted: !isTeacher,
+      startWithVideoMuted: false,
+      disableDeepLinking: true,
+      enableWelcomePage: false,
+      prejoinPageEnabled: false,
+      disableInviteFunctions: true,
+    },
+    interfaceConfigOverwrite: {
+      TOOLBAR_BUTTONS: isTeacher
+        ? ['microphone','camera','desktop','fullscreen','hangup','chat','settings','videoquality','tileview']
+        : ['microphone','camera','fullscreen','hangup','chat','tileview'],
+      SHOW_JITSI_WATERMARK: false,
+      SHOW_BRAND_WATERMARK: false,
+      DEFAULT_BACKGROUND: '#0f1117',
+    },
+  };
+
+  jitsiApi = new JitsiMeetExternalAPI(domain, options);
+  jitsiApi.addEventListeners({
+    videoConferenceLeft: () => leaveClass(),
+  });
+
+  // Students start muted
+  if (!isTeacher) {
+    jitsiApi.executeCommand('toggleAudio');
+  }
+}
+
+// ── Polling ───────────────────────────────────────────────
+function startPolling() {
+  if (pollInterval) clearInterval(pollInterval);
+  pollInterval = setInterval(async () => {
+    try {
+      const res = await fetch(`/api/classroom?sessionId=${sessionId}`);
+      const data = await res.json();
+      if (!data.ok) return;
+      renderHands(data.hands || []);
+      // Check if class ended
+      if (!data.room?.active && role !== 'teacher') {
+        clearInterval(pollInterval);
+        alert('The teacher has ended the class session.');
+        leaveClass();
+      }
+    } catch(e) {}
+  }, 3000);
+}
+
+// ── Hand raise ────────────────────────────────────────────
+async function toggleHand() {
+  if (!sessionId || !studentCodeId) return;
+  handRaised = !handRaised;
+  const action = handRaised ? 'raise' : 'lower';
+
+  const raiseBtn = document.getElementById('hand-raise-btn');
+  const indicator = document.getElementById('hand-raised-indicator');
+
+  if (handRaised) {
+    raiseBtn.className = 'hand-btn lower';
+    raiseBtn.innerHTML = '✋ Lower My Hand';
+    indicator.style.display = 'block';
+  } else {
+    raiseBtn.className = 'hand-btn raise';
+    raiseBtn.innerHTML = '🖐 Raise My Hand';
+    indicator.style.display = 'none';
+  }
+
+  try {
+    await fetch('/api/classroom?action=raise-hand', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, studentName, studentCodeId, action })
+    });
+  } catch(e) {}
+}
+
+async function allowStudent(studentCodeId) {
+  // Lower their hand and notify (teacher unmutes them in Jitsi manually)
+  await fetch('/api/classroom?action=lower-hand', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-teacher-key': teacherUsername },
+    body: JSON.stringify({ sessionId, studentCodeId })
+  });
+  alert('Hand lowered — unmute the student in the video call to let them speak.');
+}
+
+async function dismissHand(studentCodeId) {
+  await fetch('/api/classroom?action=lower-hand', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-teacher-key': teacherUsername },
+    body: JSON.stringify({ sessionId, studentCodeId })
+  });
+}
+
+function renderHands(hands) {
+  const el = document.getElementById('hands-list');
+  const badge = document.getElementById('hand-count-badge');
+  badge.textContent = hands.length ? `(${hands.length})` : '';
+
+  if (!hands.length) {
+    el.innerHTML = '<div class="no-hands"><div class="no-hands-icon">🖐</div>No hands raised yet</div>';
+    return;
+  }
+
+  el.innerHTML = hands.map(h => `
+    <div class="hand-item">
+      <div class="hand-avatar">${h.studentName ? h.studentName[0].toUpperCase() : '?'}</div>
+      <div style="flex:1">
+        <div class="hand-name">${h.studentName}</div>
+        <div class="hand-time">${formatTime(h.raisedAt)}</div>
+      </div>
+      <div class="hand-actions">
+        <button class="btn-sm btn-allow" onclick="allowStudent('${h.studentCodeId}')">✓ Allow</button>
+        <button class="btn-sm btn-dismiss" onclick="dismissHand('${h.studentCodeId}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── Notes ─────────────────────────────────────────────────
+function saveNotes() {
+  localStorage.setItem(`notes_${sessionId}`, document.getElementById('notes-area').value);
+  const msg = document.getElementById('notes-saved-msg');
+  msg.style.display = 'block';
+  setTimeout(() => msg.style.display = 'none', 2000);
+}
+
+// ── UI helpers ────────────────────────────────────────────
+function switchSideTab(tab, el) {
+  document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.sidebar-content').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+function toggleSidebar() {
+  sidebarOpen = !sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('collapsed', !sidebarOpen);
+}
+
+async function leaveClass() {
+  if (pollInterval) clearInterval(pollInterval);
+  if (jitsiApi) { try { jitsiApi.dispose(); } catch(e){} jitsiApi = null; }
+
+  if (role === 'teacher' && teacherUsername && sessionId) {
+    try {
+      await fetch('/api/classroom?action=stop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-teacher-key': teacherUsername },
+        body: JSON.stringify({ sessionId })
+      });
+    } catch(e) {}
+  }
+
+  window.location.href = role === 'teacher' ? '/teacher-portal.html' : '/student-portal.html';
+}
+
+function formatTime(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function showAlert(el, msg) { el.textContent = msg; el.classList.add('show'); }
+</script>
+</body>
+</html>
