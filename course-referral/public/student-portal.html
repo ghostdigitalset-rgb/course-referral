@@ -92,6 +92,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="course-label" id="s-course-label"></div>
       <h1 id="s-title"></h1>
       <div class="session-meta" id="s-meta"></div>
+      <button id="join-class-btn" onclick="joinLiveClass()" style="margin-top:16px;background:#fff;color:var(--accent);border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;display:none">🎥 Join Live Class</button>
     </div>
 
     <!-- Timer -->
@@ -191,6 +192,8 @@ function showSession(session){
   }
 
   startTimerSync(session.id);
+  checkClassroomActive();
+  setInterval(checkClassroomActive, 10000);
 }
 
 async function startTimerSync(sessionId){
@@ -259,6 +262,25 @@ function updateTimerUI(){
     label.textContent='⏱ Session Timer';
     sub.textContent='Time remaining in this session';
   }
+}
+
+function joinLiveClass() {
+  window.location.href = `/classroom.html?session=${currentSession.id}&role=student`;
+}
+
+async function checkClassroomActive() {
+  if (!currentSession) return;
+  try {
+    const res = await fetch(`/api/classroom?sessionId=${currentSession.id}`);
+    const data = await res.json();
+    const btn = document.getElementById('join-class-btn');
+    if (data.room?.active) {
+      btn.style.display = '';
+      btn.textContent = '🎥 Join Live Class — Active Now!';
+    } else {
+      btn.style.display = 'none';
+    }
+  } catch(e) {}
 }
 
 function leaveSession(){
