@@ -363,6 +363,7 @@ function renderSessions(){
       </div>
 
       <div class="session-actions">
+        <button class="btn btn-green" onclick="startClass('${s.id}','${s.title.replace(/'/g,"\\'")}')">🎥 Start Class</button>
         <button class="btn btn-gold" onclick="quickGenerateCodes('${s.id}')">🔑 Generate Codes</button>
         <button class="btn btn-outline" onclick="toggleSession('${s.id}')">${s.active?'⏸ Deactivate':'▶ Activate'}</button>
         <button class="btn btn-danger" onclick="deactivateCodesForSession('${s.id}')">🚫 Kill All Codes</button>
@@ -528,6 +529,10 @@ async function deactivateSessionCodes(){
   const sessionId=document.getElementById('code-session-select').value;
   if(!sessionId){ alert('Please select a session first'); return; }
   await deactivateCodesForSession(sessionId);
+}
+
+function startClass(sessionId, sessionTitle) {
+  window.open(`/classroom.html?session=${sessionId}&title=${encodeURIComponent(sessionTitle)}&role=teacher`, '_blank');
 }
 
 function showAlert(el,msg){ el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),4000); }
