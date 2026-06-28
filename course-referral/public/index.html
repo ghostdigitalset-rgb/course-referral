@@ -530,6 +530,7 @@ tr:last-child td{border-bottom:none}
               <h3 id="students-count-label">All students</h3>
               <div style="display:flex;gap:8px">
                 <button class="action-btn primary" onclick="openAddStudentModal()">+ Add student</button>
+                <button class="action-btn" onclick="generateAllPortalIds()">🔑 Generate All IDs</button>
                 <button class="action-btn" onclick="exportCSV()">⬇ Export CSV</button>
               </div>
             </div>
@@ -1266,7 +1267,12 @@ function renderStudentsTable(students,reps){
       <td style="color:var(--muted)">${s.phone}</td>
       <td><span class="badge ${courseBadge}">${s.courseLabel||s.course}</span></td>
       <td><span class="badge ${s.classType==='online'?'badge-blue':'badge-green'}">${s.classType==='online'?'💻 Online':'🏫 In-Person'}</span></td>
-      <td style="font-family:monospace;font-size:12px;font-weight:700;color:var(--accent)">${s.portalId||'—'}</td>
+      <td style="font-family:monospace;font-size:12px;font-weight:700;color:var(--accent)">
+        ${s.portalId 
+          ? `<span title="Click to copy" onclick="copyPortalId('${s.portalId}')" style="cursor:pointer">${s.portalId} 📋</span>`
+          : `<button class="action-btn sm" onclick="generatePortalId('${s.id}')">Generate ID</button>`
+        }
+      </td>
       <td>${(s.fee||0).toLocaleString()}</td>
       <td>${refCell}</td>
       <td style="color:var(--muted)">${s.date}</td>
@@ -1376,7 +1382,50 @@ async function bulkDelete(){
   }catch(e){alert('Delete failed: '+e.message);}
 }
 
-// ── Generate Class Codes ───────────────────────────────────
+function copyPortalId(portalId) {
+  navigator.clipboard.writeText(portalId).then(() => {
+    alert(`✅ Copied: ${portalId}\n\nShare this ID with the student to access the student portal at:\ncourse-referral.vercel.app/student-portal.html`);
+  });
+}
+
+async function generatePortalId(studentId) {
+  try {
+    const res = await fetch('/api/student-portal?action=generate-id', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+      body: JSON.stringify({ studentId, classType: 'in-person' })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    const student = adminData.students.find(s => s.id === studentId);
+    if (student) { student.portalId = data.portalId; student.portalActive = true; }
+    renderAdminDashboard();
+    alert(`✅ Portal ID generated!\n\nStudent Portal ID: ${data.portalId}\n\nShare this with the student.`);
+  } catch(e) { alert(e.message); }
+}
+
+async function generateAllPortalIds() {
+  const missing = adminData.students.filter(s => !s.portalId);
+  if (!missing.length) { alert('All students already have Portal IDs!'); return; }
+  if (!confirm(`Generate Portal IDs for ${missing.length} students without IDs?`)) return;
+
+  let generated = 0;
+  for (const s of missing) {
+    try {
+      const res = await fetch('/api/student-portal?action=generate-id', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+        body: JSON.stringify({ studentId: s.id, classType: s.classType || 'in-person' })
+      });
+      const data = await res.json();
+      if (res.ok) { s.portalId = data.portalId; s.portalActive = true; generated++; }
+    } catch(e) {}
+  }
+  renderAdminDashboard();
+  alert(`✅ Generated ${generated} Portal IDs!\n\nRefresh the page and check the Portal ID column to see all IDs.`);
+}
+
+
 async function openGenerateCodesModal() {
   const ids = getCheckedIds();
   if (!ids.length) { alert('Select students first'); return; }
