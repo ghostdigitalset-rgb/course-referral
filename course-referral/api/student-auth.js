@@ -19,12 +19,33 @@ export default async function handler(req, res) {
 
   if (!codeObj) return res.status(404).json({ error: 'Invalid code. Please check and try again.' });
   if (!codeObj.active) return res.status(403).json({ error: 'This code has been deactivated.' });
-  if (codeObj.usedBy) return res.status(403).json({ error: 'This code has already been used.' });
 
   const session = data.sessions.find(s => s.id === codeObj.sessionId);
   if (!session || !session.active) return res.status(403).json({ error: 'This session is no longer active.' });
 
-  // Mark code as used
+  // Allow re-joining — if already used, return existing student info
+  if (codeObj.usedBy) {
+    return res.status(200).json({
+      ok: true,
+      studentId:     codeObj.usedBy,
+      studentCodeId: codeObj.id,
+      studentName:   codeObj.studentName || null,
+      studentPhone:  codeObj.studentPhone || null,
+      alreadyUsed:   true,
+      session: {
+        id:              session.id,
+        title:           session.title,
+        sessionNumber:   session.sessionNumber,
+        description:     session.description,
+        materials:       session.materials,
+        courseLabel:     session.courseLabel,
+        durationMinutes: session.durationMinutes || 45,
+      },
+      code: normalized,
+    });
+  }
+
+  // First time — mark code as used
   const studentId = 'stu_' + Date.now();
   codeObj.usedBy = studentId;
   codeObj.usedAt = new Date().toISOString();
@@ -37,12 +58,12 @@ export default async function handler(req, res) {
     studentName:   codeObj.studentName || null,
     studentPhone:  codeObj.studentPhone || null,
     session: {
-      id:            session.id,
-      title:         session.title,
-      sessionNumber: session.sessionNumber,
-      description:   session.description,
-      materials:     session.materials,
-      courseLabel:   session.courseLabel,
+      id:              session.id,
+      title:           session.title,
+      sessionNumber:   session.sessionNumber,
+      description:     session.description,
+      materials:       session.materials,
+      courseLabel:     session.courseLabel,
       durationMinutes: session.durationMinutes || 45,
     },
     code: normalized,
