@@ -5,6 +5,16 @@ const BASE_LABELS = { digital: 'Digital Marketing', event: 'Event Organizing', a
 const BUNDLE_PRICE = 25000;
 const PAYMENT_METHODS = { telebirr: 'Telebirr', cbe: 'CBE', cash: 'Cash' };
 
+function generatePortalId(existingIds = new Set()) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let id;
+  do {
+    id = 'GDA-';
+    for (let i = 0; i < 6; i++) id += chars[Math.floor(Math.random() * chars.length)];
+  } while (existingIds.has(id));
+  return id;
+}
+
 function resolveCourse(course, courseLabel, fee) {
   // All 3 bundle shortcut
   if (course === 'all3' || course === 'both') {
@@ -52,7 +62,7 @@ export default async function handler(req, res) {
   const {
     name, phone, email, course, courseLabel, fee,
     notes, ref, paymentMethod, paymentStatus,
-    proofUrl, proofPathname, manualEntry
+    proofUrl, proofPathname, manualEntry, classType
   } = req.body;
 
   if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
@@ -71,6 +81,10 @@ export default async function handler(req, res) {
   }
 
   const data = await getData();
+
+  // Generate unique portal ID for student
+  const existingPortalIds = new Set(data.students.map(s => s.portalId).filter(Boolean));
+  const portalId = generatePortalId(existingPortalIds);
 
   const isVerified = manualEntry
     ? (paymentStatus === 'verified')
@@ -93,6 +107,9 @@ export default async function handler(req, res) {
     paymentStatus: isVerified ? 'verified' : 'pending',
     paid: isVerified,
     manualEntry: !!manualEntry,
+    classType: classType || 'in-person',
+    portalId,
+    portalActive: true,
     date: new Date().toLocaleDateString('en-GB'),
     createdAt: new Date().toISOString()
   };
