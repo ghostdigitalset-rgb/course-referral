@@ -265,7 +265,9 @@ function updateTimerUI(){
 }
 
 function joinLiveClass() {
-  window.location.href = `/classroom.html?session=${currentSession.id}&role=student`;
+  const saved = localStorage.getItem('studentSession');
+  const code = saved ? JSON.parse(saved).code : '';
+  window.location.href = `/classroom.html?role=student&session=${currentSession.id}&code=${code}&title=${encodeURIComponent(currentSession.title)}`;
 }
 
 async function checkClassroomActive() {
