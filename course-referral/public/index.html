@@ -553,7 +553,7 @@ tr:last-child td{border-bottom:none}
               <table>
                 <thead><tr>
                   <th style="width:36px"><input type="checkbox" id="select-all-cb" onchange="toggleSelectAll(this)" style="cursor:pointer;width:15px;height:15px"></th>
-                  <th>Name</th><th>Phone</th><th>Course</th><th>Fee</th><th>Referred by</th><th>Date</th><th>Payment</th><th>Proof</th><th></th>
+                  <th>Name</th><th>Phone</th><th>Course</th><th>Class</th><th>Portal ID</th><th>Fee</th><th>Referred by</th><th>Date</th><th>Payment</th><th>Proof</th><th></th>
                 </tr></thead>
                 <tbody id="students-tbody">
                   <tr><td colspan="10"><div class="empty"><div class="empty-icon">🎓</div>No registrations yet</div></td></tr>
@@ -794,6 +794,13 @@ tr:last-child td{border-bottom:none}
           <option value="pending">⏳ Pending</option>
         </select>
       </div>
+    </div>
+    <div class="field">
+      <label>Class Type *</label>
+      <select id="ms-class-type" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)">
+        <option value="in-person">🏫 In-Person</option>
+        <option value="online">💻 Online (Video Call)</option>
+      </select>
     </div>
     <div class="field">
       <label>Proof of payment (optional)</label>
@@ -1258,6 +1265,8 @@ function renderStudentsTable(students,reps){
       <td style="font-weight:500">${s.name}</td>
       <td style="color:var(--muted)">${s.phone}</td>
       <td><span class="badge ${courseBadge}">${s.courseLabel||s.course}</span></td>
+      <td><span class="badge ${s.classType==='online'?'badge-blue':'badge-green'}">${s.classType==='online'?'💻 Online':'🏫 In-Person'}</span></td>
+      <td style="font-family:monospace;font-size:12px;font-weight:700;color:var(--accent)">${s.portalId||'—'}</td>
       <td>${(s.fee||0).toLocaleString()}</td>
       <td>${refCell}</td>
       <td style="color:var(--muted)">${s.date}</td>
@@ -1571,6 +1580,8 @@ async function addStudentManually(){
   const courseLabel = all3 ? 'All 3 courses' : checked.map(k=>COURSE_LABELS[k]).join(' + ');
   const paymentMethodLabel = {cash:'Cash',telebirr:'Telebirr',cbe:'CBE'}[paymentMethod]||paymentMethod;
 
+  const classType = document.getElementById('ms-class-type').value;
+
   const btn = document.getElementById('ms-submit-btn');
   const spinner = document.getElementById('ms-spinner');
   btn.disabled=true; spinner.style.display='block';
@@ -1580,14 +1591,17 @@ async function addStudentManually(){
     const res = await fetch('/api/register',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-admin-key':adminKey},
-      body:JSON.stringify({name,phone,email,notes,course:courseKey,courseLabel,fee,paymentMethod,paymentMethodLabel,paymentStatus,proofUrl:msProofUrl,proofPathname:msProofPathname,manualEntry:true})
+      body:JSON.stringify({name,phone,email,notes,course:courseKey,courseLabel,fee,paymentMethod,paymentMethodLabel,paymentStatus,classType,proofUrl:msProofUrl,proofPathname:msProofPathname,manualEntry:true})
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error||'Failed to add student');
-    // Push to local data and re-render
     adminData.students.push({...data, courseLabel, fee, paymentStatus, paymentMethodLabel});
     closeAddStudentModal();
     renderAdminDashboard();
+    // Show student ID
+    if(data.portalId){
+      alert(`✅ Student added!\n\nStudent Portal ID: ${data.portalId}\n\nShare this ID with the student to access the student portal.`);
+    }
   }catch(e){
     showAlert(alertEl,e.message);
     btn.disabled=false; spinner.style.display='none';
