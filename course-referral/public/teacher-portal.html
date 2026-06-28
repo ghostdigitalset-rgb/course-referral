@@ -532,7 +532,7 @@ async function deactivateSessionCodes(){
 }
 
 function startClass(sessionId, sessionTitle) {
-  window.open(`/classroom.html?session=${sessionId}&title=${encodeURIComponent(sessionTitle)}&role=teacher`, '_blank');
+  window.open(`/classroom.html?role=teacher&session=${sessionId}&teacher=${teacherData.username}&title=${encodeURIComponent(sessionTitle)}`, '_blank');
 }
 
 function showAlert(el,msg){ el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),4000); }
