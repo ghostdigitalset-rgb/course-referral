@@ -397,6 +397,7 @@ function renderSessions(){
         <button class="btn btn-gold" onclick="quickGenerateCodes('${s.id}')">🔑 Generate Codes</button>
         <button class="btn btn-outline" onclick="toggleSession('${s.id}')">${s.active?'⏸ Deactivate':'▶ Activate'}</button>
         <button class="btn btn-danger" onclick="deactivateCodesForSession('${s.id}')">🚫 Kill All Codes</button>
+        <button class="btn btn-danger" onclick="deleteSession('${s.id}')">🗑 Delete</button>
       </div>
     </div>`;
   }).join('');
@@ -546,7 +547,23 @@ async function toggleSession(sessionId){
   }catch(e){ alert(e.message); }
 }
 
-async function deactivateCodesForSession(sessionId){
+async function deleteSession(sessionId){
+  if(!confirm('Delete this session? All codes and attendance for this session will also be deleted. This cannot be undone.')) return;
+  try{
+    const res = await fetch('/api/sessions',{
+      method:'DELETE',
+      headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
+      body:JSON.stringify({sessionId})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed');
+    sessions = sessions.filter(s=>s.id!==sessionId);
+    codes = codes.filter(c=>c.sessionId!==sessionId);
+    renderAll();
+  }catch(e){ alert(e.message); }
+}
+
+
   if(!confirm('Deactivate all unused codes for this session?')) return;
   try{
     await fetch('/api/sessions?action=deactivate-codes',{method:'PATCH',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({sessionId})});
