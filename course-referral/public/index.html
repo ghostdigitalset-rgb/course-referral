@@ -384,8 +384,25 @@ tr:last-child td{border-bottom:none}
         </div>
         <input type="hidden" id="f-payment-method" value="telebirr">
 
-        <div class="field">
-          <label>Proof of payment *</label>
+        <!-- Class type selection -->
+        <div class="field" style="margin-bottom:20px">
+          <label style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;display:block">How will you attend? *</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div id="ct-inperson" onclick="selectClassType('in-person')"
+              style="border:2px solid var(--accent);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:var(--accent-light);transition:.15s">
+              <div style="font-size:24px;margin-bottom:6px">🏫</div>
+              <div style="font-weight:700;font-size:14px;color:var(--accent-text)">In-Person</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">Attend physical classes</div>
+            </div>
+            <div id="ct-online" onclick="selectClassType('online')"
+              style="border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:#fff;transition:.15s">
+              <div style="font-size:24px;margin-bottom:6px">💻</div>
+              <div style="font-weight:700;font-size:14px;color:var(--text)">Online</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">Join via video call</div>
+            </div>
+          </div>
+          <input type="hidden" id="f-class-type" value="in-person">
+        </div>
           <div class="upload-box" id="upload-box" onclick="document.getElementById('f-proof').click()">
             <div id="upload-box-empty">
               <div class="upload-icon">📎</div>
@@ -706,6 +723,32 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+<!-- Edit class type modal -->
+<div class="modal-overlay" id="edit-classtype-modal" onclick="if(event.target===this)closeEditClassType()">
+  <div class="modal" style="max-width:380px">
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:8px">Change Class Type</h3>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:20px">Update how this student attends the course.</p>
+    <input type="hidden" id="edit-ct-student-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+      <div id="edit-ct-inperson" onclick="selectEditClassType('in-person')"
+        style="border:2px solid var(--accent);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:var(--accent-light);transition:.15s">
+        <div style="font-size:24px;margin-bottom:6px">🏫</div>
+        <div style="font-weight:700;font-size:13px;color:var(--accent-text)">In-Person</div>
+      </div>
+      <div id="edit-ct-online" onclick="selectEditClassType('online')"
+        style="border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:#fff;transition:.15s">
+        <div style="font-size:24px;margin-bottom:6px">💻</div>
+        <div style="font-weight:700;font-size:13px">Online</div>
+      </div>
+    </div>
+    <input type="hidden" id="edit-ct-value" value="in-person">
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeEditClassType()" class="action-btn">Cancel</button>
+      <button onclick="saveEditClassType()" class="action-btn primary">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Generate Class Codes modal -->
 <div class="modal-overlay" id="gen-codes-modal" onclick="if(event.target===this)closeGenCodesModal()">
   <div class="modal" style="width:500px;max-width:95vw">
@@ -959,6 +1002,19 @@ function updateCourseUI(){
 }
 
 
+function selectClassType(type) {
+  document.getElementById('f-class-type').value = type;
+  const inperson = document.getElementById('ct-inperson');
+  const online = document.getElementById('ct-online');
+  if (type === 'in-person') {
+    inperson.style.cssText = 'border:2px solid var(--accent);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:var(--accent-light);transition:.15s';
+    online.style.cssText = 'border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:#fff;transition:.15s';
+  } else {
+    online.style.cssText = 'border:2px solid #3b82f6;border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:#eff6ff;transition:.15s';
+    inperson.style.cssText = 'border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:#fff;transition:.15s';
+  }
+}
+
 function selectPaymentMethod(method){
   currentPaymentMethod = method;
   document.getElementById('f-payment-method').value = method;
@@ -1068,7 +1124,7 @@ async function submitReg(){
     const res = await fetch('/api/register',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({name,phone,email,notes,course:courseKey,courseLabel,fee,ref,paymentMethod:currentPaymentMethod,proofUrl,proofPathname})
+      body:JSON.stringify({name,phone,email,notes,course:courseKey,courseLabel,fee,ref,paymentMethod:currentPaymentMethod,proofUrl,proofPathname,classType:document.getElementById('f-class-type').value||'in-person'})
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error||'Registration failed');
@@ -1266,7 +1322,7 @@ function renderStudentsTable(students,reps){
       <td style="font-weight:500">${s.name}</td>
       <td style="color:var(--muted)">${s.phone}</td>
       <td><span class="badge ${courseBadge}">${s.courseLabel||s.course}</span></td>
-      <td><span class="badge ${s.classType==='online'?'badge-blue':'badge-green'}">${s.classType==='online'?'💻 Online':'🏫 In-Person'}</span></td>
+      <td><span class="badge ${s.classType==='online'?'badge-blue':'badge-green'}" onclick="openEditClassType('${s.id}','${s.classType||'in-person'}')" style="cursor:pointer" title="Click to change">${s.classType==='online'?'💻 Online':'🏫 In-Person'} ✏️</span></td>
       <td style="font-family:monospace;font-size:12px;font-weight:700;color:var(--accent)">
         ${s.portalId 
           ? `<span title="Click to copy" onclick="copyPortalId('${s.portalId}')" style="cursor:pointer">${s.portalId} 📋</span>`
@@ -1380,6 +1436,44 @@ async function bulkDelete(){
     adminData.students = adminData.students.filter(s=>!ids.includes(s.id));
     renderAdminDashboard();
   }catch(e){alert('Delete failed: '+e.message);}
+}
+
+// ── Edit Class Type ────────────────────────────────────────
+function openEditClassType(studentId, currentType) {
+  document.getElementById('edit-ct-student-id').value = studentId;
+  document.getElementById('edit-ct-value').value = currentType;
+  selectEditClassType(currentType);
+  document.getElementById('edit-classtype-modal').classList.add('show');
+}
+function closeEditClassType() { document.getElementById('edit-classtype-modal').classList.remove('show'); }
+function selectEditClassType(type) {
+  document.getElementById('edit-ct-value').value = type;
+  const ip = document.getElementById('edit-ct-inperson');
+  const on = document.getElementById('edit-ct-online');
+  if (type === 'in-person') {
+    ip.style.cssText = 'border:2px solid var(--accent);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:var(--accent-light);transition:.15s';
+    on.style.cssText = 'border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:#fff;transition:.15s';
+  } else {
+    on.style.cssText = 'border:2px solid #3b82f6;border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:#eff6ff;transition:.15s';
+    ip.style.cssText = 'border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:#fff;transition:.15s';
+  }
+}
+async function saveEditClassType() {
+  const studentId = document.getElementById('edit-ct-student-id').value;
+  const classType = document.getElementById('edit-ct-value').value;
+  try {
+    const res = await fetch('/api/students', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+      body: JSON.stringify({ studentId, classType })
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Failed');
+    const student = adminData.students.find(s => s.id === studentId);
+    if (student) student.classType = classType;
+    closeEditClassType();
+    renderAdminDashboard();
+  } catch(e) { alert(e.message); }
 }
 
 function copyPortalId(portalId) {
