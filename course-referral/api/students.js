@@ -40,21 +40,26 @@ export default async function handler(req, res) {
 
   // ── PATCH (single student only) ───────────────────────────
   if (req.method === 'PATCH') {
-    if (!id) return res.status(400).json({ error: 'Student ID required' });
+    // Bulk classType update from body (no id needed)
+    const body = req.body || {};
+    if (body.studentId && body.classType) {
+      const student = data.students.find(s => s.id === body.studentId);
+      if (!student) return res.status(404).json({ error: 'Student not found' });
+      student.classType = body.classType;
+      await setData(data);
+      return res.status(200).json({ ok: true, classType: student.classType });
+    }
 
+    if (!id) return res.status(400).json({ error: 'Student ID required' });
     const student = data.students.find(s => s.id === id);
     if (!student) return res.status(404).json({ error: 'Student not found' });
-
     const { status } = req.query;
-
     if (status === 'verified' || status === 'rejected') {
       student.paymentStatus = status;
       student.paid = status === 'verified';
       await setData(data);
       return res.status(200).json({ ok: true, paymentStatus: student.paymentStatus, paid: student.paid });
     }
-
-    // Legacy toggle
     student.paid = !student.paid;
     await setData(data);
     return res.status(200).json({ ok: true, paid: student.paid });
