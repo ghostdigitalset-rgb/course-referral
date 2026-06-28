@@ -4,409 +4,805 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ghost Digitals Academy — Student Portal</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
-:root{--accent:#2d5a27;--accent-light:#edf5ec;--accent-text:#1e4019;--gold:#c4860a;--gold-light:#fdf6e3;--bg:#f8f9f7;--surface:#fff;--border:#e5e7e3;--text:#1a1a1a;--muted:#6b7280;--danger:#c0392b;--danger-light:#fdf0ee;--radius:10px;--radius-lg:14px}
+:root{
+  --accent:#2d5a27;--accent-light:#edf5ec;--accent-text:#1e4019;
+  --gold:#c4860a;--gold-light:#fdf6e3;
+  --bg:#f8f9f7;--surface:#fff;--border:#e5e7e3;
+  --text:#1a1a1a;--muted:#6b7280;
+  --danger:#c0392b;--danger-light:#fdf0ee;
+  --radius:10px;--radius-lg:14px;
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
-.header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
-.logo{font-family:'DM Serif Display',serif;font-size:18px;color:var(--accent)}
-.leave-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit}
-.leave-btn:hover{border-color:var(--danger);color:var(--danger)}
-.entry-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-.entry-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px;width:100%;max-width:420px;text-align:center}
-.entry-icon{font-size:48px;margin-bottom:16px}
-.entry-card h1{font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:8px}
-.entry-card p{color:var(--muted);font-size:14px;margin-bottom:28px;line-height:1.6}
-.code-input{width:100%;padding:16px;text-align:center;font-size:24px;font-weight:800;letter-spacing:6px;font-family:monospace;border:2px solid var(--border);border-radius:var(--radius-lg);outline:none;text-transform:uppercase;transition:.15s;background:var(--surface);color:var(--text);margin-bottom:16px}
-.code-input:focus{border-color:var(--accent)}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:var(--radius);font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:.15s;justify-content:center}
-.btn-primary{background:var(--accent);color:#fff;width:100%}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* No screenshot/print */
+@media print{body{display:none!important}}
+
+/* Login */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#1a2d18 0%,#2d5a27 100%)}
+.login-card{background:#fff;border-radius:20px;padding:40px;width:100%;max-width:400px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.login-logo{font-size:48px;margin-bottom:12px}
+.login-card h1{font-family:'DM Serif Display',serif;font-size:24px;color:var(--accent);margin-bottom:6px}
+.login-card p{color:var(--muted);font-size:13px;margin-bottom:28px}
+.id-input{width:100%;padding:16px;text-align:center;font-size:22px;font-weight:800;letter-spacing:4px;font-family:monospace;border:2px solid var(--border);border-radius:var(--radius-lg);outline:none;text-transform:uppercase;transition:.15s;margin-bottom:16px}
+.id-input:focus{border-color:var(--accent)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:var(--radius);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:.15s;width:100%}
+.btn-primary{background:var(--accent);color:#fff}
 .btn-primary:hover{opacity:.9}
-.btn-primary:disabled{opacity:.6;cursor:not-allowed}
-.alert{padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-bottom:14px;display:none;text-align:left}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.alert{padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-bottom:14px;display:none}
 .alert.show{display:block}
 .alert-danger{background:var(--danger-light);color:var(--danger);border:1px solid #f0c0bb}
 .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
 @keyframes spin{to{transform:rotate(360deg)}}
-.main{max-width:800px;margin:0 auto;padding:28px 20px}
-.session-hero{background:var(--accent);color:#fff;border-radius:var(--radius-lg);padding:28px;margin-bottom:24px}
-.session-hero .course-label{font-size:12px;font-weight:600;opacity:.8;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
-.session-hero h1{font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:8px}
-.session-hero .session-meta{font-size:13px;opacity:.8}
-.section-title{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
-.materials-list{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:24px}
-.material-item{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
-.material-item:last-child{border-bottom:none}
-.material-icon{font-size:18px;flex-shrink:0}
-.material-text{flex:1;font-size:14px}
-.material-text a{color:var(--accent);text-decoration:none;font-weight:500}
-.material-text a:hover{text-decoration:underline}
-.timer-card{border-radius:var(--radius-lg);padding:20px;text-align:center;margin-bottom:24px;transition:background .5s,border .5s}
-.timer-card.normal{background:var(--gold-light);border:1px solid #f0d890}
-.timer-card.warning{background:#fff3cd;border:1px solid #ffc107;animation:pulse 1s infinite}
-.timer-card.critical{background:var(--danger-light);border:1px solid #f0c0bb;animation:pulse .5s infinite}
-.timer-card.paused{background:#f3f4f6;border:1px solid var(--border)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.8}}
-.timer-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
-.timer-card.normal .timer-label{color:var(--gold)}
-.timer-card.warning .timer-label{color:#856404}
-.timer-card.critical .timer-label{color:var(--danger)}
-.timer-card.paused .timer-label{color:var(--muted)}
-.timer-display{font-size:56px;font-weight:800;font-family:monospace;letter-spacing:2px}
-.timer-card.normal .timer-display{color:var(--gold)}
-.timer-card.warning .timer-display{color:#856404}
-.timer-card.critical .timer-display{color:var(--danger)}
-.timer-card.paused .timer-display{color:var(--muted)}
-.timer-sub{font-size:13px;margin-top:6px;color:var(--muted)}
-.note-card{background:var(--accent-light);border:1px solid #c8ddc6;border-radius:var(--radius-lg);padding:16px;margin-bottom:24px;font-size:14px;color:var(--accent-text);line-height:1.6}
+
+/* Main layout */
+.header{background:var(--accent);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-logo{font-family:'DM Serif Display',serif;font-size:16px;color:#fff}
+.header-student{display:flex;align-items:center;gap:10px}
+.student-name-badge{color:rgba(255,255,255,.9);font-size:13px;font-weight:600}
+.student-id-badge{background:rgba(255,255,255,.15);color:#fff;font-size:11px;font-family:monospace;padding:3px 10px;border-radius:20px;font-weight:700}
+.logout-btn{background:rgba(255,255,255,.15);color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit}
+
+.main{max-width:1100px;margin:0 auto;padding:28px 20px}
+
+/* Grade banner */
+.grade-banner{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.grade-circle{width:72px;height:72px;border-radius:50%;border:4px solid var(--accent);display:flex;align-items:center;justify-content:center;flex-direction:column;flex-shrink:0}
+.grade-pct{font-size:20px;font-weight:800;color:var(--accent)}
+.grade-lbl{font-size:9px;color:var(--muted);font-weight:600;text-transform:uppercase}
+.grade-info h2{font-size:16px;font-weight:700;margin-bottom:3px}
+.grade-info p{font-size:13px;color:var(--muted)}
+.class-type-badge{margin-left:auto;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700}
+.badge-online{background:#dbeafe;color:#1e40af}
+.badge-inperson{background:var(--accent-light);color:var(--accent-text)}
+
+/* Sessions grid */
+.sessions-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:28px}
+.session-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:.2s;cursor:pointer}
+.session-card:hover:not(.locked){transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.session-card.locked{opacity:.6;cursor:not-allowed}
+.session-card-top{padding:16px;border-bottom:1px solid var(--border)}
+.session-num{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.session-title{font-weight:700;font-size:15px;margin-bottom:8px}
+.session-badges{display:flex;gap:6px;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-locked{background:#f3f4f6;color:#6b7280}
+.badge-unlocked{background:var(--accent-light);color:var(--accent-text)}
+.badge-quiz{background:var(--gold-light);color:var(--gold)}
+.badge-quiz-done{background:#edf5ec;color:#1e4019}
+.session-card-bottom{padding:12px 16px;display:flex;align-items:center;gap:8px}
+.lock-icon{font-size:18px}
+.session-action-text{font-size:13px;color:var(--muted)}
+
+/* Ask teacher section */
+.ask-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px}
+.ask-section h3{font-size:16px;font-weight:700;margin-bottom:6px}
+.ask-section p{font-size:13px;color:var(--muted);margin-bottom:16px}
+.ask-form{display:flex;gap:10px}
+.ask-input{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:14px;outline:none;background:var(--surface)}
+.ask-input:focus{border-color:var(--accent)}
+.ask-btn{padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.ask-btn:hover{opacity:.9}
+
+/* Session detail overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:stretch;justify-content:flex-end;opacity:0;pointer-events:none;transition:.25s}
+.overlay.open{opacity:1;pointer-events:all}
+.detail-panel{background:var(--surface);width:100%;max-width:900px;height:100%;overflow-y:auto;transform:translateX(100%);transition:.3s;display:flex;flex-direction:column}
+.overlay.open .detail-panel{transform:translateX(0)}
+.detail-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;position:sticky;top:0;background:var(--surface);z-index:10}
+.detail-back{background:none;border:1px solid var(--border);padding:6px 14px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px}
+.detail-title{font-weight:700;font-size:16px;flex:1}
+.detail-body{flex:1;display:flex;overflow:hidden}
+
+/* PDF viewer */
+.pdf-panel{flex:1;background:#525659;position:relative;overflow:hidden}
+.pdf-panel iframe{width:100%;height:100%;border:none}
+.pdf-toolbar{padding:8px 16px;background:#323639;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.pdf-toolbar button{background:rgba(255,255,255,.1);color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit}
+.pdf-toolbar button:hover{background:rgba(255,255,255,.2)}
+.pdf-toolbar span{color:rgba(255,255,255,.7);font-size:12px}
+
+/* Notes sidebar */
+.notes-panel{width:280px;border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.notes-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.notes-tab{flex:1;padding:10px 6px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);border-bottom:2px solid transparent;font-family:inherit;transition:.15s}
+.notes-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.notes-content{flex:1;overflow-y:auto;display:none;flex-direction:column;padding:12px}
+.notes-content.active{display:flex}
+.notes-textarea{flex:1;width:100%;border:1px solid var(--border);border-radius:var(--radius);padding:10px;font-family:inherit;font-size:13px;resize:none;outline:none;line-height:1.6;min-height:200px}
+.notes-textarea:focus{border-color:var(--accent)}
+.dl-notes-btn{margin-top:8px;padding:8px;background:var(--accent-light);color:var(--accent-text);border:1px solid #c8ddc6;border-radius:var(--radius);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center}
+.dl-notes-btn:hover{background:var(--accent);color:#fff}
+.saved-msg{font-size:11px;color:var(--accent);margin-top:4px;display:none;text-align:center}
+
+/* Quiz overlay */
+.quiz-overlay{position:fixed;inset:0;background:#0f1117;z-index:500;display:none;flex-direction:column}
+.quiz-overlay.open{display:flex}
+.quiz-header{padding:16px 24px;background:#1a1d27;border-bottom:1px solid #2a2d3a;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.quiz-title{color:#e8eaf0;font-weight:700;font-size:16px}
+.quiz-timer{font-family:monospace;font-size:20px;font-weight:800;color:#f6ad55}
+.quiz-body{flex:1;overflow-y:auto;padding:28px;max-width:700px;margin:0 auto;width:100%}
+.quiz-progress{background:#2a2d3a;border-radius:20px;height:6px;margin-bottom:24px}
+.quiz-progress-bar{background:var(--accent);height:100%;border-radius:20px;transition:.3s}
+.quiz-question{color:#e8eaf0;font-size:17px;font-weight:600;margin-bottom:20px;line-height:1.5}
+.quiz-qnum{font-size:12px;color:#8b8fa8;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+.quiz-options{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.quiz-option{padding:14px 18px;background:#1a1d27;border:2px solid #2a2d3a;border-radius:var(--radius-lg);color:#e8eaf0;cursor:pointer;transition:.15s;font-size:14px;text-align:left;font-family:inherit}
+.quiz-option:hover{border-color:#4a4d6a}
+.quiz-option.selected{border-color:var(--accent);background:rgba(45,90,39,.2)}
+.quiz-nav{display:flex;gap:10px;justify-content:space-between}
+.quiz-btn{padding:11px 24px;border-radius:var(--radius);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:.15s}
+.quiz-btn-prev{background:#2a2d3a;color:#e8eaf0}
+.quiz-btn-next{background:var(--accent);color:#fff}
+.quiz-btn-submit{background:#f6ad55;color:#1a1a1a}
+.quiz-btn-quit{background:#3a1515;color:#fc8181;border:1px solid #c53030;font-size:12px;padding:8px 16px}
+.quiz-footer{padding:16px 24px;background:#1a1d27;border-top:1px solid #2a2d3a;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+
+/* Quiz results */
+.quiz-result{text-align:center;padding:40px 20px}
+.result-circle{width:120px;height:120px;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;flex-direction:column;border:6px solid}
+.result-pct{font-size:28px;font-weight:800}
+.result-score{font-size:13px;margin-top:4px}
+.result-pass{border-color:#48bb78;color:#48bb78}
+.result-fail{border-color:#f6ad55;color:#f6ad55}
+.result-zero{border-color:#fc8181;color:#fc8181}
+.result-breakdown{background:#1a1d27;border-radius:var(--radius-lg);padding:20px;margin-top:24px;text-align:left}
+.result-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #2a2d3a;font-size:13px;color:#e8eaf0}
+.result-item:last-child{border-bottom:none}
+.result-correct{color:#48bb78}
+.result-wrong{color:#fc8181}
+
+/* No screenshot overlay trick */
+.no-screenshot{position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;user-select:none;-webkit-user-select:none}
 </style>
 </head>
 <body>
 
-<div id="entry-screen">
-  <div class="entry-wrap">
-    <div class="entry-card">
-      <div class="entry-icon">🎓</div>
-      <h1>Join Today's Class</h1>
-      <p>Enter the 6-character code your teacher gave you to access today's session materials.</p>
-      <div class="alert alert-danger" id="entry-alert"></div>
-      <input type="text" class="code-input" id="code-input" placeholder="ABC123" maxlength="6"
-        oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinSession()">
-      <button class="btn btn-primary" onclick="joinSession()" id="join-btn">
-        <span id="join-text">Enter Class</span>
-        <div class="spinner" id="join-spinner"></div>
+<!-- Anti-screenshot CSS -->
+<div class="no-screenshot" aria-hidden="true"></div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">🎓</div>
+      <h1>Student Portal</h1>
+      <p>Enter your Student ID to access your courses and sessions</p>
+      <div class="alert alert-danger" id="login-alert"></div>
+      <input type="text" class="id-input" id="portal-id-input" placeholder="GDA-XXXXXX" maxlength="10"
+        oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')login()">
+      <button class="btn btn-primary" onclick="login()" id="login-btn">
+        <span id="login-text">Enter Portal</span>
+        <div class="spinner" id="login-spinner"></div>
       </button>
     </div>
   </div>
 </div>
 
-<div id="session-screen" style="display:none">
+<!-- MAIN PORTAL -->
+<div id="portal" style="display:none">
   <div class="header">
-    <div class="logo">GhostDigitals Academy</div>
-    <button class="leave-btn" onclick="leaveSession()">Leave Session</button>
+    <div class="header-logo">GhostDigitals Academy</div>
+    <div class="header-student">
+      <span class="student-name-badge" id="h-name"></span>
+      <span class="student-id-badge" id="h-id"></span>
+      <button class="logout-btn" onclick="logout()">Sign out</button>
+    </div>
   </div>
+
   <div class="main">
-    <div class="session-hero">
-      <div class="course-label" id="s-course-label"></div>
-      <h1 id="s-title"></h1>
-      <div class="session-meta" id="s-meta"></div>
-      <button id="join-class-btn" onclick="joinLiveClass()" style="margin-top:16px;background:#fff;color:var(--accent);border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;display:none">🎥 Join Live Class</button>
+    <!-- Grade banner -->
+    <div class="grade-banner">
+      <div class="grade-circle">
+        <div class="grade-pct" id="grade-pct">—</div>
+        <div class="grade-lbl">Grade</div>
+      </div>
+      <div class="grade-info">
+        <h2 id="grade-course"></h2>
+        <p id="grade-subtitle">Complete quizzes to see your grade</p>
+      </div>
+      <div class="class-type-badge" id="class-type-badge"></div>
     </div>
 
-    <!-- Timer -->
-    <div class="timer-card normal" id="timer-card">
-      <div class="timer-label" id="timer-label">⏱ Session Timer</div>
-      <div class="timer-display" id="timer">--:--</div>
-      <div class="timer-sub" id="timer-sub">Syncing with teacher...</div>
+    <!-- Join live class (online only) -->
+    <div id="live-class-banner" style="display:none;background:var(--accent);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:24px;display:none;align-items:center;justify-content:space-between">
+      <div>
+        <div style="color:#fff;font-weight:700;font-size:15px">🎥 Live Class Active!</div>
+        <div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:2px">Your teacher has started the class</div>
+      </div>
+      <button onclick="joinLiveClass()" style="background:#fff;color:var(--accent);border:none;padding:10px 20px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer">Join Now</button>
     </div>
 
-    <div id="s-desc-wrap" style="margin-bottom:24px;display:none">
-      <div class="section-title">About This Session</div>
-      <div class="note-card" id="s-desc"></div>
+    <!-- Sessions -->
+    <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Your Sessions</div>
+    <div class="sessions-grid" id="sessions-grid">
+      <div style="text-align:center;padding:40px;color:var(--muted);grid-column:1/-1">Loading sessions...</div>
     </div>
 
-    <div id="s-materials-wrap" style="display:none">
-      <div class="section-title">Session Materials</div>
-      <div class="materials-list" id="s-materials"></div>
+    <!-- Ask teacher -->
+    <div class="ask-section">
+      <h3>💬 Ask Your Teacher</h3>
+      <p>Have a question about the course? Leave it here and your teacher will respond.</p>
+      <div id="ask-alert" class="alert alert-danger"></div>
+      <div class="ask-form">
+        <input type="text" class="ask-input" id="ask-input" placeholder="Type your question here..." onkeydown="if(event.key==='Enter')submitQuestion()">
+        <button class="ask-btn" onclick="submitQuestion()">Send</button>
+      </div>
+      <div id="ask-success" style="display:none;font-size:13px;color:var(--accent);margin-top:8px;font-weight:600">✅ Question sent! Your teacher will respond soon.</div>
     </div>
+  </div>
+</div>
 
-    <div id="s-no-materials" style="display:none">
-      <div class="note-card">📋 Your teacher hasn't uploaded materials yet. They will appear here when available.</div>
+<!-- SESSION DETAIL OVERLAY -->
+<div class="overlay" id="session-overlay" onclick="closeSessionIfBackdrop(event)">
+  <div class="detail-panel" id="detail-panel">
+    <div class="detail-header">
+      <button class="detail-back" onclick="closeSession()">← Back</button>
+      <div class="detail-title" id="detail-title"></div>
+      <button id="quiz-start-btn" onclick="startQuiz()" style="background:var(--gold);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;display:none">📝 Take Quiz</button>
+      <button id="join-class-btn" onclick="joinLiveClass()" style="background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;display:none;margin-left:6px">🎥 Join Class</button>
     </div>
-
-    <!-- Attendance -->
-    <div id="att-section" style="margin-top:8px">
-      <div class="section-title">Attendance</div>
-      <div id="att-status-card" class="note-card" style="display:none"></div>
-      <button id="scan-att-btn" class="btn btn-primary" onclick="startAttScan()" style="width:100%;margin-top:0">
-        📷 Scan Attendance QR
-      </button>
-      <div id="att-scanner-wrap" style="display:none;margin-top:16px;text-align:center">
-        <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Point your camera at the QR code on the teacher's screen</div>
-        <video id="att-video" style="width:100%;max-width:400px;border-radius:12px;border:2px solid var(--accent)" autoplay playsinline></video>
-        <canvas id="att-canvas" style="display:none"></canvas>
-        <button class="btn btn-outline" onclick="stopAttScan()" style="margin-top:12px">Cancel</button>
+    <div class="detail-body">
+      <!-- PDF viewer -->
+      <div style="flex:1;display:flex;flex-direction:column;background:#525659">
+        <div class="pdf-toolbar" id="pdf-toolbar" style="display:none">
+          <span id="pdf-page-info" style="color:rgba(255,255,255,.7);font-size:12px"></span>
+          <span style="flex:1"></span>
+          <button onclick="prevPage()">◀ Prev</button>
+          <button onclick="nextPage()">Next ▶</button>
+        </div>
+        <div id="pdf-viewer" style="flex:1;display:flex;align-items:center;justify-content:center;background:#525659">
+          <div style="text-align:center;color:rgba(255,255,255,.5)">
+            <div style="font-size:48px;margin-bottom:12px">📄</div>
+            <div>Loading session content...</div>
+          </div>
+        </div>
+      </div>
+      <!-- Notes sidebar -->
+      <div class="notes-panel">
+        <div class="notes-tabs">
+          <button class="notes-tab active" onclick="switchNotesTab('notes',this)">📝 Notes</button>
+          <button class="notes-tab" onclick="switchNotesTab('highlights',this)">🖊 Highlights</button>
+        </div>
+        <div class="notes-content active" id="notes-tab-notes">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Your private notes for this session:</div>
+          <textarea class="notes-textarea" id="notes-area" placeholder="Take notes here...&#10;&#10;They are saved automatically." oninput="scheduleNotesSave()"></textarea>
+          <div class="saved-msg" id="notes-saved">✓ Saved</div>
+          <button class="dl-notes-btn" onclick="downloadNotes()">⬇ Download Notes as PDF</button>
+        </div>
+        <div class="notes-content" id="notes-tab-highlights">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Select text in the PDF viewer to highlight it:</div>
+          <div id="highlights-list" style="font-size:12px;color:var(--muted)">No highlights yet</div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<!-- QUIZ OVERLAY (fullscreen, locked) -->
+<div class="quiz-overlay" id="quiz-overlay">
+  <div class="quiz-header">
+    <div class="quiz-title" id="quiz-title">Quiz</div>
+    <div class="quiz-timer" id="quiz-timer">30:00</div>
+  </div>
+  <div class="quiz-body" id="quiz-body">
+    <!-- Questions rendered here -->
+  </div>
+  <div class="quiz-footer">
+    <button class="quiz-btn quiz-btn-quit" onclick="quitQuiz()">✕ Quit (score = 0)</button>
+    <div style="display:flex;gap:10px">
+      <button class="quiz-btn quiz-btn-prev" onclick="prevQuestion()" id="quiz-prev">← Previous</button>
+      <button class="quiz-btn quiz-btn-next" onclick="nextQuestion()" id="quiz-next">Next →</button>
+      <button class="quiz-btn quiz-btn-submit" onclick="submitQuiz()" id="quiz-submit" style="display:none">Submit Quiz ✓</button>
+    </div>
+  </div>
+</div>
+
 <script>
-let timerInterval = null;
-let syncInterval = null;
-let localSeconds = 0;
-let isPaused = true;
+// ── State ─────────────────────────────────────────────────
+let student = null;
+let sessions = [];
+let quizResults = [];
+let currentSession = null;
+let currentSessionContent = null;
+let currentPage = 1;
+let quizData = null;
+let quizAnswers = {};
+let quizCurrentQ = 0;
+let quizTimerInterval = null;
+let quizSecondsLeft = 0;
+let notesSaveTimeout = null;
+let classroomActive = false;
 
-async function joinSession(){
-  const code = document.getElementById('code-input').value.trim().toUpperCase();
-  const alertEl = document.getElementById('entry-alert');
-  const btn = document.getElementById('join-btn');
-  const spinner = document.getElementById('join-spinner');
-  if(code.length < 6){ showAlert(alertEl,'Please enter your 6-character class code'); return; }
-  btn.disabled=true; spinner.style.display='block';
-  document.getElementById('join-text').textContent='Joining...';
-  try{
-    const res = await fetch('/api/student-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error||'Invalid code');
-    currentSession = data.session;
-    window._studentCodeId = data.studentCodeId;
-    window._studentName = data.studentName;
-    saveSession(data.session, code, data.studentCodeId, data.studentName);
-    showSession(data.session);
-  }catch(e){
-    showAlert(alertEl,e.message);
-    btn.disabled=false; spinner.style.display='none';
-    document.getElementById('join-text').textContent='Enter Class';
-  }
-}
+// ── Login ─────────────────────────────────────────────────
+async function login() {
+  const portalId = document.getElementById('portal-id-input').value.trim().toUpperCase();
+  const alertEl = document.getElementById('login-alert');
+  const btn = document.getElementById('login-btn');
+  const spinner = document.getElementById('login-spinner');
+  if (!portalId) { showAlert(alertEl,'Please enter your Student ID'); return; }
 
-function saveSession(session, code, studentCodeId, studentName){
-  localStorage.setItem('studentSession', JSON.stringify({session, code, studentCodeId, studentName, savedAt: Date.now()}));
-}
+  btn.disabled = true; spinner.style.display = 'block';
+  document.getElementById('login-text').textContent = 'Loading...';
 
-function showSession(session){
-  document.getElementById('entry-screen').style.display='none';
-  document.getElementById('session-screen').style.display='';
-  document.getElementById('s-course-label').textContent=session.courseLabel||'Course Session';
-  document.getElementById('s-title').textContent=session.title;
-  document.getElementById('s-meta').textContent=`Session ${session.sessionNumber}`;
-
-  if(session.description){
-    document.getElementById('s-desc-wrap').style.display='';
-    document.getElementById('s-desc').textContent=session.description;
-  }
-  const materials = session.materials||[];
-  if(materials.length){
-    document.getElementById('s-materials-wrap').style.display='';
-    document.getElementById('s-materials').innerHTML=materials.map(m=>{
-      const isUrl=m.startsWith('http');
-      const icon=isUrl?'🔗':m.toLowerCase().includes('pdf')?'📄':m.toLowerCase().includes('video')||m.toLowerCase().includes('watch')?'▶️':'📋';
-      return `<div class="material-item"><div class="material-icon">${icon}</div><div class="material-text">${isUrl?`<a href="${m}" target="_blank" rel="noopener">${m}</a>`:m}</div></div>`;
-    }).join('');
-  } else {
-    document.getElementById('s-no-materials').style.display='';
-  }
-
-  startTimerSync(session.id);
-  checkClassroomActive();
-  setInterval(checkClassroomActive, 10000);
-}
-
-async function startTimerSync(sessionId){
-  // Sync every 5 seconds
-  await syncTimer(sessionId);
-  syncInterval = setInterval(()=>syncTimer(sessionId), 5000);
-}
-
-async function syncTimer(sessionId){
-  try{
-    const res = await fetch(`/api/sessions?action=timer&sessionId=${sessionId}`);
-    const data = await res.json();
-    if(!res.ok) return;
-    const timer = data.timer;
-    isPaused = timer.paused;
-
-    // Calculate accurate seconds
-    let sLeft = timer.secondsLeft;
-    if(!timer.paused && timer.lastUpdated){
-      const elapsed = Math.floor((Date.now()-timer.lastUpdated)/1000);
-      sLeft = Math.max(0, sLeft-elapsed);
-    }
-    localSeconds = sLeft;
-    updateTimerUI();
-
-    // Start/stop local countdown
-    if(!timer.paused){
-      if(!timerInterval){
-        timerInterval = setInterval(()=>{
-          if(localSeconds>0){ localSeconds--; updateTimerUI(); }
-          else { clearInterval(timerInterval); timerInterval=null; }
-        },1000);
-      }
-    } else {
-      if(timerInterval){ clearInterval(timerInterval); timerInterval=null; }
-    }
-  }catch(e){ console.error('Timer sync error',e); }
-}
-
-function updateTimerUI(){
-  const m=Math.floor(localSeconds/60).toString().padStart(2,'0');
-  const s=(localSeconds%60).toString().padStart(2,'0');
-  document.getElementById('timer').textContent=`${m}:${s}`;
-  const card=document.getElementById('timer-card');
-  const label=document.getElementById('timer-label');
-  const sub=document.getElementById('timer-sub');
-
-  if(isPaused){
-    card.className='timer-card paused';
-    label.textContent='⏸ Timer Paused';
-    sub.textContent='Your teacher has paused the session';
-  } else if(localSeconds===0){
-    card.className='timer-card critical';
-    label.textContent='⏰ Time\'s Up!';
-    sub.textContent='Session time has ended';
-  } else if(localSeconds<=5*60){
-    card.className='timer-card critical';
-    label.textContent='⚠️ Time Almost Up!';
-    sub.textContent=`Less than ${Math.ceil(localSeconds/60)} minute${localSeconds<120?'':'s'} remaining`;
-  } else if(localSeconds<=10*60){
-    card.className='timer-card warning';
-    label.textContent='⏱ Session Timer';
-    sub.textContent='10 minutes remaining';
-  } else {
-    card.className='timer-card normal';
-    label.textContent='⏱ Session Timer';
-    sub.textContent='Time remaining in this session';
-  }
-}
-
-function joinLiveClass() {
-  const saved = localStorage.getItem('studentSession');
-  const code = saved ? JSON.parse(saved).code : '';
-  window.location.href = `/classroom.html?role=student&session=${currentSession.id}&code=${code}&title=${encodeURIComponent(currentSession.title)}`;
-}
-
-async function checkClassroomActive() {
-  if (!currentSession) return;
   try {
-    const res = await fetch(`/api/classroom?sessionId=${currentSession.id}`);
+    const res = await fetch('/api/student-portal?action=login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ portalId })
+    });
     const data = await res.json();
-    const btn = document.getElementById('join-class-btn');
-    if (data.room?.active) {
-      btn.style.display = '';
-      btn.textContent = '🎥 Join Live Class — Active Now!';
+    if (!res.ok) throw new Error(data.error || 'Login failed');
+
+    student = data.student;
+    sessions = data.sessions || [];
+    quizResults = data.quizResults || [];
+
+    localStorage.setItem('studentPortalSession', JSON.stringify({ student, portalId }));
+    showPortal(data);
+  } catch(e) {
+    showAlert(alertEl, e.message);
+    btn.disabled = false; spinner.style.display = 'none';
+    document.getElementById('login-text').textContent = 'Enter Portal';
+  }
+}
+
+function logout() {
+  localStorage.removeItem('studentPortalSession');
+  student = null; sessions = []; quizResults = [];
+  document.getElementById('portal').style.display = 'none';
+  document.getElementById('login-screen').style.display = '';
+  document.getElementById('portal-id-input').value = '';
+}
+
+function showPortal(data) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('portal').style.display = '';
+
+  document.getElementById('h-name').textContent = student.name;
+  document.getElementById('h-id').textContent = student.portalId;
+  document.getElementById('grade-course').textContent = student.courseLabel || student.course;
+
+  const badge = document.getElementById('class-type-badge');
+  if (student.classType === 'online') {
+    badge.className = 'class-type-badge badge-online';
+    badge.textContent = '💻 Online Class';
+  } else {
+    badge.className = 'class-type-badge badge-inperson';
+    badge.textContent = '🏫 In-Person Class';
+  }
+
+  // Grade
+  if (data.gradePercent !== null && data.gradePercent !== undefined) {
+    document.getElementById('grade-pct').textContent = data.gradePercent + '%';
+    document.getElementById('grade-subtitle').textContent = `Based on ${quizResults.length} completed quiz${quizResults.length !== 1 ? 'zes' : ''}`;
+  }
+
+  renderSessions();
+  checkLiveClass();
+  setInterval(checkLiveClass, 10000);
+}
+
+// ── Sessions ──────────────────────────────────────────────
+function renderSessions() {
+  const grid = document.getElementById('sessions-grid');
+  if (!sessions.length) {
+    grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);grid-column:1/-1">No sessions available yet. Check back soon!</div>';
+    return;
+  }
+
+  grid.innerHTML = sessions.map(s => {
+    const qResult = quizResults.find(r => r.sessionId === s.id);
+    const locked = !s.unlocked;
+    return `
+    <div class="session-card ${locked ? 'locked' : ''}" onclick="${locked ? '' : `openSession('${s.id}')`}">
+      <div class="session-card-top">
+        <div class="session-num">Session ${s.sessionNumber}</div>
+        <div class="session-title">${s.title}</div>
+        <div class="session-badges">
+          <span class="badge ${locked ? 'badge-locked' : 'badge-unlocked'}">${locked ? '🔒 Locked' : '🔓 Unlocked'}</span>
+          ${s.hasQuiz ? `<span class="badge ${qResult ? 'badge-quiz-done' : 'badge-quiz'}">${qResult ? `✅ ${qResult.percent}%` : '📝 Quiz'}</span>` : ''}
+          ${s.hasPdf ? '<span class="badge" style="background:#f0f4ff;color:#3730a3">📄 Guide</span>' : ''}
+        </div>
+      </div>
+      <div class="session-card-bottom">
+        <span class="lock-icon">${locked ? '🔒' : '📖'}</span>
+        <span class="session-action-text">${locked ? 'Locked — wait for your teacher' : 'Click to open session'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Open session ──────────────────────────────────────────
+async function openSession(sessionId) {
+  currentSession = sessions.find(s => s.id === sessionId);
+  if (!currentSession) return;
+
+  document.getElementById('detail-title').textContent = `Session ${currentSession.sessionNumber}: ${currentSession.title}`;
+  document.getElementById('session-overlay').classList.add('open');
+  document.getElementById('pdf-viewer').innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.5);padding:40px"><div style="font-size:36px;margin-bottom:12px">⏳</div><div>Loading content...</div></div>';
+
+  try {
+    const res = await fetch(`/api/student-portal?action=session-content&sessionId=${sessionId}`, {
+      headers: { 'x-student-id': student.portalId }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    currentSessionContent = data;
+
+    // Load notes
+    document.getElementById('notes-area').value = data.notes || '';
+
+    // Show quiz button
+    const quizBtn = document.getElementById('quiz-start-btn');
+    const existingResult = quizResults.find(r => r.sessionId === sessionId);
+    if (data.session.quiz && !existingResult) {
+      quizBtn.style.display = '';
+      quizBtn.textContent = `📝 Take Quiz (${data.session.quiz.questionCount} Qs)`;
+    } else if (existingResult) {
+      quizBtn.style.display = '';
+      quizBtn.textContent = `✅ Quiz: ${existingResult.percent}%`;
+      quizBtn.disabled = true;
+      quizBtn.style.opacity = '.7';
     } else {
-      btn.style.display = 'none';
+      quizBtn.style.display = 'none';
     }
+
+    // Show join class button for online students
+    const joinBtn = document.getElementById('join-class-btn');
+    if (student.classType === 'online' && classroomActive) {
+      joinBtn.style.display = '';
+    } else {
+      joinBtn.style.display = 'none';
+    }
+
+    // Load PDF
+    if (data.session.pdfUrl) {
+      loadPDF(data.session.pdfUrl, data.session.pageStart, data.session.pageEnd);
+    } else {
+      // Show text content
+      document.getElementById('pdf-toolbar').style.display = 'none';
+      document.getElementById('pdf-viewer').innerHTML = `
+        <div style="padding:32px;color:#e8eaf0;max-width:600px;line-height:1.7">
+          <h2 style="margin-bottom:12px;font-size:20px">${data.session.title}</h2>
+          <p style="color:rgba(255,255,255,.7);margin-bottom:20px">${data.session.description || ''}</p>
+          ${(data.session.materials||[]).map(m => `
+            <div style="padding:12px;background:rgba(255,255,255,.05);border-radius:8px;margin-bottom:8px;font-size:13px">
+              ${m.startsWith('http') ? `<a href="${m}" target="_blank" style="color:#93c5fd">${m}</a>` : m}
+            </div>`).join('')}
+        </div>`;
+    }
+
+  } catch(e) {
+    document.getElementById('pdf-viewer').innerHTML = `<div style="text-align:center;color:#fc8181;padding:40px">${e.message}</div>`;
+  }
+}
+
+function closeSession() {
+  document.getElementById('session-overlay').classList.remove('open');
+  currentSession = null;
+  currentSessionContent = null;
+  saveNotes();
+}
+
+function closeSessionIfBackdrop(e) {
+  if (e.target === document.getElementById('session-overlay')) closeSession();
+}
+
+// ── PDF Viewer ─────────────────────────────────────────────
+function loadPDF(pdfUrl, pageStart, pageEnd) {
+  document.getElementById('pdf-toolbar').style.display = '';
+  currentPage = pageStart || 1;
+  const totalPages = pageEnd ? (pageEnd - (pageStart||1) + 1) : null;
+  renderPDFPage(pdfUrl, currentPage, pageStart, pageEnd);
+}
+
+function renderPDFPage(pdfUrl, page, pageStart, pageEnd) {
+  const viewer = document.getElementById('pdf-viewer');
+  const pageInfo = document.getElementById('pdf-page-info');
+  const relPage = page - (pageStart||1) + 1;
+  const totalPages = pageEnd ? (pageEnd - (pageStart||1) + 1) : '?';
+  pageInfo.textContent = `Page ${relPage} of ${totalPages}`;
+
+  // Embed PDF at specific page using #page= fragment
+  // Use Google Docs viewer as fallback for cross-origin PDFs
+  viewer.innerHTML = `<iframe 
+    src="${pdfUrl}#page=${page}&toolbar=0&navpanes=0&scrollbar=0"
+    style="width:100%;height:100%;border:none"
+    oncontextmenu="return false"
+    sandbox="allow-same-origin allow-scripts"
+  ></iframe>`;
+}
+
+function prevPage() {
+  if (!currentSessionContent?.session) return;
+  const { pdfUrl, pageStart } = currentSessionContent.session;
+  if (currentPage > (pageStart||1)) {
+    currentPage--;
+    renderPDFPage(pdfUrl, currentPage, pageStart, currentSessionContent.session.pageEnd);
+  }
+}
+
+function nextPage() {
+  if (!currentSessionContent?.session) return;
+  const { pdfUrl, pageEnd } = currentSessionContent.session;
+  if (!pageEnd || currentPage < pageEnd) {
+    currentPage++;
+    renderPDFPage(pdfUrl, currentPage, currentSessionContent.session.pageStart, pageEnd);
+  }
+}
+
+// ── Notes ─────────────────────────────────────────────────
+function switchNotesTab(tab, el) {
+  document.querySelectorAll('.notes-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.notes-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('notes-tab-' + tab).classList.add('active');
+}
+
+function scheduleNotesSave() {
+  clearTimeout(notesSaveTimeout);
+  notesSaveTimeout = setTimeout(saveNotes, 1500);
+}
+
+async function saveNotes() {
+  if (!currentSession || !student) return;
+  const notes = document.getElementById('notes-area').value;
+  try {
+    await fetch('/api/student-portal?action=save-notes', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-student-id': student.portalId },
+      body: JSON.stringify({ sessionId: currentSession.id, notes })
+    });
+    const msg = document.getElementById('notes-saved');
+    msg.style.display = 'block';
+    setTimeout(() => msg.style.display = 'none', 2000);
   } catch(e) {}
 }
 
-function leaveSession(){
-  if(!confirm('Leave this session?')) return;
-  clearInterval(timerInterval); timerInterval=null;
-  clearInterval(syncInterval); syncInterval=null;
-  localStorage.removeItem('studentSession');
-  currentSession=null;
-  document.getElementById('session-screen').style.display='none';
-  document.getElementById('entry-screen').style.display='';
-  document.getElementById('code-input').value='';
+async function downloadNotes() {
+  const notes = document.getElementById('notes-area').value.trim();
+  if (!notes) { alert('No notes to download yet!'); return; }
+
+  // Generate simple PDF using browser print
+  const sessionTitle = currentSession ? `Session ${currentSession.sessionNumber}: ${currentSession.title}` : 'Session Notes';
+  const html = `
+    <html><head><title>Notes — ${sessionTitle}</title>
+    <style>
+      body{font-family:sans-serif;padding:40px;max-width:700px;margin:0 auto;line-height:1.6}
+      h1{color:#2d5a27;margin-bottom:6px;font-size:20px}
+      h2{color:#6b7280;font-size:14px;font-weight:400;margin-bottom:24px}
+      .notes{white-space:pre-wrap;font-size:14px;border-left:3px solid #2d5a27;padding-left:16px}
+      .footer{margin-top:40px;color:#aaa;font-size:11px;border-top:1px solid #eee;padding-top:16px}
+    </style></head>
+    <body>
+      <h1>${sessionTitle}</h1>
+      <h2>Notes by ${student.name} — ${student.portalId}</h2>
+      <div class="notes">${notes.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      <div class="footer">Ghost Digitals Academy • Downloaded ${new Date().toLocaleDateString()}</div>
+    </body></html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url);
+  if (win) setTimeout(() => win.print(), 500);
 }
 
-function showAlert(el,msg){ el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),5000); }
+// ── Quiz ──────────────────────────────────────────────────
+async function startQuiz() {
+  if (!currentSession || !currentSessionContent?.session?.quiz) return;
+  const quiz = currentSessionContent.session.quiz;
+  if (!quiz.questions || !quiz.questions.length) { alert('Quiz not available yet.'); return; }
 
-// Restore session from localStorage on refresh
-const saved = localStorage.getItem('studentSession');
-if(saved){
-  try{
-    const {session, studentCodeId, studentName} = JSON.parse(saved);
-    currentSession = session;
-    window._studentCodeId = studentCodeId;
-    window._studentName = studentName;
-    showSession(session);
-  }catch(e){ localStorage.removeItem('studentSession'); }
+  const existingResult = quizResults.find(r => r.sessionId === currentSession.id);
+  if (existingResult) { alert(`You already completed this quiz! Score: ${existingResult.percent}%`); return; }
+
+  quizData = quiz;
+  quizAnswers = {};
+  quizCurrentQ = 0;
+  quizSecondsLeft = (quiz.timeLimit || 30) * 60;
+
+  document.getElementById('quiz-overlay').classList.add('open');
+  document.getElementById('quiz-title').textContent = quiz.title || `${currentSession.title} Quiz`;
+  renderQuizQuestion();
+  startQuizTimer();
+
+  // Prevent leaving
+  window.onbeforeunload = () => 'You are in the middle of a quiz. If you leave your score will be 0.';
 }
 
-// ── Attendance QR Scanner ─────────────────────────────────
-let scanStream = null;
-let scanInterval = null;
+function renderQuizQuestion() {
+  const q = quizData.questions[quizCurrentQ];
+  const total = quizData.questions.length;
+  const progress = ((quizCurrentQ + 1) / total) * 100;
 
-async function startAttScan(){
-  document.getElementById('att-scanner-wrap').style.display='block';
-  document.getElementById('scan-att-btn').style.display='none';
-  try{
-    scanStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-    const video = document.getElementById('att-video');
-    video.srcObject = scanStream;
-    scanInterval = setInterval(()=> scanQRFrame(), 500);
-  }catch(e){
-    alert('Camera access denied. Please allow camera access to scan the QR code.');
-    stopAttScan();
-  }
+  document.getElementById('quiz-body').innerHTML = `
+    <div class="quiz-progress"><div class="quiz-progress-bar" style="width:${progress}%"></div></div>
+    <div class="quiz-qnum">Question ${quizCurrentQ + 1} of ${total}</div>
+    <div class="quiz-question">${q.question}</div>
+    <div class="quiz-options">
+      ${(q.options || ['True', 'False']).map((opt, i) => `
+        <button class="quiz-option ${quizAnswers[q.id] === opt ? 'selected' : ''}"
+          onclick="selectAnswer('${q.id}','${opt.replace(/'/g,"\\'")}',this)">
+          ${String.fromCharCode(65+i)}. ${opt}
+        </button>`).join('')}
+    </div>`;
+
+  document.getElementById('quiz-prev').style.display = quizCurrentQ > 0 ? '' : 'none';
+  document.getElementById('quiz-next').style.display = quizCurrentQ < total - 1 ? '' : 'none';
+  document.getElementById('quiz-submit').style.display = quizCurrentQ === total - 1 ? '' : 'none';
 }
 
-function stopAttScan(){
-  if(scanStream) scanStream.getTracks().forEach(t=>t.stop());
-  scanStream = null;
-  clearInterval(scanInterval); scanInterval = null;
-  document.getElementById('att-scanner-wrap').style.display='none';
-  document.getElementById('scan-att-btn').style.display='';
+function selectAnswer(questionId, answer, el) {
+  quizAnswers[questionId] = answer;
+  el.closest('.quiz-options').querySelectorAll('.quiz-option').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
 }
 
-async function scanQRFrame(){
-  const video = document.getElementById('att-video');
-  if(video.readyState !== video.HAVE_ENOUGH_DATA) return;
-  const canvas = document.getElementById('att-canvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video,0,0,canvas.width,canvas.height);
-  const imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+function prevQuestion() { if (quizCurrentQ > 0) { quizCurrentQ--; renderQuizQuestion(); } }
+function nextQuestion() { if (quizCurrentQ < quizData.questions.length - 1) { quizCurrentQ++; renderQuizQuestion(); } }
 
-  // Use BarcodeDetector if available
-  if('BarcodeDetector' in window){
-    try{
-      const detector = new BarcodeDetector({formats:['qr_code']});
-      const codes = await detector.detect(canvas);
-      if(codes.length > 0){
-        stopAttScan();
-        await processAttendanceQR(codes[0].rawValue);
-      }
-    }catch(e){}
-  } else {
-    // Fallback: jsQR
-    if(window.jsQR){
-      const code = jsQR(imageData.data, imageData.width, imageData.height);
-      if(code){
-        stopAttScan();
-        await processAttendanceQR(code.data);
-      }
+function startQuizTimer() {
+  updateQuizTimerDisplay();
+  quizTimerInterval = setInterval(() => {
+    quizSecondsLeft--;
+    updateQuizTimerDisplay();
+    if (quizSecondsLeft <= 0) {
+      clearInterval(quizTimerInterval);
+      submitQuiz(false, true); // auto-submit when time runs out
     }
-  }
+  }, 1000);
 }
 
-async function processAttendanceQR(rawValue){
-  const statusCard = document.getElementById('att-status-card');
-  statusCard.style.display='block';
-  statusCard.textContent='Marking attendance...';
-  statusCard.style.background='var(--accent-light)';
-  statusCard.style.color='var(--accent-text)';
+function updateQuizTimerDisplay() {
+  const m = Math.floor(quizSecondsLeft / 60).toString().padStart(2, '0');
+  const s = (quizSecondsLeft % 60).toString().padStart(2, '0');
+  const el = document.getElementById('quiz-timer');
+  el.textContent = `${m}:${s}`;
+  el.style.color = quizSecondsLeft < 60 ? '#fc8181' : '#f6ad55';
+}
 
-  try{
-    const parsed = JSON.parse(rawValue);
-    const { sessionId, token } = parsed;
-    const studentCodeId = window._studentCodeId;
+async function quitQuiz() {
+  if (!confirm('Are you sure you want to quit? Your score will be recorded as 0.')) return;
+  clearInterval(quizTimerInterval);
+  window.onbeforeunload = null;
+  await doSubmitQuiz(true);
+}
 
-    if(!studentCodeId){
-      statusCard.textContent='❌ Could not identify you. Please re-enter your class code.';
-      statusCard.style.background='var(--danger-light)';
-      statusCard.style.color='var(--danger)';
-      return;
-    }
+async function submitQuiz(e, autoSubmit = false) {
+  const unanswered = quizData.questions.filter(q => !quizAnswers[q.id]).length;
+  if (!autoSubmit && unanswered > 0) {
+    if (!confirm(`You have ${unanswered} unanswered question${unanswered>1?'s':''}. Submit anyway?`)) return;
+  }
+  clearInterval(quizTimerInterval);
+  window.onbeforeunload = null;
+  await doSubmitQuiz(false);
+}
 
-    const res = await fetch('/api/sessions?action=attend',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({token, sessionId, studentCodeId})
+async function doSubmitQuiz(quit) {
+  try {
+    const res = await fetch('/api/student-portal?action=submit-quiz', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-student-id': student.portalId },
+      body: JSON.stringify({ sessionId: currentSession.id, answers: quizAnswers, quit })
     });
     const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to submit');
 
-    if(!res.ok) throw new Error(data.error||'Failed');
+    quizResults.push({ sessionId: currentSession.id, score: data.score, total: data.total, percent: data.percent, quit });
+    showQuizResults(data);
+    renderSessions();
 
-    if(data.alreadyMarked){
-      statusCard.textContent=`✅ Already marked present, ${data.studentName||''}!`;
-    } else {
-      statusCard.textContent=`✅ Attendance marked! Welcome, ${data.studentName||''}!`;
+    // Update grade
+    const totalScore = quizResults.reduce((s, r) => s + r.score, 0);
+    const totalPossible = quizResults.reduce((s, r) => s + r.total, 0);
+    if (totalPossible > 0) {
+      const pct = Math.round((totalScore / totalPossible) * 100);
+      document.getElementById('grade-pct').textContent = pct + '%';
+      document.getElementById('grade-subtitle').textContent = `Based on ${quizResults.length} completed quiz${quizResults.length !== 1 ? 'zes' : ''}`;
     }
-    document.getElementById('scan-att-btn').style.display='none';
-  }catch(e){
-    statusCard.textContent=`❌ ${e.message}`;
-    statusCard.style.background='var(--danger-light)';
-    statusCard.style.color='var(--danger)';
-  }
+  } catch(e) { alert(e.message); }
+}
+
+function showQuizResults(data) {
+  const pct = data.percent;
+  const cls = data.quit ? 'result-zero' : pct >= 60 ? 'result-pass' : 'result-fail';
+  const emoji = data.quit ? '😔' : pct >= 80 ? '🎉' : pct >= 60 ? '✅' : '📚';
+
+  document.getElementById('quiz-body').innerHTML = `
+    <div class="quiz-result">
+      <div class="result-circle ${cls}">
+        <div class="result-pct">${pct}%</div>
+        <div class="result-score">${data.score}/${data.total}</div>
+      </div>
+      <div style="color:#e8eaf0;font-size:20px;font-weight:700;margin-bottom:8px">${emoji} ${data.quit ? 'Quiz Quit' : pct >= 80 ? 'Excellent!' : pct >= 60 ? 'Good Job!' : 'Keep Studying!'}</div>
+      <div style="color:#8b8fa8;font-size:14px;margin-bottom:24px">${data.quit ? 'Quiz was quit. Score recorded as 0.' : `You answered ${data.score} out of ${data.total} questions correctly.`}</div>
+      ${!data.quit && data.results ? `
+      <div class="result-breakdown">
+        ${data.results.map((r, i) => `
+          <div class="result-item">
+            <span>${r.correct ? '✅' : '❌'}</span>
+            <span style="flex:1">Question ${i+1}</span>
+            ${!r.correct && r.correctAnswer ? `<span style="font-size:11px;color:#8b8fa8">Correct: ${r.correctAnswer}</span>` : ''}
+          </div>`).join('')}
+      </div>` : ''}
+      <button onclick="document.getElementById('quiz-overlay').classList.remove('open')"
+        style="margin-top:24px;padding:12px 28px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:700;cursor:pointer">
+        Done
+      </button>
+    </div>`;
+
+  document.getElementById('quiz-footer')?.remove();
+}
+async function submitQuestion() {
+  const input = document.getElementById('ask-input');
+  const question = input.value.trim();
+  const alertEl = document.getElementById('ask-alert');
+  const success = document.getElementById('ask-success');
+
+  if (!question) { showAlert(alertEl, 'Please type your question'); return; }
+
+  try {
+    const res = await fetch('/api/student-portal?action=ask-teacher', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-student-id': student.portalId },
+      body: JSON.stringify({ sessionId: currentSession?.id || null, question })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    input.value = '';
+    success.style.display = 'block';
+    setTimeout(() => success.style.display = 'none', 4000);
+  } catch(e) { showAlert(alertEl, e.message); }
+}
+
+// ── Live class ────────────────────────────────────────────
+async function checkLiveClass() {
+  if (student?.classType !== 'online') return;
+  // Check if any session has an active classroom
+  try {
+    for (const s of sessions.filter(s => s.unlocked)) {
+      const res = await fetch(`/api/classroom?sessionId=${s.id}`);
+      const data = await res.json();
+      if (data.room?.active) {
+        classroomActive = true;
+        document.getElementById('live-class-banner').style.display = 'flex';
+        return;
+      }
+    }
+    classroomActive = false;
+    document.getElementById('live-class-banner').style.display = 'none';
+  } catch(e) {}
+}
+
+function joinLiveClass() {
+  if (!currentSession) return;
+  const saved = localStorage.getItem('studentPortalSession');
+  const code = saved ? JSON.parse(saved).portalId : '';
+  window.location.href = `/classroom.html?role=student&session=${currentSession.id}&code=${code}&title=${encodeURIComponent(currentSession.title)}`;
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function showAlert(el, msg) { el.textContent = msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 5000); }
+
+// ── Anti-screenshot (CSS only) ────────────────────────────
+// Disable right-click on PDF area
+document.addEventListener('contextmenu', e => {
+  if (e.target.closest('#pdf-viewer') || e.target.closest('.detail-panel')) e.preventDefault();
+});
+
+// ── Auto login ────────────────────────────────────────────
+const savedSession = localStorage.getItem('studentPortalSession');
+if (savedSession) {
+  try {
+    const { portalId } = JSON.parse(savedSession);
+    document.getElementById('portal-id-input').value = portalId;
+    login();
+  } catch(e) { localStorage.removeItem('studentPortalSession'); }
 }
 </script>
 </body>
