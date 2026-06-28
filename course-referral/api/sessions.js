@@ -1,11 +1,14 @@
 import { getData, setData } from './_store.js';
+import { put } from '@vercel/blob';
 import crypto from 'crypto';
 
 const TEACHER_CREDENTIALS = {
-  'digital':  { password: process.env.TEACHER_DIGITAL_PASS  || 'TeacherDM2026',  course: 'digital',  label: 'Digital Marketing' },
-  'event':    { password: process.env.TEACHER_EVENT_PASS    || 'TeacherEV2026',  course: 'event',    label: 'Event Organizing' },
-  'ai':       { password: process.env.TEACHER_AI_PASS       || 'TeacherAI2026',  course: 'ai',       label: 'Applied AI' },
+  'digital': { password: process.env.TEACHER_DIGITAL_PASS || 'TeacherDM2026', course: 'digital', label: 'Digital Marketing' },
+  'event':   { password: process.env.TEACHER_EVENT_PASS   || 'TeacherEV2026', course: 'event',   label: 'Event Organizing' },
+  'ai':      { password: process.env.TEACHER_AI_PASS      || 'TeacherAI2026', course: 'ai',      label: 'Applied AI' },
 };
+
+export const config = { api: { bodyParser: false } };
 
 function generateCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -14,241 +17,449 @@ function generateCode() {
   return code;
 }
 
-// Generate rotating QR token (changes every 30 seconds)
 function generateQRToken(sessionId, secret) {
   const window = Math.floor(Date.now() / 30000);
-  return crypto.createHmac('sha256', secret + sessionId)
-    .update(String(window))
-    .digest('hex')
-    .substring(0, 12);
+  return crypto.createHmac('sha256', secret + sessionId).update(String(window)).digest('hex').substring(0, 12);
+}
+
+async function readBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', c => chunks.push(c));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
+async function parseMultipart(req) {
+  const buffer = await readBody(req);
+  const contentType = req.headers['content-type'] || '';
+  const boundaryMatch = contentType.match(/boundary=(.+)$/);
+  if (!boundaryMatch) throw new Error('No boundary found');
+  const boundary = boundaryMatch[1].trim();
+  const boundaryBuf = Buffer.from('--' + boundary);
+
+  let fileBuffer = null, fileName = 'course.pdf', duration = 45, teacherKey = '', modulesText = '';
+  let pos = 0;
+
+  while (pos < buffer.length) {
+    const bp = buffer.indexOf(boundaryBuf, pos);
+    if (bp === -1) break;
+    pos = bp + boundaryBuf.length;
+    if (buffer[pos] === 0x0d && buffer[pos+1] === 0x0a) pos += 2;
+    else if (buffer[pos] === 0x0a) pos += 1;
+    if (buffer[pos] === 0x2d && buffer[pos+1] === 0x2d) break;
+    const headerEnd = buffer.indexOf(Buffer.from('\r\n\r\n'), pos);
+    if (headerEnd === -1) break;
+    const headerStr = buffer.slice(pos, headerEnd).toString('utf8');
+    pos = headerEnd + 4;
+    const nextBoundary = buffer.indexOf(boundaryBuf, pos);
+    const bodyEnd = nextBoundary === -1 ? buffer.length : nextBoundary - 2;
+    const body = buffer.slice(pos, bodyEnd);
+    const nameMatch = headerStr.match(/name="([^"]+)"/);
+    const fileNameMatch = headerStr.match(/filename="([^"]+)"/);
+    const fieldName = nameMatch?.[1];
+    if (fileNameMatch && fieldName === 'pdf') { fileName = fileNameMatch[1]; fileBuffer = body; }
+    else if (fieldName === 'duration') duration = parseInt(body.toString('utf8').trim()) || 45;
+    else if (fieldName === 'teacherKey') teacherKey = body.toString('utf8').trim();
+    else if (fieldName === 'modules') modulesText = body.toString('utf8').trim();
+    pos = nextBoundary === -1 ? buffer.length : nextBoundary;
+  }
+  return { fileBuffer, fileName, duration, teacherKey, modulesText };
+}
+
+async function parseJSON(req) {
+  const buf = await readBody(req);
+  try { return JSON.parse(buf.toString()); } catch { return {}; }
 }
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-teacher-key, x-admin-key');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-teacher-key, x-admin-key, x-student-id');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
+  const QR_SECRET = process.env.QR_SECRET || 'ghostdigitals-qr-secret-2026';
   const data = await getData();
   if (!data.sessions) data.sessions = [];
   if (!data.sessionCodes) data.sessionCodes = [];
   if (!data.attendance) data.attendance = [];
+  if (!data.classrooms) data.classrooms = {};
+  if (!data.handRaises) data.handRaises = {};
+  if (!data.quizResults) data.quizResults = [];
+  if (!data.studentNotes) data.studentNotes = {};
+  if (!data.highlights) data.highlights = {};
+  if (!data.studentQuestions) data.studentQuestions = [];
 
-  const QR_SECRET = process.env.QR_SECRET || 'ghostdigitals-qr-secret-2026';
+  const action = req.query.action;
+  const teacherKey = req.headers['x-teacher-key'];
+  const adminKey = req.headers['x-admin-key'];
+  const studentId = req.headers['x-student-id'];
 
-  // Teacher login
-  if (req.method === 'POST' && req.query.action === 'login') {
-    const { username, password } = req.body;
-    const teacher = TEACHER_CREDENTIALS[username];
-    if (!teacher || teacher.password !== password) return res.status(401).json({ error: 'Invalid credentials' });
-    return res.status(200).json({ ok: true, username, course: teacher.course, label: teacher.label });
+  // ── Teacher login ─────────────────────────────────────────
+  if (req.method === 'POST' && action === 'login') {
+    const body = await parseJSON(req);
+    const teacher = TEACHER_CREDENTIALS[body.username];
+    if (!teacher || teacher.password !== body.password) return res.status(401).json({ error: 'Invalid credentials' });
+    return res.status(200).json({ ok: true, username: body.username, course: teacher.course, label: teacher.label });
   }
 
-  // Public: get timer state
-  if (req.method === 'GET' && req.query.action === 'timer') {
-    const { sessionId } = req.query;
-    const session = (data.sessions || []).find(s => s.id === sessionId);
-    if (!session) return res.status(404).json({ error: 'Session not found' });
-    let timer = session.timer || { paused: true, secondsLeft: (session.durationMinutes || 45) * 60, lastUpdated: null };
-    if (!timer.paused && timer.lastUpdated) {
-      const elapsed = Math.floor((Date.now() - timer.lastUpdated) / 1000);
-      timer = { ...timer, secondsLeft: Math.max(0, timer.secondsLeft - elapsed) };
+  // ── Student auth (replaces student-auth.js) ────────────────
+  if (req.method === 'POST' && action === 'student-login') {
+    const body = await parseJSON(req);
+    const { code } = body;
+    if (!code) return res.status(400).json({ error: 'Code is required' });
+    const normalized = code.trim().toUpperCase();
+    const codeObj = data.sessionCodes.find(c => c.code === normalized);
+    if (!codeObj) return res.status(404).json({ error: 'Invalid code.' });
+    if (!codeObj.active) return res.status(403).json({ error: 'This code has been deactivated.' });
+    const session = data.sessions.find(s => s.id === codeObj.sessionId);
+    if (!session?.active) return res.status(403).json({ error: 'This session is no longer active.' });
+    if (codeObj.usedBy) {
+      return res.status(200).json({ ok: true, studentId: codeObj.usedBy, studentCodeId: codeObj.id, studentName: codeObj.studentName, alreadyUsed: true, session: sanitizeSession(session) });
     }
+    const sid = 'stu_' + Date.now();
+    codeObj.usedBy = sid; codeObj.usedAt = new Date().toISOString();
+    await setData(data);
+    return res.status(200).json({ ok: true, studentId: sid, studentCodeId: codeObj.id, studentName: codeObj.studentName, studentPhone: codeObj.studentPhone, session: sanitizeSession(session) });
+  }
+
+  // ── Student portal login (by portalId) ────────────────────
+  if (req.method === 'POST' && action === 'portal-login') {
+    const body = await parseJSON(req);
+    const { portalId } = body;
+    if (!portalId) return res.status(400).json({ error: 'Student ID required' });
+    const student = (data.students || []).find(s => s.portalId === portalId.toUpperCase().trim());
+    if (!student) return res.status(404).json({ error: 'Student ID not found.' });
+    if (!student.portalActive) return res.status(403).json({ error: 'Your access has been deactivated.' });
+
+    const studentSessions = (data.sessions || []).filter(s => matchesCourse(s.course, student.course)).map(s => ({
+      id: s.id, title: s.title, sessionNumber: s.sessionNumber, courseLabel: s.courseLabel,
+      active: s.active, unlocked: s.unlockedForStudents || false,
+      durationMinutes: s.durationMinutes || 45,
+      hasQuiz: !!(s.quiz?.questions?.length), hasPdf: !!s.pdfUrl,
+      pageStart: s.pageStart, pageEnd: s.pageEnd, pdfUrl: s.pdfUrl, description: s.description, materials: s.materials || [],
+    }));
+
+    const quizResults = (data.quizResults || []).filter(r => r.studentId === student.id);
+    const totalScore = quizResults.reduce((s, r) => s + (r.score||0), 0);
+    const totalPossible = quizResults.reduce((s, r) => s + (r.total||0), 0);
+    const gradePercent = totalPossible > 0 ? Math.round((totalScore/totalPossible)*100) : null;
+
+    return res.status(200).json({ ok: true, student: { id: student.id, name: student.name, portalId: student.portalId, course: student.course, courseLabel: student.courseLabel, classType: student.classType||'in-person' }, sessions: studentSessions, quizResults, gradePercent });
+  }
+
+  // ── Public: timer state ───────────────────────────────────
+  if (req.method === 'GET' && action === 'timer') {
+    const session = data.sessions.find(s => s.id === req.query.sessionId);
+    if (!session) return res.status(404).json({ error: 'Not found' });
+    let timer = session.timer || { paused: true, secondsLeft: (session.durationMinutes||45)*60, lastUpdated: null };
+    if (!timer.paused && timer.lastUpdated) timer = { ...timer, secondsLeft: Math.max(0, timer.secondsLeft - Math.floor((Date.now()-timer.lastUpdated)/1000)) };
     return res.status(200).json({ ok: true, timer, sessionActive: session.active });
   }
 
-  // Public: get QR token for attendance (teacher screen)
-  if (req.method === 'GET' && req.query.action === 'qr-token') {
-    const { sessionId } = req.query;
-    const session = (data.sessions || []).find(s => s.id === sessionId);
-    if (!session) return res.status(404).json({ error: 'Session not found' });
-    const token = generateQRToken(sessionId, QR_SECRET);
-    const expiresIn = 30 - (Math.floor(Date.now() / 1000) % 30);
-    return res.status(200).json({ ok: true, token, sessionId, expiresIn });
+  // ── Public: QR token ──────────────────────────────────────
+  if (req.method === 'GET' && action === 'qr-token') {
+    const session = data.sessions.find(s => s.id === req.query.sessionId);
+    if (!session) return res.status(404).json({ error: 'Not found' });
+    const token = generateQRToken(req.query.sessionId, QR_SECRET);
+    return res.status(200).json({ ok: true, token, sessionId: req.query.sessionId, expiresIn: 30 - (Math.floor(Date.now()/1000)%30) });
   }
 
-  // Public: mark attendance via QR scan
-  if (req.method === 'POST' && req.query.action === 'attend') {
-    const { token, sessionId, studentCodeId } = req.body;
-    if (!token || !sessionId || !studentCodeId) return res.status(400).json({ error: 'Missing fields' });
+  // ── Public: classroom state ───────────────────────────────
+  if (req.method === 'GET' && action === 'classroom') {
+    const room = data.classrooms[req.query.sessionId] || { active: false, roomName: null };
+    const hands = data.handRaises[req.query.sessionId] || [];
+    return res.status(200).json({ ok: true, room, hands });
+  }
 
-    // Verify token (accept current and previous 30s window)
-    const currentToken  = generateQRToken(sessionId, QR_SECRET);
-    const prevWindow    = Math.floor(Date.now() / 30000) - 1;
-    const prevToken     = crypto.createHmac('sha256', QR_SECRET + sessionId).update(String(prevWindow)).digest('hex').substring(0, 12);
+  // ── Student: session content ──────────────────────────────
+  if (req.method === 'GET' && action === 'session-content' && studentId) {
+    const student = (data.students||[]).find(s => s.portalId === studentId);
+    if (!student) return res.status(401).json({ error: 'Unauthorized' });
+    const session = data.sessions.find(s => s.id === req.query.sessionId);
+    if (!session) return res.status(404).json({ error: 'Not found' });
+    if (!session.unlockedForStudents) return res.status(403).json({ error: 'Session not yet unlocked.' });
+    const noteKey = `${student.id}_${req.query.sessionId}`;
+    return res.status(200).json({
+      ok: true,
+      session: {
+        ...sanitizeSession(session),
+        quiz: session.quiz ? { id: session.quiz.id, title: session.quiz.title, timeLimit: session.quiz.timeLimit||30, questionCount: session.quiz.questions?.length||0, questions: session.quiz.questions.map(q => ({ id: q.id, type: q.type, question: q.question, options: q.options })) } : null,
+      },
+      notes: data.studentNotes[noteKey] || '',
+      highlights: data.highlights[noteKey] || [],
+    });
+  }
 
-    if (token !== currentToken && token !== prevToken) {
-      return res.status(403).json({ error: 'QR code expired. Ask your teacher to refresh the screen.' });
-    }
-
-    // Find student code
-    const code = (data.sessionCodes || []).find(c => c.id === studentCodeId && c.sessionId === sessionId);
-    if (!code) return res.status(404).json({ error: 'Student not found for this session' });
-
-    // Check already attended
-    const alreadyMarked = (data.attendance || []).find(a => a.studentCodeId === studentCodeId && a.sessionId === sessionId);
-    if (alreadyMarked) return res.status(200).json({ ok: true, alreadyMarked: true, studentName: code.studentName });
-
-    // Mark attendance
-    const record = {
-      id:            'att_' + Date.now(),
-      sessionId,
-      studentCodeId,
-      studentName:   code.studentName || 'Unknown',
-      studentPhone:  code.studentPhone || '',
-      markedAt:      new Date().toISOString(),
-    };
-    data.attendance.push(record);
+  // ── Attend via QR ─────────────────────────────────────────
+  if (req.method === 'POST' && action === 'attend') {
+    const body = await parseJSON(req);
+    const { token, sessionId, studentCodeId } = body;
+    const current = generateQRToken(sessionId, QR_SECRET);
+    const prev = crypto.createHmac('sha256', QR_SECRET+sessionId).update(String(Math.floor(Date.now()/30000)-1)).digest('hex').substring(0,12);
+    if (token !== current && token !== prev) return res.status(403).json({ error: 'QR code expired.' });
+    const code = data.sessionCodes.find(c => c.id === studentCodeId && c.sessionId === sessionId);
+    if (!code) return res.status(404).json({ error: 'Student not found' });
+    const already = data.attendance.find(a => a.studentCodeId === studentCodeId && a.sessionId === sessionId);
+    if (already) return res.status(200).json({ ok: true, alreadyMarked: true, studentName: code.studentName });
+    data.attendance.push({ id: 'att_'+Date.now(), sessionId, studentCodeId, studentName: code.studentName||'Unknown', studentPhone: code.studentPhone||'', markedAt: new Date().toISOString() });
     await setData(data);
-    return res.status(200).json({ ok: true, studentName: code.studentName, markedAt: record.markedAt });
+    return res.status(200).json({ ok: true, studentName: code.studentName });
   }
 
-  // Verify teacher/admin
-  const teacherKey = req.headers['x-teacher-key'];
-  const adminKey   = req.headers['x-admin-key'];
-  let teacherCourse = null;
+  // ── Verify teacher ────────────────────────────────────────
+  let teacher = null;
   if (teacherKey) {
-    const teacher = TEACHER_CREDENTIALS[teacherKey];
+    teacher = TEACHER_CREDENTIALS[teacherKey];
     if (!teacher) return res.status(401).json({ error: 'Unauthorized' });
-    teacherCourse = teacher.course;
-  } else if (adminKey !== process.env.ADMIN_PASSWORD) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  } else if (action !== 'portal-login' && action !== 'student-login' && action !== 'save-notes' && action !== 'save-highlights' && action !== 'submit-quiz' && action !== 'ask-teacher' && !studentId) {
+    if (adminKey !== process.env.ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  // GET sessions, codes, attendance
-  if (req.method === 'GET') {
-    let sessions   = data.sessions || [];
-    let codes      = data.sessionCodes || [];
-    let attendance = data.attendance || [];
-    if (teacherCourse) {
-      sessions   = sessions.filter(s => s.course === teacherCourse);
-      codes      = codes.filter(c => c.course === teacherCourse);
-      const sessionIds = new Set(sessions.map(s => s.id));
-      attendance = attendance.filter(a => sessionIds.has(a.sessionId));
+  // ── GET: sessions, codes, attendance ─────────────────────
+  if (req.method === 'GET' && !action) {
+    let sessions = data.sessions, codes = data.sessionCodes, attendance = data.attendance;
+    if (teacher) {
+      sessions = sessions.filter(s => s.course === teacher.course);
+      codes = codes.filter(c => c.course === teacher.course);
+      const sIds = new Set(sessions.map(s => s.id));
+      attendance = attendance.filter(a => sIds.has(a.sessionId));
     }
     return res.status(200).json({ ok: true, sessions, codes, attendance });
   }
 
-  // POST: create session
-  if (req.method === 'POST' && req.query.action === 'create-session') {
-    const { title, description, materials, sessionNumber, durationMinutes } = req.body;
+  // ── POST: create session ──────────────────────────────────
+  if (req.method === 'POST' && action === 'create-session') {
+    const body = await parseJSON(req);
+    const { title, description, materials, sessionNumber, durationMinutes } = body;
     if (!title) return res.status(400).json({ error: 'Title required' });
-    const course = teacherCourse || req.body.course;
-    const teacher = Object.values(TEACHER_CREDENTIALS).find(t => t.course === course);
-    const duration = parseInt(durationMinutes) || 45;
-    const session = {
-      id: 's_' + Date.now(),
-      course,
-      courseLabel: teacher?.label || course,
-      sessionNumber: sessionNumber || (data.sessions.filter(s => s.course === course).length + 1),
-      title, description: description || '', materials: materials || [],
-      durationMinutes: duration,
-      timer: { paused: true, secondsLeft: duration * 60, lastUpdated: null },
-      createdAt: new Date().toISOString(),
-      active: true,
-    };
+    const course = teacher?.course || body.course;
+    const t = Object.values(TEACHER_CREDENTIALS).find(t => t.course === course);
+    const duration = parseInt(durationMinutes)||45;
+    const session = { id: 's_'+Date.now(), course, courseLabel: t?.label||course, sessionNumber: sessionNumber||(data.sessions.filter(s=>s.course===course).length+1), title, description: description||'', materials: materials||[], durationMinutes: duration, timer: { paused: true, secondsLeft: duration*60, lastUpdated: null }, createdAt: new Date().toISOString(), active: true };
     data.sessions.push(session);
     await setData(data);
     return res.status(201).json({ ok: true, session });
   }
 
-  // POST: generate codes (now with student info)
-  if (req.method === 'POST' && req.query.action === 'generate-codes') {
-    const { sessionId, count, students } = req.body;
+  // ── POST: upload course PDF ───────────────────────────────
+  if (req.method === 'POST' && action === 'upload-course') {
+    const { fileBuffer, fileName, duration, teacherKey: tk, modulesText } = await parseMultipart(req);
+    const t = TEACHER_CREDENTIALS[tk];
+    if (!t) return res.status(401).json({ error: 'Unauthorized' });
+    const moduleLines = (modulesText||'').split('\n').map(l=>l.trim()).filter(Boolean);
+    if (!moduleLines.length) return res.status(400).json({ error: 'No module titles provided' });
+    let pdfUrl = null;
+    if (fileBuffer?.length > 100) {
+      try { const blob = await put(`courses/${tk}/${Date.now()}_${fileName}`, fileBuffer, { access: 'public', contentType: 'application/pdf' }); pdfUrl = blob.url; } catch(e) {}
+    }
+    const existingCount = data.sessions.filter(s => s.course === t.course).length;
+    const newSessions = moduleLines.map((title, i) => ({ id: 's_'+Date.now()+'_'+i, course: t.course, courseLabel: t.label, sessionNumber: existingCount+i+1, title, description: `Module ${i+1} — ${t.label} course.`, materials: pdfUrl?[`Course PDF: ${pdfUrl}`]:[], durationMinutes: parseInt(duration)||45, timer: { paused: true, secondsLeft: (parseInt(duration)||45)*60, lastUpdated: null }, createdAt: new Date().toISOString(), active: true, fromPDF: !!pdfUrl, pdfUrl }));
+    data.sessions = [...data.sessions, ...newSessions];
+    await setData(data);
+    return res.status(200).json({ ok: true, sessionsCreated: newSessions.length, sessions: newSessions, pdfUrl });
+  }
+
+  // ── POST: generate codes ──────────────────────────────────
+  if (req.method === 'POST' && action === 'generate-codes') {
+    const body = await parseJSON(req);
+    const { sessionId, count, students: studs } = body;
     const session = data.sessions.find(s => s.id === sessionId);
     if (!session) return res.status(404).json({ error: 'Session not found' });
-    if (teacherCourse && session.course !== teacherCourse) return res.status(403).json({ error: 'Forbidden' });
-
-    const existingCodes = new Set((data.sessionCodes || []).map(c => c.code));
+    const existingCodes = new Set(data.sessionCodes.map(c => c.code));
     const newCodes = [];
-
-    // If students provided (from admin), create one code per student
-    if (students && students.length) {
-      for (let i = 0; i < students.length; i++) {
-        let code;
-        do { code = generateCode(); } while (existingCodes.has(code));
-        existingCodes.add(code);
-        newCodes.push({
-          id: 'c_' + Date.now() + '_' + i,
-          code, sessionId,
-          course: session.course,
-          studentId:    students[i].id || null,
-          studentName:  students[i].name || null,
-          studentPhone: students[i].phone || null,
-          usedBy: null, usedAt: null,
-          active: true,
-          createdAt: new Date().toISOString(),
-        });
-      }
-    } else {
-      // Generic codes (no student assigned)
-      const numCodes = Math.min(parseInt(count) || 1, 100);
-      for (let i = 0; i < numCodes; i++) {
-        let code;
-        do { code = generateCode(); } while (existingCodes.has(code));
-        existingCodes.add(code);
-        newCodes.push({ id: 'c_' + Date.now() + '_' + i, code, sessionId, course: session.course, studentId: null, studentName: null, studentPhone: null, usedBy: null, usedAt: null, active: true, createdAt: new Date().toISOString() });
-      }
-    }
-
-    data.sessionCodes = [...(data.sessionCodes || []), ...newCodes];
+    const items = studs?.length ? studs : Array.from({ length: Math.min(parseInt(count)||1, 100) }, () => ({}));
+    items.forEach((item, i) => {
+      let code; do { code = generateCode(); } while (existingCodes.has(code)); existingCodes.add(code);
+      newCodes.push({ id: 'c_'+Date.now()+'_'+i, code, sessionId, course: session.course, studentId: item.id||null, studentName: item.name||null, studentPhone: item.phone||null, usedBy: null, usedAt: null, active: true, createdAt: new Date().toISOString() });
+    });
+    data.sessionCodes = [...data.sessionCodes, ...newCodes];
     await setData(data);
     return res.status(201).json({ ok: true, codes: newCodes });
   }
 
-  // PATCH: timer control
-  if (req.method === 'PATCH' && req.query.action === 'timer') {
-    const { sessionId, command, addMinutes, setMinutes } = req.body;
+  // ── POST: classroom start/stop ────────────────────────────
+  if (req.method === 'POST' && action === 'classroom-start') {
+    if (!teacher) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    const roomName = `GDA-${body.sessionId.replace(/[^a-zA-Z0-9]/g,'')}`.substring(0,50);
+    data.classrooms[body.sessionId] = { active: true, roomName, startedAt: new Date().toISOString(), course: teacher.course, title: body.sessionTitle||'Class' };
+    data.handRaises[body.sessionId] = [];
+    await setData(data);
+    return res.status(200).json({ ok: true, roomName });
+  }
+
+  if (req.method === 'POST' && action === 'classroom-stop') {
+    if (!teacher) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    if (data.classrooms[body.sessionId]) data.classrooms[body.sessionId].active = false;
+    data.handRaises[body.sessionId] = [];
+    await setData(data);
+    return res.status(200).json({ ok: true });
+  }
+
+  // ── POST: quiz save ───────────────────────────────────────
+  if (req.method === 'POST' && action === 'save-quiz') {
+    if (!teacher) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    const session = data.sessions.find(s => s.id === body.sessionId);
+    if (!session || session.course !== teacher.course) return res.status(404).json({ error: 'Not found' });
+    session.quiz = { id: 'quiz_'+Date.now(), title: body.title||`${session.title} — Quiz`, questions: body.questions, timeLimit: parseInt(body.timeLimit)||30, createdAt: new Date().toISOString() };
+    await setData(data);
+    return res.status(200).json({ ok: true, quiz: session.quiz });
+  }
+
+  // ── POST: submit quiz (student) ───────────────────────────
+  if (req.method === 'POST' && action === 'submit-quiz' && studentId) {
+    const student = (data.students||[]).find(s => s.portalId === studentId);
+    if (!student) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    const { sessionId, answers, quit } = body;
     const session = data.sessions.find(s => s.id === sessionId);
-    if (!session) return res.status(404).json({ error: 'Session not found' });
-    if (teacherCourse && session.course !== teacherCourse) return res.status(403).json({ error: 'Forbidden' });
-    if (!session.timer) session.timer = { paused: true, secondsLeft: (session.durationMinutes || 45) * 60, lastUpdated: null };
+    if (!session?.quiz) return res.status(404).json({ error: 'Quiz not found' });
+    const existing = data.quizResults.find(r => r.studentId === student.id && r.sessionId === sessionId);
+    if (existing) return res.status(400).json({ error: 'Already submitted.' });
+    let score = 0;
+    const results = session.quiz.questions.map(q => {
+      const selected = quit ? null : answers[q.id];
+      const correct = !quit && selected === q.correctAnswer;
+      if (correct) score++;
+      return { questionId: q.id, correct, selected, correctAnswer: q.correctAnswer };
+    });
+    const result = { id: 'qr_'+Date.now(), studentId: student.id, studentName: student.name, sessionId, sessionTitle: session.title, score, total: session.quiz.questions.length, percent: quit?0:Math.round((score/session.quiz.questions.length)*100), quit: !!quit, results, submittedAt: new Date().toISOString() };
+    data.quizResults.push(result);
+    await setData(data);
+    return res.status(200).json({ ok: true, score, total: result.total, percent: result.percent, results });
+  }
+
+  // ── POST: ask teacher (student) ───────────────────────────
+  if (req.method === 'POST' && action === 'ask-teacher' && studentId) {
+    const student = (data.students||[]).find(s => s.portalId === studentId);
+    if (!student) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    if (!body.question?.trim()) return res.status(400).json({ error: 'Question required' });
+    data.studentQuestions.push({ id: 'q_'+Date.now(), studentId: student.id, studentName: student.name, sessionId: body.sessionId||null, question: body.question.trim(), answered: false, answer: null, askedAt: new Date().toISOString() });
+    await setData(data);
+    return res.status(200).json({ ok: true });
+  }
+
+  // ── PATCH: timer control ──────────────────────────────────
+  if (req.method === 'PATCH' && action === 'timer') {
+    if (!teacher) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    const session = data.sessions.find(s => s.id === body.sessionId);
+    if (!session || session.course !== teacher.course) return res.status(404).json({ error: 'Not found' });
+    if (!session.timer) session.timer = { paused: true, secondsLeft: (session.durationMinutes||45)*60, lastUpdated: null };
     const now = Date.now();
-    if (!session.timer.paused && session.timer.lastUpdated) {
-      const elapsed = Math.floor((now - session.timer.lastUpdated) / 1000);
-      session.timer.secondsLeft = Math.max(0, session.timer.secondsLeft - elapsed);
-    }
+    if (!session.timer.paused && session.timer.lastUpdated) session.timer.secondsLeft = Math.max(0, session.timer.secondsLeft - Math.floor((now-session.timer.lastUpdated)/1000));
     session.timer.lastUpdated = now;
-    if (command === 'pause')  session.timer.paused = true;
-    if (command === 'resume') session.timer.paused = false;
-    if (command === 'reset')  { session.timer.paused = true; session.timer.secondsLeft = (session.durationMinutes || 45) * 60; }
-    if (addMinutes) session.timer.secondsLeft = Math.max(0, session.timer.secondsLeft + (parseInt(addMinutes) * 60));
-    if (setMinutes) { session.timer.secondsLeft = parseInt(setMinutes) * 60; session.durationMinutes = parseInt(setMinutes); }
+    if (body.command === 'pause') session.timer.paused = true;
+    if (body.command === 'resume') session.timer.paused = false;
+    if (body.command === 'reset') { session.timer.paused = true; session.timer.secondsLeft = (session.durationMinutes||45)*60; }
+    if (body.addMinutes) session.timer.secondsLeft = Math.max(0, session.timer.secondsLeft + (parseInt(body.addMinutes)*60));
     await setData(data);
     return res.status(200).json({ ok: true, timer: session.timer });
   }
 
-  // PATCH: deactivate codes
-  if (req.method === 'PATCH' && req.query.action === 'deactivate-codes') {
-    const { sessionId, codeIds } = req.body;
-    data.sessionCodes = (data.sessionCodes || []).map(c => {
-      if (sessionId && c.sessionId === sessionId) return { ...c, active: false };
-      if (codeIds && codeIds.includes(c.id)) return { ...c, active: false };
+  // ── PATCH: unlock session ─────────────────────────────────
+  if (req.method === 'PATCH' && action === 'unlock-session') {
+    if (!teacher) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    const session = data.sessions.find(s => s.id === body.sessionId && s.course === teacher.course);
+    if (!session) return res.status(404).json({ error: 'Not found' });
+    session.unlockedForStudents = !session.unlockedForStudents;
+    await setData(data);
+    return res.status(200).json({ ok: true, unlocked: session.unlockedForStudents });
+  }
+
+  // ── PATCH: set page range ─────────────────────────────────
+  if (req.method === 'PATCH' && action === 'set-pages') {
+    if (!teacher) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    const session = data.sessions.find(s => s.id === body.sessionId && s.course === teacher.course);
+    if (!session) return res.status(404).json({ error: 'Not found' });
+    session.pageStart = parseInt(body.pageStart); session.pageEnd = parseInt(body.pageEnd);
+    await setData(data);
+    return res.status(200).json({ ok: true });
+  }
+
+  // ── PATCH: deactivate codes ───────────────────────────────
+  if (req.method === 'PATCH' && action === 'deactivate-codes') {
+    const body = await parseJSON(req);
+    data.sessionCodes = data.sessionCodes.map(c => {
+      if (body.sessionId && c.sessionId === body.sessionId) return { ...c, active: false };
+      if (body.codeIds?.includes(c.id)) return { ...c, active: false };
       return c;
     });
     await setData(data);
     return res.status(200).json({ ok: true });
   }
 
-  // PATCH: toggle session
-  if (req.method === 'PATCH' && req.query.action === 'toggle-session') {
-    const { sessionId } = req.body;
-    const session = data.sessions.find(s => s.id === sessionId);
+  // ── PATCH: toggle session active ──────────────────────────
+  if (req.method === 'PATCH' && action === 'toggle-session') {
+    const body = await parseJSON(req);
+    const session = data.sessions.find(s => s.id === body.sessionId);
     if (!session) return res.status(404).json({ error: 'Not found' });
     session.active = !session.active;
     await setData(data);
     return res.status(200).json({ ok: true, active: session.active });
   }
 
-  // DELETE
+  // ── PATCH: hand raise ─────────────────────────────────────
+  if (req.method === 'PATCH' && action === 'raise-hand') {
+    const body = await parseJSON(req);
+    const { sessionId, studentName, studentCodeId, action: act } = body;
+    if (!data.handRaises[sessionId]) data.handRaises[sessionId] = [];
+    if (act === 'raise') {
+      if (!data.handRaises[sessionId].find(h => h.studentCodeId === studentCodeId))
+        data.handRaises[sessionId].push({ studentCodeId, studentName, raisedAt: new Date().toISOString() });
+    } else {
+      data.handRaises[sessionId] = data.handRaises[sessionId].filter(h => h.studentCodeId !== studentCodeId);
+    }
+    await setData(data);
+    return res.status(200).json({ ok: true, hands: data.handRaises[sessionId] });
+  }
+
+  // ── PATCH: lower hand (teacher) ───────────────────────────
+  if (req.method === 'PATCH' && action === 'lower-hand') {
+    if (!teacher) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    if (data.handRaises[body.sessionId]) data.handRaises[body.sessionId] = data.handRaises[body.sessionId].filter(h => h.studentCodeId !== body.studentCodeId);
+    await setData(data);
+    return res.status(200).json({ ok: true, hands: data.handRaises[body.sessionId]||[] });
+  }
+
+  // ── PATCH: save notes (student) ───────────────────────────
+  if (req.method === 'PATCH' && action === 'save-notes' && studentId) {
+    const student = (data.students||[]).find(s => s.portalId === studentId);
+    if (!student) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    data.studentNotes[`${student.id}_${body.sessionId}`] = body.notes;
+    await setData(data);
+    return res.status(200).json({ ok: true });
+  }
+
+  // ── DELETE: session ───────────────────────────────────────
   if (req.method === 'DELETE') {
-    const { sessionId } = req.body;
-    data.sessions     = (data.sessions || []).filter(s => s.id !== sessionId);
-    data.sessionCodes = (data.sessionCodes || []).filter(c => c.sessionId !== sessionId);
-    data.attendance   = (data.attendance || []).filter(a => a.sessionId !== sessionId);
+    const body = await parseJSON(req);
+    data.sessions = data.sessions.filter(s => s.id !== body.sessionId);
+    data.sessionCodes = data.sessionCodes.filter(c => c.sessionId !== body.sessionId);
+    data.attendance = data.attendance.filter(a => a.sessionId !== body.sessionId);
     await setData(data);
     return res.status(200).json({ ok: true });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
+}
+
+function sanitizeSession(s) {
+  return { id: s.id, title: s.title, sessionNumber: s.sessionNumber, courseLabel: s.courseLabel, description: s.description, materials: s.materials, pdfUrl: s.pdfUrl, pageStart: s.pageStart, pageEnd: s.pageEnd, durationMinutes: s.durationMinutes||45 };
+}
+
+function matchesCourse(sessionCourse, studentCourse) {
+  if (!studentCourse) return false;
+  if (studentCourse === 'all3') return true;
+  if (studentCourse.includes('+')) return studentCourse.split('+').includes(sessionCourse);
+  return sessionCourse === studentCourse;
 }
