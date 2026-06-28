@@ -126,10 +126,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <button class="tab" onclick="switchTab('attendance',this)">✅ Attendance</button>
     </div>
     <div class="tab-content active" id="tab-sessions">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:16px">
+        <button class="btn btn-outline" onclick="openUploadModal()">📄 Upload Course PDF</button>
         <button class="btn btn-primary" onclick="openNewSessionModal()">+ New Session</button>
       </div>
-      <div id="sessions-list"><div class="empty"><div class="empty-icon">📚</div>No sessions yet.</div></div>
+      <div id="sessions-list"><div class="empty"><div class="empty-icon">📚</div>No sessions yet. Create one or upload a course PDF!</div></div>
     </div>
     <div class="tab-content" id="tab-codes">
       <div class="card">
@@ -176,7 +177,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
-<!-- New Session Modal -->
+<!-- Upload Course PDF Modal -->
+<div class="modal-overlay" id="upload-modal" onclick="closeModalIf(event,'upload-modal')">
+  <div class="modal" style="max-width:500px">
+    <h3>📄 Upload Course PDF</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Upload your course PDF and we'll automatically detect each module and create sessions for you.</p>
+    <div class="alert alert-danger" id="upload-alert"></div>
+    <div id="upload-drop-zone" onclick="document.getElementById('pdf-file-input').click()"
+      style="border:2px dashed var(--border);border-radius:var(--radius-lg);padding:32px;text-align:center;cursor:pointer;transition:.2s;margin-bottom:16px">
+      <div id="upload-icon" style="font-size:36px;margin-bottom:8px">📄</div>
+      <div id="upload-label" style="font-size:14px;font-weight:600;color:var(--text)">Click to select PDF file</div>
+      <div id="upload-hint" style="font-size:12px;color:var(--muted);margin-top:4px">Supports PDF files up to 10MB</div>
+    </div>
+    <input type="file" id="pdf-file-input" accept=".pdf,application/pdf" style="display:none" onchange="onPDFSelected(event)">
+    <div class="field">
+      <label>Session Duration (minutes)</label>
+      <input type="number" id="upload-duration" value="45" min="10" max="300">
+    </div>
+    <div id="upload-preview" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px">MODULES DETECTED — SESSIONS TO BE CREATED:</div>
+      <div id="upload-modules-list"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('upload-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="uploadCoursePDF()" id="upload-btn" disabled>
+        <span id="upload-btn-text">Select a PDF first</span>
+        <div class="spinner" id="upload-spinner"></div>
+      </button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="session-modal" onclick="closeModalIf(event,'session-modal')">
   <div class="modal">
     <h3>Create New Session</h3>
@@ -539,7 +569,90 @@ function showAlert(el,msg){ el.textContent=msg; el.classList.add('show'); setTim
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 function closeModalIf(e,id){ if(e.target===document.getElementById(id)) closeModal(id); }
 
-// ── Attendance ─────────────────────────────────────────────
+// ── PDF Upload ─────────────────────────────────────────────
+let selectedPDFFile = null;
+
+function openUploadModal() {
+  selectedPDFFile = null;
+  document.getElementById('upload-preview').style.display = 'none';
+  document.getElementById('upload-btn').disabled = true;
+  document.getElementById('upload-btn-text').textContent = 'Select a PDF first';
+  document.getElementById('upload-icon').textContent = '📄';
+  document.getElementById('upload-label').textContent = 'Click to select PDF file';
+  document.getElementById('upload-hint').textContent = 'Supports PDF files up to 10MB';
+  document.getElementById('pdf-file-input').value = '';
+  document.getElementById('upload-alert').classList.remove('show');
+  document.getElementById('upload-modal').classList.add('open');
+}
+
+function onPDFSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.name.endsWith('.pdf') && file.type !== 'application/pdf') {
+    showAlert(document.getElementById('upload-alert'), 'Please select a PDF file');
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    showAlert(document.getElementById('upload-alert'), 'File too large. Max 10MB.');
+    return;
+  }
+  selectedPDFFile = file;
+  document.getElementById('upload-icon').textContent = '✅';
+  document.getElementById('upload-label').textContent = file.name;
+  document.getElementById('upload-hint').textContent = `${(file.size/1024).toFixed(0)} KB — ready to upload`;
+  document.getElementById('upload-drop-zone').style.borderColor = 'var(--accent)';
+  document.getElementById('upload-btn').disabled = false;
+  document.getElementById('upload-btn-text').textContent = 'Upload & Create Sessions';
+}
+
+async function uploadCoursePDF() {
+  if (!selectedPDFFile) return;
+  const alertEl = document.getElementById('upload-alert');
+  const btn = document.getElementById('upload-btn');
+  const spinner = document.getElementById('upload-spinner');
+  const duration = document.getElementById('upload-duration').value || 45;
+
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  document.getElementById('upload-btn-text').textContent = 'Processing PDF...';
+
+  try {
+    const formData = new FormData();
+    formData.append('pdf', selectedPDFFile);
+    formData.append('teacherKey', teacherData.username);
+    formData.append('duration', duration);
+
+    const res = await fetch('/api/upload-course', {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+    // Show success
+    document.getElementById('upload-preview').style.display = 'block';
+    document.getElementById('upload-modules-list').innerHTML = data.sessions.map((s, i) =>
+      `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+        <span style="background:var(--accent-light);color:var(--accent-text);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">Session ${s.sessionNumber}</span>
+        <span style="font-size:13px">${s.title}</span>
+      </div>`
+    ).join('');
+
+    // Update local data
+    sessions = [...sessions, ...data.sessions];
+    renderAll();
+    closeModal('upload-modal');
+    alert(`✅ ${data.sessionsCreated} sessions created from your PDF!`);
+
+  } catch(e) {
+    showAlert(alertEl, e.message);
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    document.getElementById('upload-btn-text').textContent = 'Upload & Create Sessions';
+  }
+}
+
+
 let qrInterval = null;
 let countdownInterval = null;
 let currentAttSessionId = null;
