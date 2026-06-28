@@ -564,6 +564,7 @@ async function deleteSession(sessionId){
 }
 
 
+async function deactivateCodesForSession(sessionId){
   if(!confirm('Deactivate all unused codes for this session?')) return;
   try{
     await fetch('/api/sessions?action=deactivate-codes',{method:'PATCH',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({sessionId})});
