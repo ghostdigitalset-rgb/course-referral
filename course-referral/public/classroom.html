@@ -574,6 +574,88 @@ function formatTime(iso) {
 }
 
 function showAlert(el, msg) { el.textContent = msg; el.classList.add('show'); }
+
+// ── Auto-join from URL params ─────────────────────────────
+(async function autoJoin() {
+  const params = new URLSearchParams(window.location.search);
+  const urlRole    = params.get('role');
+  const urlSession = params.get('session');
+  const urlCode    = params.get('code');
+  const urlTeacher = params.get('teacher');
+  const urlTitle   = params.get('title') || 'Class Session';
+
+  if (!urlRole || !urlSession) return; // no params, show manual join screen
+
+  sessionId    = urlSession;
+  sessionTitle = decodeURIComponent(urlTitle);
+  document.getElementById('header-session-name').textContent = sessionTitle;
+
+  if (urlRole === 'teacher' && urlTeacher) {
+    // Teacher auto-joins — credentials passed from teacher portal via localStorage
+    const saved = localStorage.getItem('teacherSession');
+    if (!saved) { showAlert(document.getElementById('join-alert'), 'Teacher session expired. Please log in again.'); return; }
+    const teacher = JSON.parse(saved);
+    teacherUsername = teacher.username;
+    role = 'teacher';
+
+    // Start classroom
+    try {
+      const startRes = await fetch('/api/classroom?action=start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-teacher-key': teacherUsername },
+        body: JSON.stringify({ sessionId, sessionTitle })
+      });
+      const startData = await startRes.json();
+      if (!startRes.ok) throw new Error(startData.error);
+      document.getElementById('join-screen').style.display = 'none';
+      showClassroom('Teacher', startData.roomName, true);
+    } catch(e) {
+      showAlert(document.getElementById('join-alert'), e.message);
+    }
+
+  } else if (urlRole === 'student' && urlCode) {
+    // Student auto-joins with their code
+    role = 'student';
+    try {
+      const authRes = await fetch('/api/student-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: urlCode.toUpperCase() })
+      });
+      const authData = await authRes.json();
+
+      // Code already used is fine — student re-joining
+      if (!authRes.ok && !authData.error?.includes('already been used')) {
+        throw new Error(authData.error || 'Invalid code');
+      }
+
+      // Get student info from localStorage if code was already used
+      const savedStudent = localStorage.getItem('studentSession');
+      if (savedStudent) {
+        const s = JSON.parse(savedStudent);
+        studentName   = s.studentName || 'Student';
+        studentCodeId = s.studentCodeId;
+      } else {
+        studentName   = authData.studentName || 'Student';
+        studentCodeId = authData.studentCodeId;
+      }
+
+      // Check classroom is active
+      const roomRes = await fetch(`/api/classroom?sessionId=${sessionId}`);
+      const roomData = await roomRes.json();
+
+      document.getElementById('join-screen').style.display = 'none';
+
+      if (!roomData.room?.active) {
+        showWaitingRoom({ id: sessionId, title: sessionTitle });
+      } else {
+        showClassroom(studentName, roomData.room.roomName, false);
+      }
+    } catch(e) {
+      showAlert(document.getElementById('join-alert'), e.message);
+    }
+  }
+})();
 </script>
 </body>
 </html>
