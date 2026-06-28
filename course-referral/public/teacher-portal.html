@@ -248,6 +248,40 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- Page Range Modal -->
+<div class="modal-overlay" id="pages-modal" onclick="closeModalIf(event,'pages-modal')">
+  <div class="modal" style="max-width:380px">
+    <h3>📄 Set PDF Page Range</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Define which pages of the course PDF this session covers.</p>
+    <input type="hidden" id="pages-session-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>Start Page</label><input type="number" id="page-start" min="1" value="1"></div>
+      <div class="field"><label>End Page</label><input type="number" id="page-end" min="1" value="2"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('pages-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePageRange()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quiz Modal -->
+<div class="modal-overlay" id="quiz-modal" onclick="closeModalIf(event,'quiz-modal')">
+  <div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto">
+    <h3>📝 Create Quiz</h3>
+    <div class="alert alert-danger" id="quiz-alert"></div>
+    <input type="hidden" id="quiz-session-id">
+    <div class="field"><label>Quiz Title</label><input type="text" id="quiz-title-input" placeholder="e.g. Module 1 Quiz"></div>
+    <div class="field"><label>Time Limit (minutes)</label><input type="number" id="quiz-time-limit" value="30" min="5" max="120"></div>
+    <div id="quiz-questions-list"></div>
+    <button class="btn btn-outline" onclick="addQuizQuestion()" style="width:100%;margin-bottom:16px">+ Add Question</button>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('quiz-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveQuiz()" id="save-quiz-btn">Save Quiz</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 let teacherData = null;
@@ -404,9 +438,10 @@ function renderSessions(){
 
       <div class="session-actions">
         <button class="btn btn-green" onclick="startClass('${s.id}','${s.title.replace(/'/g,"\\'")}')">🎥 Start Class</button>
-        <button class="btn btn-gold" onclick="quickGenerateCodes('${s.id}')">🔑 Generate Codes</button>
-        <button class="btn btn-outline" onclick="toggleSession('${s.id}')">${s.active?'⏸ Deactivate':'▶ Activate'}</button>
-        <button class="btn btn-danger" onclick="deactivateCodesForSession('${s.id}')">🚫 Kill All Codes</button>
+        <button class="btn ${s.unlockedForStudents?'btn-danger':'btn-outline'}" onclick="toggleUnlock('${s.id}')">${s.unlockedForStudents?'🔒 Lock Session':'🔓 Unlock for Students'}</button>
+        <button class="btn btn-gold" onclick="openQuizModal('${s.id}')">📝 ${s.quiz?'Edit Quiz':'Add Quiz'}</button>
+        <button class="btn btn-outline" onclick="openPageModal('${s.id}',${s.pageStart||1},${s.pageEnd||1})">📄 Set Pages</button>
+        <button class="btn btn-outline" onclick="quickGenerateCodes('${s.id}')">🔑 Codes</button>
         <button class="btn btn-danger" onclick="deleteSession('${s.id}')">🗑 Delete</button>
       </div>
     </div>`;
@@ -557,7 +592,157 @@ async function toggleSession(sessionId){
   }catch(e){ alert(e.message); }
 }
 
-async function deleteSession(sessionId){
+async function toggleUnlock(sessionId){
+  try{
+    const res = await fetch('/api/quiz?action=unlock-session',{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
+      body:JSON.stringify({sessionId})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error);
+    const s = sessions.find(s=>s.id===sessionId);
+    if(s) s.unlockedForStudents = data.unlocked;
+    renderAll();
+  }catch(e){ alert(e.message); }
+}
+
+function openPageModal(sessionId, pageStart, pageEnd){
+  document.getElementById('pages-session-id').value = sessionId;
+  document.getElementById('page-start').value = pageStart||1;
+  document.getElementById('page-end').value = pageEnd||1;
+  document.getElementById('pages-modal').classList.add('open');
+}
+
+async function savePageRange(){
+  const sessionId = document.getElementById('pages-session-id').value;
+  const pageStart = parseInt(document.getElementById('page-start').value);
+  const pageEnd = parseInt(document.getElementById('page-end').value);
+  if(pageStart > pageEnd){ alert('Start page must be before end page'); return; }
+  try{
+    const res = await fetch('/api/quiz?action=set-pages',{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
+      body:JSON.stringify({sessionId,pageStart,pageEnd})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error);
+    const s = sessions.find(s=>s.id===sessionId);
+    if(s){ s.pageStart=pageStart; s.pageEnd=pageEnd; }
+    closeModal('pages-modal');
+    renderAll();
+  }catch(e){ alert(e.message); }
+}
+
+// ── Quiz ──────────────────────────────────────────────────
+let quizQuestions = [];
+
+function openQuizModal(sessionId){
+  const session = sessions.find(s=>s.id===sessionId);
+  quizQuestions = session?.quiz?.questions ? JSON.parse(JSON.stringify(session.quiz.questions)) : [];
+  document.getElementById('quiz-session-id').value = sessionId;
+  document.getElementById('quiz-title-input').value = session?.quiz?.title || `${session?.title} — Quiz`;
+  document.getElementById('quiz-time-limit').value = session?.quiz?.timeLimit || 30;
+  document.getElementById('quiz-alert').classList.remove('show');
+  if(!quizQuestions.length) addQuizQuestion();
+  renderQuizQuestions();
+  document.getElementById('quiz-modal').classList.add('open');
+}
+
+function addQuizQuestion(){
+  quizQuestions.push({
+    id:'q_'+Date.now()+'_'+quizQuestions.length,
+    type:'multiple-choice',
+    question:'',
+    options:['','','',''],
+    correctAnswer:''
+  });
+  renderQuizQuestions();
+}
+
+function renderQuizQuestions(){
+  const container = document.getElementById('quiz-questions-list');
+  container.innerHTML = quizQuestions.map((q,i)=>`
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:var(--muted)">QUESTION ${i+1}</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select onchange="changeQuizType(${i},this.value)" style="font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-family:inherit;background:var(--surface)">
+            <option value="multiple-choice" ${q.type==='multiple-choice'?'selected':''}>Multiple Choice</option>
+            <option value="true-false" ${q.type==='true-false'?'selected':''}>True/False</option>
+          </select>
+          <button onclick="removeQuestion(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px">✕</button>
+        </div>
+      </div>
+      <textarea placeholder="Enter question..." onchange="quizQuestions[${i}].question=this.value" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;resize:none;height:60px;margin-bottom:10px;outline:none">${q.question}</textarea>
+      ${q.type==='true-false'?`
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="correct_${i}" value="True" ${q.correctAnswer==='True'?'checked':''} onchange="quizQuestions[${i}].correctAnswer='True';quizQuestions[${i}].options=['True','False']"> True</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="correct_${i}" value="False" ${q.correctAnswer==='False'?'checked':''} onchange="quizQuestions[${i}].correctAnswer='False';quizQuestions[${i}].options=['True','False']"> False</label>
+        </div>
+        <div style="font-size:11px;color:var(--muted)">Select the correct answer above</div>
+      `:`
+        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">OPTIONS (select correct answer)</div>
+        ${(q.options||['','','','']).map((opt,j)=>`
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <input type="radio" name="correct_${i}" value="${String.fromCharCode(65+j)}" ${q.correctAnswer===String.fromCharCode(65+j)?'checked':''} onchange="quizQuestions[${i}].correctAnswer='${String.fromCharCode(65+j)}'">
+            <span style="font-size:12px;font-weight:700;color:var(--muted);width:16px">${String.fromCharCode(65+j)}.</span>
+            <input type="text" value="${opt}" placeholder="Option ${String.fromCharCode(65+j)}" onchange="quizQuestions[${i}].options[${j}]=this.value" style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;outline:none">
+          </div>`).join('')}
+      `}
+    </div>`).join('');
+}
+
+function changeQuizType(i, type){
+  quizQuestions[i].type = type;
+  quizQuestions[i].correctAnswer = '';
+  if(type==='true-false') quizQuestions[i].options = ['True','False'];
+  else quizQuestions[i].options = ['','','',''];
+  renderQuizQuestions();
+}
+
+function removeQuestion(i){
+  quizQuestions.splice(i,1);
+  renderQuizQuestions();
+}
+
+async function saveQuiz(){
+  const sessionId = document.getElementById('quiz-session-id').value;
+  const title = document.getElementById('quiz-title-input').value.trim();
+  const timeLimit = parseInt(document.getElementById('quiz-time-limit').value)||30;
+  const alertEl = document.getElementById('quiz-alert');
+
+  if(!quizQuestions.length){ showAlert(alertEl,'Add at least one question'); return; }
+  for(let i=0;i<quizQuestions.length;i++){
+    const q = quizQuestions[i];
+    if(!q.question.trim()){ showAlert(alertEl,`Question ${i+1} is empty`); return; }
+    if(!q.correctAnswer){ showAlert(alertEl,`Select the correct answer for Question ${i+1}`); return; }
+    if(q.type==='multiple-choice' && q.options.some(o=>!o.trim())){ showAlert(alertEl,`Fill all options for Question ${i+1}`); return; }
+  }
+
+  // Convert multiple-choice options to labeled version
+  const questions = quizQuestions.map(q=>({
+    ...q,
+    options: q.type==='true-false' ? ['True','False'] : q.options.map((o,i)=>o),
+  }));
+
+  try{
+    const res = await fetch('/api/quiz',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
+      body:JSON.stringify({sessionId,title,questions,timeLimit})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error);
+    const s = sessions.find(s=>s.id===sessionId);
+    if(s) s.quiz = data.quiz;
+    closeModal('quiz-modal');
+    renderAll();
+    alert('✅ Quiz saved!');
+  }catch(e){ showAlert(alertEl,e.message); }
+}
+
+
   if(!confirm('Delete this session? All codes and attendance for this session will also be deleted. This cannot be undone.')) return;
   try{
     const res = await fetch('/api/sessions',{
