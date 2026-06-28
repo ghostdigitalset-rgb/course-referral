@@ -305,7 +305,7 @@ async function joinAsTeacher() {
   sessionTitle = title;
 
   // Start classroom
-  const startRes = await fetch('/api/classroom?action=start', {
+  const startRes = await fetch('/api/sessions?action=classroom-start', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-teacher-key': username },
     body: JSON.stringify({ sessionId: sid, sessionTitle: title })
@@ -321,7 +321,7 @@ async function joinAsStudent() {
   if (!code || code.length < 6) throw new Error('Enter your 6-character class code');
 
   // Authenticate student
-  const authRes = await fetch('/api/student-auth', {
+  const authRes = await fetch('/api/sessions?action=student-login', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code })
   });
@@ -334,7 +334,7 @@ async function joinAsStudent() {
   studentCodeId = authData.studentCodeId;
 
   // Check if classroom is active
-  const roomRes = await fetch(`/api/classroom?sessionId=${sessionId}`);
+  const roomRes = await fetch(`/api/sessions?action=classroom&sessionId=${sessionId}`);
   const roomData = await roomRes.json();
 
   if (!roomData.room?.active) {
@@ -361,7 +361,7 @@ function showWaitingRoom(session) {
   // Poll until teacher starts
   pollInterval = setInterval(async () => {
     try {
-      const res = await fetch(`/api/classroom?sessionId=${sessionId}`);
+      const res = await fetch(`/api/sessions?action=classroom&sessionId=${sessionId}`);
       const data = await res.json();
       if (data.room?.active) {
         clearInterval(pollInterval);
@@ -446,7 +446,7 @@ function startPolling() {
   if (pollInterval) clearInterval(pollInterval);
   pollInterval = setInterval(async () => {
     try {
-      const res = await fetch(`/api/classroom?sessionId=${sessionId}`);
+      const res = await fetch(`/api/sessions?action=classroom&sessionId=${sessionId}`);
       const data = await res.json();
       if (!data.ok) return;
       renderHands(data.hands || []);
@@ -480,7 +480,7 @@ async function toggleHand() {
   }
 
   try {
-    await fetch('/api/classroom?action=raise-hand', {
+    await fetch('/api/sessions?action=raise-hand', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sessionId, studentName, studentCodeId, action })
@@ -490,7 +490,7 @@ async function toggleHand() {
 
 async function allowStudent(studentCodeId) {
   // Lower their hand and notify (teacher unmutes them in Jitsi manually)
-  await fetch('/api/classroom?action=lower-hand', {
+  await fetch('/api/sessions?action=lower-hand', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', 'x-teacher-key': teacherUsername },
     body: JSON.stringify({ sessionId, studentCodeId })
@@ -499,7 +499,7 @@ async function allowStudent(studentCodeId) {
 }
 
 async function dismissHand(studentCodeId) {
-  await fetch('/api/classroom?action=lower-hand', {
+  await fetch('/api/sessions?action=lower-hand', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', 'x-teacher-key': teacherUsername },
     body: JSON.stringify({ sessionId, studentCodeId })
@@ -557,7 +557,7 @@ async function leaveClass() {
 
   if (role === 'teacher' && teacherUsername && sessionId) {
     try {
-      await fetch('/api/classroom?action=stop', {
+      await fetch('/api/sessions?action=classroom-stop', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-teacher-key': teacherUsername },
         body: JSON.stringify({ sessionId })
@@ -600,7 +600,7 @@ function showAlert(el, msg) { el.textContent = msg; el.classList.add('show'); }
 
     // Start classroom
     try {
-      const startRes = await fetch('/api/classroom?action=start', {
+      const startRes = await fetch('/api/sessions?action=classroom-start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-teacher-key': teacherUsername },
         body: JSON.stringify({ sessionId, sessionTitle })
@@ -617,7 +617,7 @@ function showAlert(el, msg) { el.textContent = msg; el.classList.add('show'); }
     // Student auto-joins with their code
     role = 'student';
     try {
-      const authRes = await fetch('/api/student-auth', {
+      const authRes = await fetch('/api/sessions?action=student-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: urlCode.toUpperCase() })
@@ -641,7 +641,7 @@ function showAlert(el, msg) { el.textContent = msg; el.classList.add('show'); }
       }
 
       // Check classroom is active
-      const roomRes = await fetch(`/api/classroom?sessionId=${sessionId}`);
+      const roomRes = await fetch(`/api/sessions?action=classroom&sessionId=${sessionId}`);
       const roomData = await roomRes.json();
 
       document.getElementById('join-screen').style.display = 'none';

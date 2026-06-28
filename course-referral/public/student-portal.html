@@ -329,7 +329,7 @@ async function login() {
   document.getElementById('login-text').textContent = 'Loading...';
 
   try {
-    const res = await fetch('/api/student-portal?action=login', {
+    const res = await fetch('/api/sessions?action=portal-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ portalId })
@@ -426,7 +426,7 @@ async function openSession(sessionId) {
   document.getElementById('pdf-viewer').innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.5);padding:40px"><div style="font-size:36px;margin-bottom:12px">⏳</div><div>Loading content...</div></div>';
 
   try {
-    const res = await fetch(`/api/student-portal?action=session-content&sessionId=${sessionId}`, {
+    const res = await fetch(`/api/sessions?action=session-content&sessionId=${sessionId}`, {
       headers: { 'x-student-id': student.portalId }
     });
     const data = await res.json();
@@ -553,7 +553,7 @@ async function saveNotes() {
   if (!currentSession || !student) return;
   const notes = document.getElementById('notes-area').value;
   try {
-    await fetch('/api/student-portal?action=save-notes', {
+    await fetch('/api/sessions?action=save-notes', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'x-student-id': student.portalId },
       body: JSON.stringify({ sessionId: currentSession.id, notes })
@@ -685,7 +685,7 @@ async function submitQuiz(e, autoSubmit = false) {
 
 async function doSubmitQuiz(quit) {
   try {
-    const res = await fetch('/api/student-portal?action=submit-quiz', {
+    const res = await fetch('/api/sessions?action=submit-quiz', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-student-id': student.portalId },
       body: JSON.stringify({ sessionId: currentSession.id, answers: quizAnswers, quit })
@@ -747,7 +747,7 @@ async function submitQuestion() {
   if (!question) { showAlert(alertEl, 'Please type your question'); return; }
 
   try {
-    const res = await fetch('/api/student-portal?action=ask-teacher', {
+    const res = await fetch('/api/sessions?action=ask-teacher', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-student-id': student.portalId },
       body: JSON.stringify({ sessionId: currentSession?.id || null, question })

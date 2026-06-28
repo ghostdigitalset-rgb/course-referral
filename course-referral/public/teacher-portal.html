@@ -594,7 +594,7 @@ async function toggleSession(sessionId){
 
 async function toggleUnlock(sessionId){
   try{
-    const res = await fetch('/api/quiz?action=unlock-session',{
+    const res = await fetch('/api/sessions?action=unlock-session',{
       method:'PATCH',
       headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
       body:JSON.stringify({sessionId})
@@ -620,7 +620,7 @@ async function savePageRange(){
   const pageEnd = parseInt(document.getElementById('page-end').value);
   if(pageStart > pageEnd){ alert('Start page must be before end page'); return; }
   try{
-    const res = await fetch('/api/quiz?action=set-pages',{
+    const res = await fetch('/api/sessions?action=set-pages',{
       method:'PATCH',
       headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
       body:JSON.stringify({sessionId,pageStart,pageEnd})
@@ -727,7 +727,7 @@ async function saveQuiz(){
   }));
 
   try{
-    const res = await fetch('/api/quiz',{
+    const res = await fetch('/api/sessions?action=save-quiz',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
       body:JSON.stringify({sessionId,title,questions,timeLimit})
