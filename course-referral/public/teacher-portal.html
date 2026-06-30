@@ -124,6 +124,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <button class="tab active" onclick="switchTab('sessions',this)">📚 Sessions</button>
       <button class="tab" onclick="switchTab('codes',this)">🔑 Class Codes</button>
       <button class="tab" onclick="switchTab('attendance',this)">✅ Attendance</button>
+      <button class="tab" onclick="switchTab('quizzes',this)">📝 Quiz Results</button>
     </div>
     <div class="tab-content active" id="tab-sessions">
       <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:16px">
@@ -173,6 +174,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <div id="att-list"></div>
         </div>
       </div>
+    </div>
+
+    <div class="tab-content" id="tab-quizzes">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Quiz Results by Session</div></div>
+        <div class="field"><label>Select Session</label>
+          <select id="quiz-results-session-select" onchange="renderQuizResults()" style="width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);outline:none">
+            <option value="">— Choose a session —</option>
+          </select>
+        </div>
+      </div>
+      <div id="quiz-results-wrap"></div>
     </div>
   </div>
 </div>
@@ -287,6 +300,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 let teacherData = null;
 let sessions = [];
 let codes = [];
+let quizResults = [];
 let activeTimers = {}; // sessionId -> interval
 let currentAddTimeSessionId = null;
 
@@ -332,11 +346,67 @@ async function loadData(){
     const data = await res.json();
     sessions = data.sessions||[];
     codes = data.codes||[];
+    quizResults = data.quizResults||[];
     renderAll();
   }catch(e){ console.error(e); }
 }
 
-function renderAll(){ renderStats(); renderSessions(); renderCodesTab(); }
+function renderAll(){ renderStats(); renderSessions(); renderCodesTab(); renderQuizResultsTab(); }
+
+function renderQuizResultsTab(){
+  const sel = document.getElementById('quiz-results-session-select');
+  const current = sel.value;
+  const withQuiz = sessions.filter(s=>s.quiz);
+  sel.innerHTML = '<option value="">— Choose a session —</option>' +
+    withQuiz.map(s=>`<option value="${s.id}">${s.title}</option>`).join('');
+  if(current && withQuiz.some(s=>s.id===current)) sel.value = current;
+  renderQuizResults();
+}
+
+function renderQuizResults(){
+  const sessionId = document.getElementById('quiz-results-session-select').value;
+  const wrap = document.getElementById('quiz-results-wrap');
+  if(!sessionId){ wrap.innerHTML = '<div class="empty"><div class="empty-icon">📝</div>Select a session to view quiz results.</div>'; return; }
+  const session = sessions.find(s=>s.id===sessionId);
+  const results = quizResults.filter(r=>r.sessionId===sessionId).sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt));
+  if(!results.length){ wrap.innerHTML = '<div class="empty"><div class="empty-icon">📝</div>No quiz submissions yet for this session.</div>'; return; }
+
+  const avg = Math.round(results.reduce((s,r)=>s+r.percent,0)/results.length);
+  const completed = results.filter(r=>!r.quit).length;
+
+  wrap.innerHTML = `
+    <div class="stats-row" style="margin-bottom:16px">
+      <div class="stat"><div class="stat-num">${results.length}</div><div class="stat-lbl">Submissions</div></div>
+      <div class="stat"><div class="stat-num">${completed}</div><div class="stat-lbl">Completed</div></div>
+      <div class="stat"><div class="stat-num">${avg}%</div><div class="stat-lbl">Average Score</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">${session?.title||''} — ${session?.quiz?.title||'Quiz'}</div></div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="text-align:left;border-bottom:1.5px solid var(--border)">
+            <th style="padding:8px 6px">Student</th>
+            <th style="padding:8px 6px">Score</th>
+            <th style="padding:8px 6px">Percent</th>
+            <th style="padding:8px 6px">Status</th>
+            <th style="padding:8px 6px">Submitted</th>
+          </tr></thead>
+          <tbody>
+            ${results.map(r=>`
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:8px 6px;font-weight:600">${r.studentName||'—'}</td>
+                <td style="padding:8px 6px">${r.score}/${r.total}</td>
+                <td style="padding:8px 6px;font-weight:700;color:${r.percent>=70?'var(--accent)':r.percent>=50?'#d97706':'#dc2626'}">${r.percent}%</td>
+                <td style="padding:8px 6px">${r.quit?'<span style="color:#dc2626">⚠ Quit early</span>':'<span style="color:var(--accent)">✓ Completed</span>'}</td>
+                <td style="padding:8px 6px;color:var(--muted)">${new Date(r.submittedAt).toLocaleString()}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
 
 function renderStats(){
   document.getElementById('stat-sessions').textContent=sessions.length;
