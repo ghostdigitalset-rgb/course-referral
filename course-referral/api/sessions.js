@@ -220,13 +220,15 @@ export default async function handler(req, res) {
   // ── GET: sessions, codes, attendance ─────────────────────
   if (req.method === 'GET' && !action) {
     let sessions = data.sessions, codes = data.sessionCodes, attendance = data.attendance;
+    let quizResults = data.quizResults || [];
     if (teacher) {
       sessions = sessions.filter(s => s.course === teacher.course);
       codes = codes.filter(c => c.course === teacher.course);
       const sIds = new Set(sessions.map(s => s.id));
       attendance = attendance.filter(a => sIds.has(a.sessionId));
+      quizResults = quizResults.filter(r => sIds.has(r.sessionId));
     }
-    return res.status(200).json({ ok: true, sessions, codes, attendance });
+    return res.status(200).json({ ok: true, sessions, codes, attendance, quizResults });
   }
 
   // ── POST: create session ──────────────────────────────────
