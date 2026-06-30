@@ -743,6 +743,7 @@ async function saveQuiz(){
 }
 
 
+async function deleteSession(sessionId){
   if(!confirm('Delete this session? All codes and attendance for this session will also be deleted. This cannot be undone.')) return;
   try{
     const res = await fetch('/api/sessions',{
