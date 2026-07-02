@@ -460,9 +460,15 @@ async function openSession(sessionId) {
       joinBtn.style.display = 'none';
     }
 
-    // Load PDF
-    if (data.session.pdfUrl) {
-      loadPDF(data.session.pdfUrl, data.session.pageStart, data.session.pageEnd);
+    // Load PDF — check both pdfUrl field and materials array
+    const pdfUrl = data.session.pdfUrl ||
+      (data.session.materials||[]).find(m => {
+        const url = typeof m === 'string' ? m : (m.url || '');
+        return url && (url.endsWith('.pdf') || (typeof m === 'object' && m.type === 'pdf'));
+      })?.url || null;
+
+    if (pdfUrl) {
+      loadPDF(pdfUrl, data.session.pageStart, data.session.pageEnd);
     } else {
       // Show text content
       document.getElementById('pdf-toolbar').style.display = 'none';
@@ -470,10 +476,14 @@ async function openSession(sessionId) {
         <div style="padding:32px;color:#e8eaf0;max-width:600px;line-height:1.7">
           <h2 style="margin-bottom:12px;font-size:20px">${data.session.title}</h2>
           <p style="color:rgba(255,255,255,.7);margin-bottom:20px">${data.session.description || ''}</p>
-          ${(data.session.materials||[]).map(m => `
-            <div style="padding:12px;background:rgba(255,255,255,.05);border-radius:8px;margin-bottom:8px;font-size:13px">
-              ${m.startsWith('http') ? `<a href="${m}" target="_blank" style="color:#93c5fd">${m}</a>` : m}
-            </div>`).join('')}
+          ${(data.session.materials||[]).map(m => {
+            const url = typeof m === 'string' ? m : (m.url || '');
+            const name = typeof m === 'string' ? m : (m.name || url);
+            if (!url) return '';
+            return `<div style="padding:12px;background:rgba(255,255,255,.05);border-radius:8px;margin-bottom:8px;font-size:13px">
+              📎 <a href="${url}" target="_blank" style="color:#93c5fd">${name}</a>
+            </div>`;
+          }).join('')}
         </div>`;
     }
 
