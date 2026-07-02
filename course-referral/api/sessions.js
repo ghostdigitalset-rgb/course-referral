@@ -335,6 +335,36 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, score, total: result.total, percent: result.percent, results });
   }
 
+  // ── DELETE: quiz result (teacher) ─────────────────────────
+  if (req.method === 'DELETE' && action === 'delete-quiz-result') {
+    if (!teacher) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    const { resultId } = body;
+    if (!resultId) return res.status(400).json({ error: 'resultId required' });
+    const before = data.quizResults.length;
+    data.quizResults = data.quizResults.filter(r => r.id !== resultId);
+    if (data.quizResults.length === before) return res.status(404).json({ error: 'Result not found' });
+    await setData(data);
+    return res.status(200).json({ ok: true });
+  }
+
+  // ── PATCH: edit quiz result score (teacher) ───────────────
+  if (req.method === 'PATCH' && action === 'edit-quiz-result') {
+    if (!teacher) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    const { resultId, score } = body;
+    if (!resultId || score === undefined) return res.status(400).json({ error: 'resultId and score required' });
+    const result = data.quizResults.find(r => r.id === resultId);
+    if (!result) return res.status(404).json({ error: 'Result not found' });
+    const newScore = Math.max(0, Math.min(result.total, parseInt(score)));
+    result.score = newScore;
+    result.percent = result.total > 0 ? Math.round((newScore/result.total)*100) : 0;
+    result.editedAt = new Date().toISOString();
+    result.editedBy = teacher.label;
+    await setData(data);
+    return res.status(200).json({ ok: true, score: result.score, percent: result.percent });
+  }
+
   // ── POST: ask teacher (student) ───────────────────────────
   if (req.method === 'POST' && action === 'ask-teacher' && studentId) {
     const student = (data.students||[]).find(s => s.portalId === studentId);
@@ -442,14 +472,21 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   }
 
-  // ── DELETE: session ───────────────────────────────────────
-  if (req.method === 'DELETE') {
+  // ── DELETE: session(s) ────────────────────────────────────
+  if (req.method === 'DELETE' && !action) {
     const body = await parseJSON(req);
-    data.sessions = data.sessions.filter(s => s.id !== body.sessionId);
-    data.sessionCodes = data.sessionCodes.filter(c => c.sessionId !== body.sessionId);
-    data.attendance = data.attendance.filter(a => a.sessionId !== body.sessionId);
+    // Support both single sessionId and array of sessionIds
+    const ids = body.sessionIds
+      ? body.sessionIds
+      : (body.sessionId ? [body.sessionId] : []);
+    if (!ids.length) return res.status(400).json({ error: 'No sessionId(s) provided' });
+    const idSet = new Set(ids);
+    data.sessions = data.sessions.filter(s => !idSet.has(s.id));
+    data.sessionCodes = data.sessionCodes.filter(c => !idSet.has(c.sessionId));
+    data.attendance = data.attendance.filter(a => !idSet.has(a.sessionId));
+    if (data.quizResults) data.quizResults = data.quizResults.filter(r => !idSet.has(r.sessionId));
     await setData(data);
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true, deleted: ids.length });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
