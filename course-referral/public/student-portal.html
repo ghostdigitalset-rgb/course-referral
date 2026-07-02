@@ -504,29 +504,65 @@ function closeSessionIfBackdrop(e) {
   if (e.target === document.getElementById('session-overlay')) closeSession();
 }
 
-// ── PDF Viewer ─────────────────────────────────────────────
-function loadPDF(pdfUrl, pageStart, pageEnd) {
+// ── PDF Viewer (PDF.js) ────────────────────────────────────
+let pdfDoc = null;
+let pdfRenderTask = null;
+
+async function loadPDF(pdfUrl, pageStart, pageEnd) {
   activePdfUrl = pdfUrl;
-  document.getElementById('pdf-toolbar').style.display = '';
   currentPage = pageStart || 1;
-  const totalPages = pageEnd ? (pageEnd - (pageStart||1) + 1) : null;
-  renderPDFPage(pdfUrl, currentPage, pageStart, pageEnd);
+  document.getElementById('pdf-toolbar').style.display = '';
+  const viewer = document.getElementById('pdf-viewer');
+  viewer.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.5);padding:40px">Loading PDF...</div>';
+
+  try {
+    // Load PDF.js from CDN if not already loaded
+    if (!window.pdfjsLib) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+    viewer.innerHTML = '<canvas id="pdf-canvas" style="max-width:100%;display:block;margin:auto"></canvas>';
+    renderPDFPage(pdfUrl, currentPage, pageStart, pageEnd);
+  } catch(e) {
+    viewer.innerHTML = `<div style="text-align:center;color:#fc8181;padding:40px">Failed to load PDF: ${e.message}</div>`;
+  }
 }
 
-function renderPDFPage(pdfUrl, page, pageStart, pageEnd) {
-  const viewer = document.getElementById('pdf-viewer');
+async function renderPDFPage(pdfUrl, page, pageStart, pageEnd) {
+  if (!pdfDoc) return;
   const pageInfo = document.getElementById('pdf-page-info');
-  const relPage = page - (pageStart||1) + 1;
-  const totalPages = pageEnd ? (pageEnd - (pageStart||1) + 1) : '?';
+  const relPage = page - (pageStart || 1) + 1;
+  const totalPages = pageEnd ? (pageEnd - (pageStart || 1) + 1) : pdfDoc.numPages;
   pageInfo.textContent = `Page ${relPage} of ${totalPages}`;
 
-  // Use Google Docs viewer to bypass Chrome's cross-origin PDF block
-  const encoded = encodeURIComponent(pdfUrl + '#page=' + page);
-  viewer.innerHTML = `<iframe
-    src="https://docs.google.com/viewer?url=${encoded}&embedded=true"
-    style="width:100%;height:100%;border:none"
-    oncontextmenu="return false"
-  ></iframe>`;
+  try {
+    const pdfPage = await pdfDoc.getPage(page);
+    const canvas = document.getElementById('pdf-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('pdf-viewer');
+    const scale = (container.clientWidth - 32) / pdfPage.getViewport({ scale: 1 }).width;
+    const viewport = pdfPage.getViewport({ scale: Math.max(scale, 0.5) });
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    if (pdfRenderTask) pdfRenderTask.cancel();
+    pdfRenderTask = pdfPage.render({ canvasContext: ctx, viewport });
+    await pdfRenderTask.promise;
+  } catch(e) {
+    if (e.name !== 'RenderingCancelledException') {
+      console.error('PDF render error:', e);
+    }
+  }
 }
 
 function prevPage() {
