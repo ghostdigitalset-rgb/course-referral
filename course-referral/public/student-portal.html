@@ -309,6 +309,7 @@ let quizResults = [];
 let currentSession = null;
 let currentSessionContent = null;
 let currentPage = 1;
+let activePdfUrl = null;
 let quizData = null;
 let quizAnswers = {};
 let quizCurrentQ = 0;
@@ -505,6 +506,7 @@ function closeSessionIfBackdrop(e) {
 
 // ── PDF Viewer ─────────────────────────────────────────────
 function loadPDF(pdfUrl, pageStart, pageEnd) {
+  activePdfUrl = pdfUrl;
   document.getElementById('pdf-toolbar').style.display = '';
   currentPage = pageStart || 1;
   const totalPages = pageEnd ? (pageEnd - (pageStart||1) + 1) : null;
@@ -518,31 +520,30 @@ function renderPDFPage(pdfUrl, page, pageStart, pageEnd) {
   const totalPages = pageEnd ? (pageEnd - (pageStart||1) + 1) : '?';
   pageInfo.textContent = `Page ${relPage} of ${totalPages}`;
 
-  // Embed PDF at specific page using #page= fragment
-  // Use Google Docs viewer as fallback for cross-origin PDFs
-  viewer.innerHTML = `<iframe 
-    src="${pdfUrl}#page=${page}&toolbar=0&navpanes=0&scrollbar=0"
+  // Use Google Docs viewer to bypass Chrome's cross-origin PDF block
+  const encoded = encodeURIComponent(pdfUrl + '#page=' + page);
+  viewer.innerHTML = `<iframe
+    src="https://docs.google.com/viewer?url=${encoded}&embedded=true"
     style="width:100%;height:100%;border:none"
     oncontextmenu="return false"
-    sandbox="allow-same-origin allow-scripts"
   ></iframe>`;
 }
 
 function prevPage() {
   if (!currentSessionContent?.session) return;
-  const { pdfUrl, pageStart } = currentSessionContent.session;
+  const { pageStart } = currentSessionContent.session;
   if (currentPage > (pageStart||1)) {
     currentPage--;
-    renderPDFPage(pdfUrl, currentPage, pageStart, currentSessionContent.session.pageEnd);
+    renderPDFPage(activePdfUrl, currentPage, pageStart, currentSessionContent.session.pageEnd);
   }
 }
 
 function nextPage() {
   if (!currentSessionContent?.session) return;
-  const { pdfUrl, pageEnd } = currentSessionContent.session;
+  const { pageEnd } = currentSessionContent.session;
   if (!pageEnd || currentPage < pageEnd) {
     currentPage++;
-    renderPDFPage(pdfUrl, currentPage, currentSessionContent.session.pageStart, pageEnd);
+    renderPDFPage(activePdfUrl, currentPage, currentSessionContent.session.pageStart, pageEnd);
   }
 }
 
