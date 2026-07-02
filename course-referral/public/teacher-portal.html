@@ -891,19 +891,20 @@ async function deleteSelectedSessions(){
   const checked = [...document.querySelectorAll('.session-checkbox:checked')];
   if(!checked.length) return;
   if(!confirm(`Delete ${checked.length} session${checked.length>1?'s':''}? This cannot be undone.`)) return;
-  const ids = checked.map(cb=>cb.dataset.id);
-  let failed = 0;
-  for(const id of ids){
-    try{
-      const res = await fetch(`/api/sessions?action=delete-session&sessionId=${id}`,{
-        method:'DELETE', headers:{'x-teacher-key':teacherData.username}
-      });
-      if(res.ok){ sessions = sessions.filter(s=>s.id!==id); }
-      else { failed++; }
-    }catch{ failed++; }
-  }
-  if(failed>0) alert(`${failed} session(s) could not be deleted.`);
-  renderAll();
+  const sessionIds = checked.map(cb=>cb.dataset.id);
+  try{
+    const res = await fetch('/api/sessions',{
+      method:'DELETE',
+      headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
+      body: JSON.stringify({sessionIds})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed to delete');
+    const idSet = new Set(sessionIds);
+    sessions = sessions.filter(s=>!idSet.has(s.id));
+    codes = codes.filter(c=>!idSet.has(c.sessionId));
+    renderAll();
+  }catch(e){ alert(e.message); }
 }
 
 async function deleteSession(sessionId){
