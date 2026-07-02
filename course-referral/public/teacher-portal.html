@@ -390,15 +390,20 @@ function renderQuizResults(){
             <th style="padding:8px 6px">Percent</th>
             <th style="padding:8px 6px">Status</th>
             <th style="padding:8px 6px">Submitted</th>
+            <th style="padding:8px 6px">Actions</th>
           </tr></thead>
           <tbody>
             ${results.map(r=>`
-              <tr style="border-bottom:1px solid var(--border)">
+              <tr style="border-bottom:1px solid var(--border)" id="qr-row-${r.id}">
                 <td style="padding:8px 6px;font-weight:600">${r.studentName||'—'}</td>
-                <td style="padding:8px 6px">${r.score}/${r.total}</td>
-                <td style="padding:8px 6px;font-weight:700;color:${r.percent>=70?'var(--accent)':r.percent>=50?'#d97706':'#dc2626'}">${r.percent}%</td>
-                <td style="padding:8px 6px">${r.quit?'<span style="color:#dc2626">⚠ Quit early</span>':'<span style="color:var(--accent)">✓ Completed</span>'}</td>
+                <td style="padding:8px 6px" id="qr-score-${r.id}">${r.score}/${r.total}</td>
+                <td style="padding:8px 6px;font-weight:700;color:${r.percent>=70?'var(--accent)':r.percent>=50?'#d97706':'#dc2626'}" id="qr-percent-${r.id}">${r.percent}%</td>
+                <td style="padding:8px 6px">${r.quit?'<span style="color:#dc2626">⚠ Quit early</span>':'<span style="color:var(--accent)">✓ Completed</span>'}${r.editedAt?'<div style="font-size:11px;color:var(--muted)">✏️ edited</div>':''}</td>
                 <td style="padding:8px 6px;color:var(--muted)">${new Date(r.submittedAt).toLocaleString()}</td>
+                <td style="padding:8px 6px;white-space:nowrap">
+                  <button class="btn btn-outline" style="font-size:12px;padding:4px 10px;margin-right:6px" onclick="editQuizResult('${r.id}',${r.score},${r.total})">✏️ Edit</button>
+                  <button class="btn btn-danger" style="font-size:12px;padding:4px 10px" onclick="deleteQuizResult('${r.id}')">🗑</button>
+                </td>
               </tr>
             `).join('')}
           </tbody>
@@ -406,6 +411,40 @@ function renderQuizResults(){
       </div>
     </div>
   `;
+}
+
+async function deleteQuizResult(resultId){
+  if(!confirm('Delete this quiz result? This cannot be undone.')) return;
+  try{
+    const res = await fetch('/api/sessions?action=delete-quiz-result',{
+      method:'DELETE',
+      headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
+      body:JSON.stringify({resultId})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed to delete');
+    quizResults = quizResults.filter(r=>r.id!==resultId);
+    renderQuizResults();
+  }catch(e){ alert(e.message); }
+}
+
+async function editQuizResult(resultId, currentScore, total){
+  const input = prompt(`Enter new score (0–${total}):`, currentScore);
+  if(input === null) return;
+  const newScore = parseInt(input);
+  if(isNaN(newScore) || newScore < 0 || newScore > total){ alert(`Score must be a number between 0 and ${total}`); return; }
+  try{
+    const res = await fetch('/api/sessions?action=edit-quiz-result',{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
+      body:JSON.stringify({resultId, score:newScore})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed to update');
+    const r = quizResults.find(x=>x.id===resultId);
+    if(r){ r.score = data.score; r.percent = data.percent; r.editedAt = new Date().toISOString(); }
+    renderQuizResults();
+  }catch(e){ alert(e.message); }
 }
 
 function renderStats(){
@@ -465,7 +504,17 @@ function updateTimerDisplay(sessionId){
 function renderSessions(){
   const el = document.getElementById('sessions-list');
   if(!sessions.length){ el.innerHTML='<div class="empty"><div class="empty-icon">📚</div>No sessions yet. Create your first session!</div>'; return; }
-  el.innerHTML = [...sessions].reverse().map(s=>{
+
+  // Bulk action toolbar
+  const toolbar = `
+    <div id="bulk-toolbar" style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
+      <input type="checkbox" id="select-all-sessions" onchange="toggleSelectAll(this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
+      <label for="select-all-sessions" style="font-size:13px;font-weight:600;cursor:pointer;user-select:none">Select All</label>
+      <span id="selected-count" style="font-size:12px;color:var(--muted);margin-left:4px"></span>
+      <button id="bulk-delete-btn" class="btn btn-danger" style="margin-left:auto;display:none;font-size:13px;padding:6px 14px" onclick="deleteSelectedSessions()">🗑 Delete Selected</button>
+    </div>`;
+
+  el.innerHTML = toolbar + [...sessions].reverse().map(s=>{
     const sessionCodes = codes.filter(c=>c.sessionId===s.id);
     const usedCodes = sessionCodes.filter(c=>c.usedBy).length;
     const dur = s.durationMinutes||45;
@@ -480,11 +529,14 @@ function renderSessions(){
       }
     }
     return `
-    <div class="session-item">
+    <div class="session-item" id="session-card-${s.id}">
       <div class="session-header">
-        <div>
-          <span class="session-num">Session ${s.sessionNumber}</span>
-          <div class="session-title" style="margin-top:6px">${s.title}</div>
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <input type="checkbox" class="session-checkbox" data-id="${s.id}" onchange="onSessionCheck()" style="width:16px;height:16px;margin-top:4px;cursor:pointer;accent-color:var(--accent);flex-shrink:0">
+          <div>
+            <span class="session-num">Session ${s.sessionNumber}</span>
+            <div class="session-title" style="margin-top:6px">${s.title}</div>
+          </div>
         </div>
         <span class="badge ${s.active?'badge-green':'badge-gray'}">${s.active?'● Active':'○ Inactive'}</span>
       </div>
@@ -812,6 +864,47 @@ async function saveQuiz(){
   }catch(e){ showAlert(alertEl,e.message); }
 }
 
+
+function toggleSelectAll(checked){
+  document.querySelectorAll('.session-checkbox').forEach(cb=>cb.checked=checked);
+  onSessionCheck();
+}
+
+function onSessionCheck(){
+  const checkboxes = document.querySelectorAll('.session-checkbox');
+  const checked = document.querySelectorAll('.session-checkbox:checked');
+  const allChecked = checkboxes.length > 0 && checked.length === checkboxes.length;
+  document.getElementById('select-all-sessions').checked = allChecked;
+  document.getElementById('select-all-sessions').indeterminate = checked.length > 0 && !allChecked;
+  const countEl = document.getElementById('selected-count');
+  const btn = document.getElementById('bulk-delete-btn');
+  if(checked.length > 0){
+    countEl.textContent = `${checked.length} selected`;
+    btn.style.display = '';
+  } else {
+    countEl.textContent = '';
+    btn.style.display = 'none';
+  }
+}
+
+async function deleteSelectedSessions(){
+  const checked = [...document.querySelectorAll('.session-checkbox:checked')];
+  if(!checked.length) return;
+  if(!confirm(`Delete ${checked.length} session${checked.length>1?'s':''}? This cannot be undone.`)) return;
+  const ids = checked.map(cb=>cb.dataset.id);
+  let failed = 0;
+  for(const id of ids){
+    try{
+      const res = await fetch(`/api/sessions?action=delete-session&sessionId=${id}`,{
+        method:'DELETE', headers:{'x-teacher-key':teacherData.username}
+      });
+      if(res.ok){ sessions = sessions.filter(s=>s.id!==id); }
+      else { failed++; }
+    }catch{ failed++; }
+  }
+  if(failed>0) alert(`${failed} session(s) could not be deleted.`);
+  renderAll();
+}
 
 async function deleteSession(sessionId){
   if(!confirm('Delete this session? All codes and attendance for this session will also be deleted. This cannot be undone.')) return;
