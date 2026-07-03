@@ -560,7 +560,8 @@ function renderSessions(){
 
       <div class="session-actions">
         <button class="btn btn-green" onclick="startClass('${s.id}','${s.title.replace(/'/g,"\\'")}')">🎥 Start Class</button>
-        <button class="btn ${s.unlockedForStudents?'btn-danger':'btn-outline'}" onclick="toggleUnlock('${s.id}')">${s.unlockedForStudents?'🔒 Lock Session':'🔓 Unlock for Students'}</button>
+        <button class="btn ${unlockedOnline(s)?'btn-danger':'btn-outline'}" onclick="toggleUnlock('${s.id}','online')">${unlockedOnline(s)?'🔒 Lock Online':'🔓 Unlock Online 💻'}</button>
+        <button class="btn ${unlockedInperson(s)?'btn-danger':'btn-outline'}" onclick="toggleUnlock('${s.id}','inperson')">${unlockedInperson(s)?'🔒 Lock In-Person':'🔓 Unlock In-Person 🏫'}</button>
         <button class="btn btn-gold" onclick="openQuizModal('${s.id}')">📝 ${s.quiz?'Edit Quiz':'Add Quiz'}</button>
         <button class="btn btn-outline" onclick="openPageModal('${s.id}',${s.pageStart||1},${s.pageEnd||1})">📄 Set Pages</button>
         <button class="btn btn-outline" onclick="quickGenerateCodes('${s.id}')">🔑 Codes</button>
@@ -714,17 +715,30 @@ async function toggleSession(sessionId){
   }catch(e){ alert(e.message); }
 }
 
-async function toggleUnlock(sessionId){
+// Unlock state helpers — support new per-class-type format with legacy fallback
+function unlockedOnline(s){
+  if(s.unlockedFor) return !!s.unlockedFor.online;
+  return !!s.unlockedForStudents;
+}
+function unlockedInperson(s){
+  if(s.unlockedFor) return !!s.unlockedFor.inperson;
+  return !!s.unlockedForStudents;
+}
+
+async function toggleUnlock(sessionId, classType){
   try{
     const res = await fetch('/api/sessions?action=unlock-session',{
       method:'PATCH',
       headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
-      body:JSON.stringify({sessionId})
+      body:JSON.stringify({sessionId, classType})
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error);
     const s = sessions.find(s=>s.id===sessionId);
-    if(s) s.unlockedForStudents = data.unlocked;
+    if(s){
+      s.unlockedFor = data.unlockedFor;
+      s.unlockedForStudents = data.unlockedFor.online || data.unlockedFor.inperson;
+    }
     renderAll();
   }catch(e){ alert(e.message); }
 }
