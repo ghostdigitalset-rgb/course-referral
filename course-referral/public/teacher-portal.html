@@ -3,1187 +3,877 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ghost Digitals Academy — Teacher Portal</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>Ghost Digitals Academy — Student Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
-:root{--accent:#2d5a27;--accent-light:#edf5ec;--accent-text:#1e4019;--gold:#c4860a;--gold-light:#fdf6e3;--bg:#f8f9f7;--surface:#fff;--border:#e5e7e3;--text:#1a1a1a;--muted:#6b7280;--danger:#c0392b;--danger-light:#fdf0ee;--radius:10px;--radius-lg:14px}
+:root{
+  --accent:#2d5a27;--accent-light:#edf5ec;--accent-text:#1e4019;
+  --gold:#c4860a;--gold-light:#fdf6e3;
+  --bg:#f8f9f7;--surface:#fff;--border:#e5e7e3;
+  --text:#1a1a1a;--muted:#6b7280;
+  --danger:#c0392b;--danger-light:#fdf0ee;
+  --radius:10px;--radius-lg:14px;
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
-.header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.logo{font-family:'DM Serif Display',serif;font-size:18px;color:var(--accent)}
-.header-right{display:flex;align-items:center;gap:12px}
-.teacher-badge{background:var(--accent-light);color:var(--accent-text);padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600}
-.logout-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit}
-.logout-btn:hover{border-color:var(--danger);color:var(--danger)}
-.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-.login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px;width:100%;max-width:400px}
-.login-card h1{font-family:'DM Serif Display',serif;font-size:24px;margin-bottom:6px}
-.login-card p{color:var(--muted);font-size:14px;margin-bottom:28px}
-.field{margin-bottom:16px}
-.field label{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
-.field input,.field select,.field textarea{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);outline:none;transition:.15s}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
-.field textarea{resize:vertical;min-height:80px;line-height:1.5}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(--radius);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:.15s}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* No screenshot/print */
+@media print{body{display:none!important}}
+
+/* Login */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#1a2d18 0%,#2d5a27 100%)}
+.login-card{background:#fff;border-radius:20px;padding:40px;width:100%;max-width:400px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.login-logo{font-size:48px;margin-bottom:12px}
+.login-card h1{font-family:'DM Serif Display',serif;font-size:24px;color:var(--accent);margin-bottom:6px}
+.login-card p{color:var(--muted);font-size:13px;margin-bottom:28px}
+.id-input{width:100%;padding:16px;text-align:center;font-size:22px;font-weight:800;letter-spacing:4px;font-family:monospace;border:2px solid var(--border);border-radius:var(--radius-lg);outline:none;text-transform:uppercase;transition:.15s;margin-bottom:16px}
+.id-input:focus{border-color:var(--accent)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:var(--radius);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:.15s;width:100%}
 .btn-primary{background:var(--accent);color:#fff}
 .btn-primary:hover{opacity:.9}
-.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text)}
-.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
-.btn-danger{background:var(--danger-light);color:var(--danger);border:1px solid #f0c0bb}
-.btn-danger:hover{background:#f9e0dd}
-.btn-gold{background:var(--gold-light);color:var(--gold);border:1px solid #f0d890}
-.btn-gold:hover{background:#fbeec0}
-.btn-green{background:var(--accent);color:#fff}
-.btn-full{width:100%;justify-content:center}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
 .alert{padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-bottom:14px;display:none}
 .alert.show{display:block}
 .alert-danger{background:var(--danger-light);color:var(--danger);border:1px solid #f0c0bb}
-.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* Main layout */
+.header{background:var(--accent);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-logo{font-family:'DM Serif Display',serif;font-size:16px;color:#fff}
+.header-student{display:flex;align-items:center;gap:10px}
+.student-name-badge{color:rgba(255,255,255,.9);font-size:13px;font-weight:600}
+.student-id-badge{background:rgba(255,255,255,.15);color:#fff;font-size:11px;font-family:monospace;padding:3px 10px;border-radius:20px;font-weight:700}
+.logout-btn{background:rgba(255,255,255,.15);color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit}
+
 .main{max-width:1100px;margin:0 auto;padding:28px 20px}
-.page-title{font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:4px}
-.page-sub{color:var(--muted);font-size:14px;margin-bottom:28px}
-.tabs{display:flex;gap:4px;border-bottom:1.5px solid var(--border);margin-bottom:24px}
-.tab{padding:10px 18px;font-size:14px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1.5px;font-family:inherit;transition:.15s}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
-.tab-content{display:none}
-.tab-content.active{display:block}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px}
-.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.card-title{font-weight:700;font-size:15px}
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
-.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;text-align:center}
-.stat-num{font-size:28px;font-weight:800;color:var(--accent)}
-.stat-lbl{font-size:12px;color:var(--muted);margin-top:2px}
-.session-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
-.session-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
-.session-num{background:var(--accent-light);color:var(--accent-text);font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
-.session-title{font-weight:600;font-size:15px}
-.session-desc{color:var(--muted);font-size:13px;margin-bottom:12px}
-.session-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+/* Grade banner */
+.grade-banner{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.grade-circle{width:72px;height:72px;border-radius:50%;border:4px solid var(--accent);display:flex;align-items:center;justify-content:center;flex-direction:column;flex-shrink:0}
+.grade-pct{font-size:20px;font-weight:800;color:var(--accent)}
+.grade-lbl{font-size:9px;color:var(--muted);font-weight:600;text-transform:uppercase}
+.grade-info h2{font-size:16px;font-weight:700;margin-bottom:3px}
+.grade-info p{font-size:13px;color:var(--muted)}
+.class-type-badge{margin-left:auto;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700}
+.badge-online{background:#dbeafe;color:#1e40af}
+.badge-inperson{background:var(--accent-light);color:var(--accent-text)}
+
+/* Sessions grid */
+.sessions-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:28px}
+.session-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:.2s;cursor:pointer}
+.session-card:hover:not(.locked){transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.session-card.locked{opacity:.6;cursor:not-allowed}
+.session-card-top{padding:16px;border-bottom:1px solid var(--border)}
+.session-num{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.session-title{font-weight:700;font-size:15px;margin-bottom:8px}
+.session-badges{display:flex;gap:6px;flex-wrap:wrap}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
-.badge-green{background:#edf5ec;color:#1e4019}
-.badge-gray{background:#f3f4f6;color:#6b7280}
-/* Timer control */
-.timer-control{background:var(--gold-light);border:1px solid #f0d890;border-radius:var(--radius-lg);padding:16px;margin-top:12px}
-.timer-control-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.timer-display-sm{font-family:monospace;font-size:28px;font-weight:800;color:var(--gold)}
-.timer-control-btns{display:flex;gap:8px;flex-wrap:wrap}
-.btn-sm{padding:6px 14px;font-size:13px}
-.codes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:12px}
-.code-chip{background:var(--gold-light);border:1px solid #f0d890;border-radius:8px;padding:10px 12px;text-align:center}
-.code-chip.used{background:#f3f4f6;border-color:#e5e7e3;opacity:.7}
-.code-chip .code-val{font-family:monospace;font-size:16px;font-weight:800;letter-spacing:2px;color:var(--gold)}
-.code-chip.used .code-val{color:var(--muted)}
-.code-chip .code-status{font-size:10px;color:var(--muted);margin-top:2px}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:.2s}
-.modal-overlay.open{opacity:1;pointer-events:all}
-.modal{background:var(--surface);border-radius:var(--radius-lg);padding:28px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
-.modal h3{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:20px}
-.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
-.empty{text-align:center;padding:40px 20px;color:var(--muted)}
-.empty-icon{font-size:36px;margin-bottom:8px}
+.badge-locked{background:#f3f4f6;color:#6b7280}
+.badge-unlocked{background:var(--accent-light);color:var(--accent-text)}
+.badge-quiz{background:var(--gold-light);color:var(--gold)}
+.badge-quiz-done{background:#edf5ec;color:#1e4019}
+.session-card-bottom{padding:12px 16px;display:flex;align-items:center;gap:8px}
+.lock-icon{font-size:18px}
+.session-action-text{font-size:13px;color:var(--muted)}
+
+/* Ask teacher section */
+.ask-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px}
+.ask-section h3{font-size:16px;font-weight:700;margin-bottom:6px}
+.ask-section p{font-size:13px;color:var(--muted);margin-bottom:16px}
+.ask-form{display:flex;gap:10px}
+.ask-input{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:14px;outline:none;background:var(--surface)}
+.ask-input:focus{border-color:var(--accent)}
+.ask-btn{padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.ask-btn:hover{opacity:.9}
+
+/* Session detail overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:stretch;justify-content:flex-end;opacity:0;pointer-events:none;transition:.25s}
+.overlay.open{opacity:1;pointer-events:all}
+.detail-panel{background:var(--surface);width:100%;max-width:900px;height:100%;overflow-y:auto;transform:translateX(100%);transition:.3s;display:flex;flex-direction:column}
+.overlay.open .detail-panel{transform:translateX(0)}
+.detail-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;position:sticky;top:0;background:var(--surface);z-index:10}
+.detail-back{background:none;border:1px solid var(--border);padding:6px 14px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px}
+.detail-title{font-weight:700;font-size:16px;flex:1}
+.detail-body{flex:1;display:flex;overflow:hidden}
+
+/* PDF viewer */
+.pdf-panel{flex:1;background:#525659;position:relative;overflow:hidden}
+.pdf-panel iframe{width:100%;height:100%;border:none}
+.pdf-toolbar{padding:8px 16px;background:#323639;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.pdf-toolbar button{background:rgba(255,255,255,.1);color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit}
+.pdf-toolbar button:hover{background:rgba(255,255,255,.2)}
+.pdf-toolbar span{color:rgba(255,255,255,.7);font-size:12px}
+
+/* Notes sidebar */
+.notes-panel{width:280px;border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.notes-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.notes-tab{flex:1;padding:10px 6px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);border-bottom:2px solid transparent;font-family:inherit;transition:.15s}
+.notes-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.notes-content{flex:1;overflow-y:auto;display:none;flex-direction:column;padding:12px}
+.notes-content.active{display:flex}
+.notes-textarea{flex:1;width:100%;border:1px solid var(--border);border-radius:var(--radius);padding:10px;font-family:inherit;font-size:13px;resize:none;outline:none;line-height:1.6;min-height:200px}
+.notes-textarea:focus{border-color:var(--accent)}
+.dl-notes-btn{margin-top:8px;padding:8px;background:var(--accent-light);color:var(--accent-text);border:1px solid #c8ddc6;border-radius:var(--radius);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center}
+.dl-notes-btn:hover{background:var(--accent);color:#fff}
+.saved-msg{font-size:11px;color:var(--accent);margin-top:4px;display:none;text-align:center}
+
+/* Quiz overlay */
+.quiz-overlay{position:fixed;inset:0;background:#0f1117;z-index:500;display:none;flex-direction:column}
+.quiz-overlay.open{display:flex}
+.quiz-header{padding:16px 24px;background:#1a1d27;border-bottom:1px solid #2a2d3a;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.quiz-title{color:#e8eaf0;font-weight:700;font-size:16px}
+.quiz-timer{font-family:monospace;font-size:20px;font-weight:800;color:#f6ad55}
+.quiz-body{flex:1;overflow-y:auto;padding:28px;max-width:700px;margin:0 auto;width:100%}
+.quiz-progress{background:#2a2d3a;border-radius:20px;height:6px;margin-bottom:24px}
+.quiz-progress-bar{background:var(--accent);height:100%;border-radius:20px;transition:.3s}
+.quiz-question{color:#e8eaf0;font-size:17px;font-weight:600;margin-bottom:20px;line-height:1.5}
+.quiz-qnum{font-size:12px;color:#8b8fa8;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+.quiz-options{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.quiz-option{padding:14px 18px;background:#1a1d27;border:2px solid #2a2d3a;border-radius:var(--radius-lg);color:#e8eaf0;cursor:pointer;transition:.15s;font-size:14px;text-align:left;font-family:inherit}
+.quiz-option:hover{border-color:#4a4d6a}
+.quiz-option.selected{border-color:var(--accent);background:rgba(45,90,39,.2)}
+.quiz-nav{display:flex;gap:10px;justify-content:space-between}
+.quiz-btn{padding:11px 24px;border-radius:var(--radius);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:.15s}
+.quiz-btn-prev{background:#2a2d3a;color:#e8eaf0}
+.quiz-btn-next{background:var(--accent);color:#fff}
+.quiz-btn-submit{background:#f6ad55;color:#1a1a1a}
+.quiz-btn-quit{background:#3a1515;color:#fc8181;border:1px solid #c53030;font-size:12px;padding:8px 16px}
+.quiz-footer{padding:16px 24px;background:#1a1d27;border-top:1px solid #2a2d3a;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+
+/* Quiz results */
+.quiz-result{text-align:center;padding:40px 20px}
+.result-circle{width:120px;height:120px;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;flex-direction:column;border:6px solid}
+.result-pct{font-size:28px;font-weight:800}
+.result-score{font-size:13px;margin-top:4px}
+.result-pass{border-color:#48bb78;color:#48bb78}
+.result-fail{border-color:#f6ad55;color:#f6ad55}
+.result-zero{border-color:#fc8181;color:#fc8181}
+.result-breakdown{background:#1a1d27;border-radius:var(--radius-lg);padding:20px;margin-top:24px;text-align:left}
+.result-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #2a2d3a;font-size:13px;color:#e8eaf0}
+.result-item:last-child{border-bottom:none}
+.result-correct{color:#48bb78}
+.result-wrong{color:#fc8181}
+
+/* No screenshot overlay trick */
+.no-screenshot{position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;user-select:none;-webkit-user-select:none}
 </style>
 </head>
 <body>
 
+<!-- Anti-screenshot CSS -->
+<div class="no-screenshot" aria-hidden="true"></div>
+
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-wrap">
     <div class="login-card">
-      <h1>Teacher Portal</h1>
-      <p>Ghost Digitals Academy — Instructor Access</p>
+      <div class="login-logo">🎓</div>
+      <h1>Student Portal</h1>
+      <p>Enter your Student ID to access your courses and sessions</p>
       <div class="alert alert-danger" id="login-alert"></div>
-      <div class="field"><label>Username</label><input type="text" id="login-username" placeholder="digital / event / ai"></div>
-      <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="Your teacher password" onkeydown="if(event.key==='Enter')teacherLogin()"></div>
-      <button class="btn btn-primary btn-full" onclick="teacherLogin()">
-        <span id="login-btn-text">Sign In</span>
+      <input type="text" class="id-input" id="portal-id-input" placeholder="GDA-XXXXXX" maxlength="10"
+        oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')login()">
+      <button class="btn btn-primary" onclick="login()" id="login-btn">
+        <span id="login-text">Enter Portal</span>
         <div class="spinner" id="login-spinner"></div>
       </button>
     </div>
   </div>
 </div>
 
-<div id="app-screen" style="display:none">
+<!-- MAIN PORTAL -->
+<div id="portal" style="display:none">
   <div class="header">
-    <div class="logo">GhostDigitals Academy</div>
-    <div class="header-right">
-      <div class="teacher-badge" id="teacher-badge">👨‍🏫 Teacher</div>
+    <div class="header-logo">GhostDigitals Academy</div>
+    <div class="header-student">
+      <span class="student-name-badge" id="h-name"></span>
+      <span class="student-id-badge" id="h-id"></span>
       <button class="logout-btn" onclick="logout()">Sign out</button>
     </div>
   </div>
+
   <div class="main">
-    <div class="page-title" id="page-title">Teacher Dashboard</div>
-    <div class="page-sub">Manage your sessions and generate class codes</div>
-    <div class="stats-row">
-      <div class="stat"><div class="stat-num" id="stat-sessions">0</div><div class="stat-lbl">Total Sessions</div></div>
-      <div class="stat"><div class="stat-num" id="stat-codes">0</div><div class="stat-lbl">Codes Generated</div></div>
-      <div class="stat"><div class="stat-num" id="stat-used">0</div><div class="stat-lbl">Codes Used</div></div>
-    </div>
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('sessions',this)">📚 Sessions</button>
-      <button class="tab" onclick="switchTab('codes',this)">🔑 Class Codes</button>
-      <button class="tab" onclick="switchTab('attendance',this)">✅ Attendance</button>
-      <button class="tab" onclick="switchTab('quizzes',this)">📝 Quiz Results</button>
-    </div>
-    <div class="tab-content active" id="tab-sessions">
-      <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:16px">
-        <button class="btn btn-outline" onclick="openUploadModal()">📄 Upload Course PDF</button>
-        <button class="btn btn-primary" onclick="openNewSessionModal()">+ New Session</button>
+    <!-- Grade banner -->
+    <div class="grade-banner">
+      <div class="grade-circle">
+        <div class="grade-pct" id="grade-pct">—</div>
+        <div class="grade-lbl">Grade</div>
       </div>
-      <div id="sessions-list"><div class="empty"><div class="empty-icon">📚</div>No sessions yet. Create one or upload a course PDF!</div></div>
-    </div>
-    <div class="tab-content" id="tab-codes">
-      <div class="card">
-        <div class="card-header"><div class="card-title">Generate Class Codes</div></div>
-        <div class="field"><label>Select Session</label><select id="code-session-select" onchange="onCodeSessionChange()"><option value="">— Choose a session —</option></select></div>
-        <div class="field"><label>Number of Codes</label><input type="number" id="code-count" value="20" min="1" max="100"></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="generateCodes()">🔑 Generate Codes</button>
-          <button class="btn btn-danger" onclick="deactivateSessionCodes()">🚫 Deactivate All</button>
-        </div>
+      <div class="grade-info">
+        <h2 id="grade-course"></h2>
+        <p id="grade-subtitle">Complete quizzes to see your grade</p>
       </div>
-      <div id="codes-display"></div>
+      <div class="class-type-badge" id="class-type-badge"></div>
     </div>
 
-    <div class="tab-content" id="tab-attendance">
-      <div class="card">
-        <div class="card-header"><div class="card-title">Attendance QR Code</div></div>
-        <div class="field"><label>Select Session</label>
-          <select id="att-session-select" onchange="startAttendanceQR()" style="width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);outline:none">
-            <option value="">— Choose a session —</option>
-          </select>
+    <!-- Join live class (online only) -->
+    <div id="live-class-banner" style="display:none;background:var(--accent);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:24px;display:none;align-items:center;justify-content:space-between">
+      <div>
+        <div style="color:#fff;font-weight:700;font-size:15px">🎥 Live Class Active!</div>
+        <div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:2px">Your teacher has started the class</div>
+      </div>
+      <button onclick="joinLiveClass()" style="background:#fff;color:var(--accent);border:none;padding:10px 20px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer">Join Now</button>
+    </div>
+
+    <!-- Sessions -->
+    <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Your Sessions</div>
+    <div class="sessions-grid" id="sessions-grid">
+      <div style="text-align:center;padding:40px;color:var(--muted);grid-column:1/-1">Loading sessions...</div>
+    </div>
+
+    <!-- Ask teacher -->
+    <div class="ask-section">
+      <h3>💬 Ask Your Teacher</h3>
+      <p>Have a question about the course? Leave it here and your teacher will respond.</p>
+      <div id="ask-alert" class="alert alert-danger"></div>
+      <div class="ask-form">
+        <input type="text" class="ask-input" id="ask-input" placeholder="Type your question here..." onkeydown="if(event.key==='Enter')submitQuestion()">
+        <button class="ask-btn" onclick="submitQuestion()">Send</button>
+      </div>
+      <div id="ask-success" style="display:none;font-size:13px;color:var(--accent);margin-top:8px;font-weight:600">✅ Question sent! Your teacher will respond soon.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SESSION DETAIL OVERLAY -->
+<div class="overlay" id="session-overlay" onclick="closeSessionIfBackdrop(event)">
+  <div class="detail-panel" id="detail-panel">
+    <div class="detail-header">
+      <button class="detail-back" onclick="closeSession()">← Back</button>
+      <div class="detail-title" id="detail-title"></div>
+      <button id="quiz-start-btn" onclick="startQuiz()" style="background:var(--gold);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;display:none">📝 Take Quiz</button>
+      <button id="join-class-btn" onclick="joinLiveClass()" style="background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;display:none;margin-left:6px">🎥 Join Class</button>
+    </div>
+    <div class="detail-body">
+      <!-- PDF viewer -->
+      <div style="flex:1;display:flex;flex-direction:column;background:#525659">
+        <div class="pdf-toolbar" id="pdf-toolbar" style="display:none">
+          <span id="pdf-page-info" style="color:rgba(255,255,255,.7);font-size:12px"></span>
+          <span style="flex:1"></span>
+          <button onclick="prevPage()">◀ Prev</button>
+          <button onclick="nextPage()">Next ▶</button>
         </div>
-        <div id="att-qr-wrap" style="display:none;text-align:center;padding:20px 0">
-          <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Show this QR code to students. It refreshes every 30 seconds.</div>
-          <canvas id="att-qr-canvas" style="border-radius:12px;border:4px solid var(--accent)"></canvas>
-          <div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px">
-            <div style="font-size:12px;color:var(--muted)">Expires in:</div>
-            <div id="att-qr-countdown" style="font-family:monospace;font-size:18px;font-weight:800;color:var(--accent)">30</div>
-            <div style="font-size:12px;color:var(--muted)">seconds</div>
+        <div id="pdf-viewer" style="flex:1;display:flex;align-items:center;justify-content:center;background:#525659">
+          <div style="text-align:center;color:rgba(255,255,255,.5)">
+            <div style="font-size:48px;margin-bottom:12px">📄</div>
+            <div>Loading session content...</div>
           </div>
         </div>
       </div>
-
-      <div id="att-list-wrap" style="display:none">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">Live Attendance <span id="att-count" style="color:var(--accent)"></span></div>
-            <button class="btn btn-outline" style="font-size:13px;padding:6px 14px" onclick="loadAttendance()">↻ Refresh</button>
-          </div>
-          <div id="att-list"></div>
+      <!-- Notes sidebar -->
+      <div class="notes-panel">
+        <div class="notes-tabs">
+          <button class="notes-tab active" onclick="switchNotesTab('notes',this)">📝 Notes</button>
+          <button class="notes-tab" onclick="switchNotesTab('highlights',this)">🖊 Highlights</button>
+        </div>
+        <div class="notes-content active" id="notes-tab-notes">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Your private notes for this session:</div>
+          <textarea class="notes-textarea" id="notes-area" placeholder="Take notes here...&#10;&#10;They are saved automatically." oninput="scheduleNotesSave()"></textarea>
+          <div class="saved-msg" id="notes-saved">✓ Saved</div>
+          <button class="dl-notes-btn" onclick="downloadNotes()">⬇ Download Notes as PDF</button>
+        </div>
+        <div class="notes-content" id="notes-tab-highlights">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Select text in the PDF viewer to highlight it:</div>
+          <div id="highlights-list" style="font-size:12px;color:var(--muted)">No highlights yet</div>
         </div>
       </div>
     </div>
+  </div>
+</div>
 
-    <div class="tab-content" id="tab-quizzes">
-      <div class="card">
-        <div class="card-header"><div class="card-title">Quiz Results by Session</div></div>
-        <div class="field"><label>Select Session</label>
-          <select id="quiz-results-session-select" onchange="renderQuizResults()" style="width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);outline:none">
-            <option value="">— Choose a session —</option>
-          </select>
-        </div>
-      </div>
-      <div id="quiz-results-wrap"></div>
+<!-- QUIZ OVERLAY (fullscreen, locked) -->
+<div class="quiz-overlay" id="quiz-overlay">
+  <div class="quiz-header">
+    <div class="quiz-title" id="quiz-title">Quiz</div>
+    <div class="quiz-timer" id="quiz-timer">30:00</div>
+  </div>
+  <div class="quiz-body" id="quiz-body">
+    <!-- Questions rendered here -->
+  </div>
+  <div class="quiz-footer">
+    <button class="quiz-btn quiz-btn-quit" onclick="quitQuiz()">✕ Quit (score = 0)</button>
+    <div style="display:flex;gap:10px">
+      <button class="quiz-btn quiz-btn-prev" onclick="prevQuestion()" id="quiz-prev">← Previous</button>
+      <button class="quiz-btn quiz-btn-next" onclick="nextQuestion()" id="quiz-next">Next →</button>
+      <button class="quiz-btn quiz-btn-submit" onclick="submitQuiz()" id="quiz-submit" style="display:none">Submit Quiz ✓</button>
     </div>
   </div>
 </div>
 
-<!-- Upload Course PDF Modal -->
-<div class="modal-overlay" id="upload-modal" onclick="closeModalIf(event,'upload-modal')">
-  <div class="modal" style="max-width:520px;max-height:90vh;overflow-y:auto">
-    <h3>📄 Upload Course PDF</h3>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Upload your PDF and enter the module titles. Sessions will be created automatically.</p>
-    <div class="alert alert-danger" id="upload-alert"></div>
-
-    <!-- PDF file picker -->
-    <div id="upload-drop-zone" onclick="document.getElementById('pdf-file-input').click()"
-      style="border:2px dashed var(--border);border-radius:var(--radius-lg);padding:20px;text-align:center;cursor:pointer;transition:.2s;margin-bottom:16px">
-      <div id="upload-icon" style="font-size:28px;margin-bottom:6px">📄</div>
-      <div id="upload-label" style="font-size:13px;font-weight:600;color:var(--text)">Click to select PDF file (optional)</div>
-      <div id="upload-hint" style="font-size:11px;color:var(--muted);margin-top:3px">PDF will be stored and linked to each session</div>
-    </div>
-    <input type="file" id="pdf-file-input" accept=".pdf,application/pdf" style="display:none" onchange="onPDFSelected(event)">
-
-    <div class="field">
-      <label>Session Duration (minutes)</label>
-      <input type="number" id="upload-duration" value="45" min="10" max="300">
-    </div>
-
-    <!-- Module titles -->
-    <div class="field">
-      <label style="display:flex;align-items:center;justify-content:space-between">
-        <span>Module Titles (one per line) *</span>
-        <button type="button" onclick="fillDefaultModules()" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600">+ Fill Digital Marketing</button>
-      </label>
-      <textarea id="upload-modules-text" rows="10" placeholder="Introduction to Digital Marketing&#10;Social Media Marketing&#10;Content Marketing&#10;SEO&#10;Marketing Strategy&#10;..." style="width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);resize:vertical;outline:none;line-height:1.7"></textarea>
-      <div style="font-size:11px;color:var(--muted);margin-top:4px">Each line becomes one session</div>
-    </div>
-
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('upload-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="uploadCoursePDF()" id="upload-btn">
-        <span id="upload-btn-text">Create Sessions</span>
-        <div class="spinner" id="upload-spinner"></div>
-      </button>
-    </div>
-  </div>
-</div>
-<div class="modal-overlay" id="session-modal" onclick="closeModalIf(event,'session-modal')">
-  <div class="modal">
-    <h3>Create New Session</h3>
-    <div class="alert alert-danger" id="session-alert"></div>
-    <div class="field"><label>Session Title *</label><input type="text" id="s-title" placeholder="e.g. Introduction to Social Media Marketing"></div>
-    <div class="field"><label>Session Number (optional)</label><input type="number" id="s-number" placeholder="Auto-assigned if empty" min="1"></div>
-    <div class="field"><label>Duration (minutes)</label><input type="number" id="s-duration" value="45" min="5" max="300"></div>
-    <div class="field"><label>Description</label><textarea id="s-desc" placeholder="What will students learn in this session?"></textarea></div>
-    <div class="field"><label>Materials (one per line)</label><textarea id="s-materials" rows="5" placeholder="Slide deck: https://...&#10;Reading: Chapter 3&#10;Watch: https://youtube.com/..."></textarea></div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('session-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="createSession()" id="create-session-btn">
-        <span id="create-session-text">Create Session</span>
-        <div class="spinner" id="create-session-spinner"></div>
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Add Time Modal -->
-<div class="modal-overlay" id="addtime-modal" onclick="closeModalIf(event,'addtime-modal')">
-  <div class="modal" style="max-width:360px">
-    <h3>Add Extra Time</h3>
-    <div class="field"><label>Minutes to add</label><input type="number" id="add-minutes-input" value="10" min="1" max="120"></div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('addtime-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmAddTime()">+ Add Time</button>
-    </div>
-  </div>
-</div>
-
-<!-- Page Range Modal -->
-<div class="modal-overlay" id="pages-modal" onclick="closeModalIf(event,'pages-modal')">
-  <div class="modal" style="max-width:380px">
-    <h3>📄 Set PDF Page Range</h3>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Define which pages of the course PDF this session covers.</p>
-    <input type="hidden" id="pages-session-id">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="field"><label>Start Page</label><input type="number" id="page-start" min="1" value="1"></div>
-      <div class="field"><label>End Page</label><input type="number" id="page-end" min="1" value="2"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('pages-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="savePageRange()">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- Quiz Modal -->
-<div class="modal-overlay" id="quiz-modal" onclick="closeModalIf(event,'quiz-modal')">
-  <div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto">
-    <h3>📝 Create Quiz</h3>
-    <div class="alert alert-danger" id="quiz-alert"></div>
-    <input type="hidden" id="quiz-session-id">
-    <div class="field"><label>Quiz Title</label><input type="text" id="quiz-title-input" placeholder="e.g. Module 1 Quiz"></div>
-    <div class="field"><label>Time Limit (minutes)</label><input type="number" id="quiz-time-limit" value="30" min="5" max="120"></div>
-    <div id="quiz-questions-list"></div>
-    <button class="btn btn-outline" onclick="addQuizQuestion()" style="width:100%;margin-bottom:16px">+ Add Question</button>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('quiz-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveQuiz()" id="save-quiz-btn">Save Quiz</button>
-    </div>
-  </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-let teacherData = null;
+// ── State ─────────────────────────────────────────────────
+let student = null;
 let sessions = [];
-let codes = [];
 let quizResults = [];
-let activeTimers = {}; // sessionId -> interval
-let currentAddTimeSessionId = null;
+let currentSession = null;
+let currentSessionContent = null;
+let currentPage = 1;
+let activePdfUrl = null;
+let quizData = null;
+let quizAnswers = {};
+let quizCurrentQ = 0;
+let quizTimerInterval = null;
+let quizSecondsLeft = 0;
+let notesSaveTimeout = null;
+let classroomActive = false;
 
-async function teacherLogin() {
-  const username = document.getElementById('login-username').value.trim();
-  const password = document.getElementById('login-password').value.trim();
+// ── Login ─────────────────────────────────────────────────
+async function login() {
+  const portalId = document.getElementById('portal-id-input').value.trim().toUpperCase();
   const alertEl = document.getElementById('login-alert');
-  const btn = document.getElementById('login-btn-text');
+  const btn = document.getElementById('login-btn');
   const spinner = document.getElementById('login-spinner');
-  if (!username || !password) { showAlert(alertEl,'Enter username and password'); return; }
-  btn.textContent='Signing in...'; spinner.style.display='block';
+  if (!portalId) { showAlert(alertEl,'Please enter your Student ID'); return; }
+
+  btn.disabled = true; spinner.style.display = 'block';
+  document.getElementById('login-text').textContent = 'Loading...';
+
   try {
-    const res = await fetch('/api/sessions?action=login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error||'Invalid credentials');
-    teacherData = data;
-    localStorage.setItem('teacherSession', JSON.stringify(data));
-    showApp();
-  } catch(e){ showAlert(alertEl,e.message); }
-  btn.textContent='Sign In'; spinner.style.display='none';
-}
-
-function logout(){
-  teacherData=null;
-  localStorage.removeItem('teacherSession');
-  Object.values(activeTimers).forEach(clearInterval);
-  activeTimers={};
-  document.getElementById('login-screen').style.display='';
-  document.getElementById('app-screen').style.display='none';
-}
-
-function showApp(){
-  document.getElementById('login-screen').style.display='none';
-  document.getElementById('app-screen').style.display='';
-  document.getElementById('teacher-badge').textContent=`👨‍🏫 ${teacherData.label} Teacher`;
-  document.getElementById('page-title').textContent=`${teacherData.label} — Teacher Portal`;
-  loadData();
-}
-
-async function loadData(){
-  try{
-    const res = await fetch('/api/sessions',{headers:{'x-teacher-key':teacherData.username}});
-    const data = await res.json();
-    sessions = data.sessions||[];
-    codes = data.codes||[];
-    quizResults = data.quizResults||[];
-    renderAll();
-  }catch(e){ console.error(e); }
-}
-
-function renderAll(){ renderStats(); renderSessions(); renderCodesTab(); renderQuizResultsTab(); }
-
-function renderQuizResultsTab(){
-  const sel = document.getElementById('quiz-results-session-select');
-  const current = sel.value;
-  const withQuiz = sessions.filter(s=>s.quiz);
-  sel.innerHTML = '<option value="">— Choose a session —</option>' +
-    withQuiz.map(s=>`<option value="${s.id}">${s.title}</option>`).join('');
-  if(current && withQuiz.some(s=>s.id===current)) sel.value = current;
-  renderQuizResults();
-}
-
-function renderQuizResults(){
-  const sessionId = document.getElementById('quiz-results-session-select').value;
-  const wrap = document.getElementById('quiz-results-wrap');
-  if(!sessionId){ wrap.innerHTML = '<div class="empty"><div class="empty-icon">📝</div>Select a session to view quiz results.</div>'; return; }
-  const session = sessions.find(s=>s.id===sessionId);
-  const results = quizResults.filter(r=>r.sessionId===sessionId).sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt));
-  if(!results.length){ wrap.innerHTML = '<div class="empty"><div class="empty-icon">📝</div>No quiz submissions yet for this session.</div>'; return; }
-
-  const avg = Math.round(results.reduce((s,r)=>s+r.percent,0)/results.length);
-  const completed = results.filter(r=>!r.quit).length;
-
-  wrap.innerHTML = `
-    <div class="stats-row" style="margin-bottom:16px">
-      <div class="stat"><div class="stat-num">${results.length}</div><div class="stat-lbl">Submissions</div></div>
-      <div class="stat"><div class="stat-num">${completed}</div><div class="stat-lbl">Completed</div></div>
-      <div class="stat"><div class="stat-num">${avg}%</div><div class="stat-lbl">Average Score</div></div>
-    </div>
-    <div class="card">
-      <div class="card-header"><div class="card-title">${session?.title||''} — ${session?.quiz?.title||'Quiz'}</div></div>
-      <div style="overflow-x:auto">
-        <table style="width:100%;border-collapse:collapse;font-size:13px">
-          <thead><tr style="text-align:left;border-bottom:1.5px solid var(--border)">
-            <th style="padding:8px 6px">Student</th>
-            <th style="padding:8px 6px">Score</th>
-            <th style="padding:8px 6px">Percent</th>
-            <th style="padding:8px 6px">Status</th>
-            <th style="padding:8px 6px">Submitted</th>
-            <th style="padding:8px 6px">Actions</th>
-          </tr></thead>
-          <tbody>
-            ${results.map(r=>`
-              <tr style="border-bottom:1px solid var(--border)" id="qr-row-${r.id}">
-                <td style="padding:8px 6px;font-weight:600">${r.studentName||'—'}</td>
-                <td style="padding:8px 6px" id="qr-score-${r.id}">${r.score}/${r.total}</td>
-                <td style="padding:8px 6px;font-weight:700;color:${r.percent>=70?'var(--accent)':r.percent>=50?'#d97706':'#dc2626'}" id="qr-percent-${r.id}">${r.percent}%</td>
-                <td style="padding:8px 6px">${r.quit?'<span style="color:#dc2626">⚠ Quit early</span>':'<span style="color:var(--accent)">✓ Completed</span>'}${r.editedAt?'<div style="font-size:11px;color:var(--muted)">✏️ edited</div>':''}</td>
-                <td style="padding:8px 6px;color:var(--muted)">${new Date(r.submittedAt).toLocaleString()}</td>
-                <td style="padding:8px 6px;white-space:nowrap">
-                  <button class="btn btn-outline" style="font-size:12px;padding:4px 10px;margin-right:6px" onclick="editQuizResult('${r.id}',${r.score},${r.total})">✏️ Edit</button>
-                  <button class="btn btn-danger" style="font-size:12px;padding:4px 10px" onclick="deleteQuizResult('${r.id}')">🗑</button>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-}
-
-async function deleteQuizResult(resultId){
-  if(!confirm('Delete this quiz result? This cannot be undone.')) return;
-  try{
-    const res = await fetch('/api/sessions?action=delete-quiz-result',{
-      method:'DELETE',
-      headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
-      body:JSON.stringify({resultId})
+    const res = await fetch('/api/sessions?action=portal-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ portalId })
     });
     const data = await res.json();
-    if(!res.ok) throw new Error(data.error||'Failed to delete');
-    quizResults = quizResults.filter(r=>r.id!==resultId);
-    renderQuizResults();
-  }catch(e){ alert(e.message); }
-}
+    if (!res.ok) throw new Error(data.error || 'Login failed');
 
-async function editQuizResult(resultId, currentScore, total){
-  const input = prompt(`Enter new score (0–${total}):`, currentScore);
-  if(input === null) return;
-  const newScore = parseInt(input);
-  if(isNaN(newScore) || newScore < 0 || newScore > total){ alert(`Score must be a number between 0 and ${total}`); return; }
-  try{
-    const res = await fetch('/api/sessions?action=edit-quiz-result',{
-      method:'PATCH',
-      headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
-      body:JSON.stringify({resultId, score:newScore})
-    });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error||'Failed to update');
-    const r = quizResults.find(x=>x.id===resultId);
-    if(r){ r.score = data.score; r.percent = data.percent; r.editedAt = new Date().toISOString(); }
-    renderQuizResults();
-  }catch(e){ alert(e.message); }
-}
+    student = data.student;
+    sessions = data.sessions || [];
+    quizResults = data.quizResults || [];
 
-function renderStats(){
-  document.getElementById('stat-sessions').textContent=sessions.length;
-  document.getElementById('stat-codes').textContent=codes.length;
-  document.getElementById('stat-used').textContent=codes.filter(c=>c.usedBy).length;
-}
-
-function fmtTime(sec){
-  const m=Math.floor(sec/60).toString().padStart(2,'0');
-  const s=(sec%60).toString().padStart(2,'0');
-  return `${m}:${s}`;
-}
-
-function startLocalTimer(sessionId, timer){
-  if(activeTimers[sessionId]) clearInterval(activeTimers[sessionId]);
-  const session = sessions.find(s=>s.id===sessionId);
-  if(!session) return;
-
-  // Calculate current seconds
-  let sLeft = timer.secondsLeft;
-  if(!timer.paused && timer.lastUpdated){
-    const elapsed = Math.floor((Date.now() - timer.lastUpdated)/1000);
-    sLeft = Math.max(0, sLeft - elapsed);
-  }
-  session._timerSeconds = sLeft;
-  session._timerPaused = timer.paused;
-  updateTimerDisplay(sessionId);
-
-  if(!timer.paused){
-    activeTimers[sessionId] = setInterval(()=>{
-      if(session._timerSeconds > 0){
-        session._timerSeconds--;
-        updateTimerDisplay(sessionId);
-      } else {
-        clearInterval(activeTimers[sessionId]);
-      }
-    }, 1000);
+    localStorage.setItem('studentPortalSession', JSON.stringify({ student, portalId }));
+    showPortal(data);
+  } catch(e) {
+    showAlert(alertEl, e.message);
+    btn.disabled = false; spinner.style.display = 'none';
+    document.getElementById('login-text').textContent = 'Enter Portal';
   }
 }
 
-function updateTimerDisplay(sessionId){
-  const session = sessions.find(s=>s.id===sessionId);
-  if(!session) return;
-  const el = document.getElementById('timer-display-'+sessionId);
-  const pauseBtn = document.getElementById('timer-pause-'+sessionId);
-  if(!el) return;
-  const sLeft = session._timerSeconds||0;
-  el.textContent = fmtTime(sLeft);
-  const isLow = sLeft < 5*60 && sLeft > 0;
-  el.style.color = sLeft===0 ? 'var(--danger)' : isLow ? 'var(--danger)' : 'var(--gold)';
-  if(pauseBtn){
-    pauseBtn.textContent = session._timerPaused ? '▶ Resume' : '⏸ Pause';
-  }
+function logout() {
+  localStorage.removeItem('studentPortalSession');
+  student = null; sessions = []; quizResults = [];
+  document.getElementById('portal').style.display = 'none';
+  document.getElementById('login-screen').style.display = '';
+  document.getElementById('portal-id-input').value = '';
 }
 
-function renderSessions(){
-  const el = document.getElementById('sessions-list');
-  if(!sessions.length){ el.innerHTML='<div class="empty"><div class="empty-icon">📚</div>No sessions yet. Create your first session!</div>'; return; }
+function showPortal(data) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('portal').style.display = '';
 
-  // Bulk action toolbar
-  const toolbar = `
-    <div id="bulk-toolbar" style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
-      <input type="checkbox" id="select-all-sessions" onchange="toggleSelectAll(this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
-      <label for="select-all-sessions" style="font-size:13px;font-weight:600;cursor:pointer;user-select:none">Select All</label>
-      <span id="selected-count" style="font-size:12px;color:var(--muted);margin-left:4px"></span>
-      <button id="bulk-delete-btn" class="btn btn-danger" style="margin-left:auto;display:none;font-size:13px;padding:6px 14px" onclick="deleteSelectedSessions()">🗑 Delete Selected</button>
-    </div>`;
+  document.getElementById('h-name').textContent = student.name;
+  document.getElementById('h-id').textContent = student.portalId;
+  document.getElementById('grade-course').textContent = student.courseLabel || student.course;
 
-  el.innerHTML = toolbar + [...sessions].reverse().map(s=>{
-    const sessionCodes = codes.filter(c=>c.sessionId===s.id);
-    const usedCodes = sessionCodes.filter(c=>c.usedBy).length;
-    const dur = s.durationMinutes||45;
-    // Init local timer state
-    if(s._timerSeconds===undefined){
-      const t = s.timer||{paused:true,secondsLeft:dur*60,lastUpdated:null};
-      s._timerSeconds = t.secondsLeft;
-      s._timerPaused = t.paused;
-      if(!t.paused && t.lastUpdated){
-        const elapsed = Math.floor((Date.now()-t.lastUpdated)/1000);
-        s._timerSeconds = Math.max(0,t.secondsLeft-elapsed);
-      }
-    }
+  const badge = document.getElementById('class-type-badge');
+  if (student.classType === 'online') {
+    badge.className = 'class-type-badge badge-online';
+    badge.textContent = '💻 Online Class';
+  } else {
+    badge.className = 'class-type-badge badge-inperson';
+    badge.textContent = '🏫 In-Person Class';
+  }
+
+  // Grade
+  if (data.gradePercent !== null && data.gradePercent !== undefined) {
+    document.getElementById('grade-pct').textContent = data.gradePercent + '%';
+    document.getElementById('grade-subtitle').textContent = `Based on ${quizResults.length} completed quiz${quizResults.length !== 1 ? 'zes' : ''}`;
+  }
+
+  renderSessions();
+  checkLiveClass();
+  setInterval(checkLiveClass, 10000);
+}
+
+// ── Sessions ──────────────────────────────────────────────
+function renderSessions() {
+  const grid = document.getElementById('sessions-grid');
+  if (!sessions.length) {
+    grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);grid-column:1/-1">No sessions available yet. Check back soon!</div>';
+    return;
+  }
+
+  // Group sessions by course so multi-course students see clear sections
+  const groups = {};
+  const groupOrder = [];
+  sessions.forEach(s => {
+    const key = s.courseLabel || s.course || 'Course';
+    if (!groups[key]) { groups[key] = []; groupOrder.push(key); }
+    groups[key].push(s);
+  });
+  const multiCourse = groupOrder.length > 1;
+
+  grid.innerHTML = groupOrder.map(courseName => {
+    const header = multiCourse
+      ? `<div style="grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:18px 0 4px">
+           <div style="font-size:15px;font-weight:800;letter-spacing:.02em">📚 ${courseName}</div>
+           <div style="flex:1;height:1px;background:var(--border,rgba(0,0,0,.1))"></div>
+           <div style="font-size:12px;color:var(--muted)">${groups[courseName].length} session${groups[courseName].length!==1?'s':''}</div>
+         </div>`
+      : '';
+    return header + renderSessionCards(groups[courseName]);
+  }).join('');
+}
+
+function renderSessionCards(list) {
+  return list.map(s => {
+    const qResult = quizResults.find(r => r.sessionId === s.id);
+    const locked = !s.unlocked;
     return `
-    <div class="session-item" id="session-card-${s.id}">
-      <div class="session-header">
-        <div style="display:flex;align-items:flex-start;gap:10px">
-          <input type="checkbox" class="session-checkbox" data-id="${s.id}" onchange="onSessionCheck()" style="width:16px;height:16px;margin-top:4px;cursor:pointer;accent-color:var(--accent);flex-shrink:0">
-          <div>
-            <span class="session-num">Session ${s.sessionNumber}</span>
-            <div class="session-title" style="margin-top:6px">${s.title}</div>
-          </div>
-        </div>
-        <span class="badge ${s.active?'badge-green':'badge-gray'}">${s.active?'● Active':'○ Inactive'}</span>
-      </div>
-      ${s.description?`<div class="session-desc">${s.description}</div>`:''}
-      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">⏱ ${dur} min session · 🔑 ${sessionCodes.length} codes · ${usedCodes} used</div>
-
-      <!-- Timer control -->
-      <div class="timer-control">
-        <div class="timer-control-header">
-          <div>
-            <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Session Timer</div>
-            <div class="timer-display-sm" id="timer-display-${s.id}">${fmtTime(s._timerSeconds||dur*60)}</div>
-          </div>
-          <div class="timer-control-btns">
-            <button class="btn btn-gold btn-sm" id="timer-pause-${s.id}" onclick="toggleTimer('${s.id}')">${s._timerPaused?'▶ Resume':'⏸ Pause'}</button>
-            <button class="btn btn-outline btn-sm" onclick="openAddTime('${s.id}')">+ Add Time</button>
-            <button class="btn btn-danger btn-sm" onclick="resetTimer('${s.id}')">↺ Reset</button>
-          </div>
+    <div class="session-card ${locked ? 'locked' : ''}" onclick="${locked ? '' : `openSession('${s.id}')`}">
+      <div class="session-card-top">
+        <div class="session-num">Session ${s.sessionNumber}</div>
+        <div class="session-title">${s.title}</div>
+        <div class="session-badges">
+          <span class="badge ${locked ? 'badge-locked' : 'badge-unlocked'}">${locked ? '🔒 Locked' : '🔓 Unlocked'}</span>
+          ${s.hasQuiz ? `<span class="badge ${qResult ? 'badge-quiz-done' : 'badge-quiz'}">${qResult ? `✅ ${qResult.percent}%` : '📝 Quiz'}</span>` : ''}
+          ${s.hasPdf ? '<span class="badge" style="background:#f0f4ff;color:#3730a3">📄 Guide</span>' : ''}
         </div>
       </div>
-
-      <div class="session-actions">
-        <button class="btn btn-green" onclick="startClass('${s.id}','${s.title.replace(/'/g,"\\'")}')">🎥 Start Class</button>
-        <button class="btn ${unlockedOnline(s)?'btn-danger':'btn-outline'}" onclick="toggleUnlock('${s.id}','online')">${unlockedOnline(s)?'🔒 Lock Online':'🔓 Unlock Online 💻'}</button>
-        <button class="btn ${unlockedInperson(s)?'btn-danger':'btn-outline'}" onclick="toggleUnlock('${s.id}','inperson')">${unlockedInperson(s)?'🔒 Lock In-Person':'🔓 Unlock In-Person 🏫'}</button>
-        <button class="btn btn-gold" onclick="openQuizModal('${s.id}')">📝 ${s.quiz?'Edit Quiz':'Add Quiz'}</button>
-        <button class="btn btn-outline" onclick="openPageModal('${s.id}',${s.pageStart||1},${s.pageEnd||1})">📄 Set Pages</button>
-        <button class="btn btn-outline" onclick="quickGenerateCodes('${s.id}')">🔑 Codes</button>
-        <button class="btn btn-danger" onclick="deleteSession('${s.id}')">🗑 Delete</button>
+      <div class="session-card-bottom">
+        <span class="lock-icon">${locked ? '🔒' : '📖'}</span>
+        <span class="session-action-text">${locked ? 'Locked — wait for your teacher' : 'Click to open session'}</span>
       </div>
     </div>`;
   }).join('');
+}
 
-  // Start local timers
-  sessions.forEach(s=>{
-    if(s.timer && !s.timer.paused){
-      startLocalTimer(s.id, s.timer);
+// ── Open session ──────────────────────────────────────────
+async function openSession(sessionId) {
+  currentSession = sessions.find(s => s.id === sessionId);
+  if (!currentSession) return;
+
+  document.getElementById('detail-title').textContent = `Session ${currentSession.sessionNumber}: ${currentSession.title}`;
+  document.getElementById('session-overlay').classList.add('open');
+  document.getElementById('pdf-viewer').innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.5);padding:40px"><div style="font-size:36px;margin-bottom:12px">⏳</div><div>Loading content...</div></div>';
+
+  try {
+    const res = await fetch(`/api/sessions?action=session-content&sessionId=${sessionId}`, {
+      headers: { 'x-student-id': student.portalId }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    currentSessionContent = data;
+
+    // Load notes
+    document.getElementById('notes-area').value = data.notes || '';
+
+    // Show quiz button
+    const quizBtn = document.getElementById('quiz-start-btn');
+    const existingResult = quizResults.find(r => r.sessionId === sessionId);
+    if (data.session.quiz && !existingResult) {
+      quizBtn.style.display = '';
+      quizBtn.textContent = `📝 Take Quiz (${data.session.quiz.questionCount} Qs)`;
+    } else if (existingResult) {
+      quizBtn.style.display = '';
+      quizBtn.textContent = `✅ Quiz: ${existingResult.percent}%`;
+      quizBtn.disabled = true;
+      quizBtn.style.opacity = '.7';
+    } else {
+      quizBtn.style.display = 'none';
     }
-  });
-}
 
-async function toggleTimer(sessionId){
-  const session = sessions.find(s=>s.id===sessionId);
-  if(!session) return;
-  const command = session._timerPaused ? 'resume' : 'pause';
-  try{
-    const res = await fetch('/api/sessions?action=timer',{method:'PATCH',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({sessionId,command})});
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error);
-    session._timerPaused = data.timer.paused;
-    session._timerSeconds = data.timer.secondsLeft;
-    session.timer = data.timer;
-    if(activeTimers[sessionId]) clearInterval(activeTimers[sessionId]);
-    if(!data.timer.paused){
-      activeTimers[sessionId] = setInterval(()=>{
-        if(session._timerSeconds>0){ session._timerSeconds--; updateTimerDisplay(sessionId); }
-        else { clearInterval(activeTimers[sessionId]); }
-      },1000);
+    // Show join class button for online students
+    const joinBtn = document.getElementById('join-class-btn');
+    if (student.classType === 'online' && classroomActive) {
+      joinBtn.style.display = '';
+    } else {
+      joinBtn.style.display = 'none';
     }
-    updateTimerDisplay(sessionId);
-  }catch(e){ alert(e.message); }
+
+    // Load PDF — check both pdfUrl field and materials array
+    const pdfUrl = data.session.pdfUrl ||
+      (data.session.materials||[]).find(m => {
+        const url = typeof m === 'string' ? m : (m.url || '');
+        return url && (url.endsWith('.pdf') || (typeof m === 'object' && m.type === 'pdf'));
+      })?.url || null;
+
+    if (pdfUrl) {
+      loadPDF(pdfUrl, data.session.pageStart, data.session.pageEnd);
+    } else {
+      // Show text content
+      document.getElementById('pdf-toolbar').style.display = 'none';
+      document.getElementById('pdf-viewer').innerHTML = `
+        <div style="padding:32px;color:#e8eaf0;max-width:600px;line-height:1.7">
+          <h2 style="margin-bottom:12px;font-size:20px">${data.session.title}</h2>
+          <p style="color:rgba(255,255,255,.7);margin-bottom:20px">${data.session.description || ''}</p>
+          ${(data.session.materials||[]).map(m => {
+            const url = typeof m === 'string' ? m : (m.url || '');
+            const name = typeof m === 'string' ? m : (m.name || url);
+            if (!url) return '';
+            return `<div style="padding:12px;background:rgba(255,255,255,.05);border-radius:8px;margin-bottom:8px;font-size:13px">
+              📎 <a href="${url}" target="_blank" style="color:#93c5fd">${name}</a>
+            </div>`;
+          }).join('')}
+        </div>`;
+    }
+
+  } catch(e) {
+    document.getElementById('pdf-viewer').innerHTML = `<div style="text-align:center;color:#fc8181;padding:40px">${e.message}</div>`;
+  }
 }
 
-function openAddTime(sessionId){
-  currentAddTimeSessionId = sessionId;
-  document.getElementById('add-minutes-input').value='10';
-  document.getElementById('addtime-modal').classList.add('open');
+function closeSession() {
+  document.getElementById('session-overlay').classList.remove('open');
+  currentSession = null;
+  currentSessionContent = null;
+  saveNotes();
 }
 
-async function confirmAddTime(){
-  const mins = parseInt(document.getElementById('add-minutes-input').value)||10;
-  if(!currentAddTimeSessionId) return;
-  try{
-    const res = await fetch('/api/sessions?action=timer',{method:'PATCH',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({sessionId:currentAddTimeSessionId,addMinutes:mins})});
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error);
-    const session = sessions.find(s=>s.id===currentAddTimeSessionId);
-    if(session){ session._timerSeconds=(session._timerSeconds||0)+(mins*60); session.timer=data.timer; updateTimerDisplay(currentAddTimeSessionId); }
-    closeModal('addtime-modal');
-  }catch(e){ alert(e.message); }
+function closeSessionIfBackdrop(e) {
+  if (e.target === document.getElementById('session-overlay')) closeSession();
 }
 
-async function resetTimer(sessionId){
-  if(!confirm('Reset timer to original duration?')) return;
-  try{
-    const res = await fetch('/api/sessions?action=timer',{method:'PATCH',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({sessionId,command:'reset'})});
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error);
-    const session = sessions.find(s=>s.id===sessionId);
-    if(session){ session._timerSeconds=data.timer.secondsLeft; session._timerPaused=true; session.timer=data.timer; if(activeTimers[sessionId]) clearInterval(activeTimers[sessionId]); updateTimerDisplay(sessionId); }
-  }catch(e){ alert(e.message); }
+// ── PDF Viewer (PDF.js) ────────────────────────────────────
+let pdfDoc = null;
+let pdfRenderTask = null;
+
+async function loadPDF(pdfUrl, pageStart, pageEnd) {
+  activePdfUrl = pdfUrl;
+  currentPage = pageStart || 1;
+  document.getElementById('pdf-toolbar').style.display = '';
+  const viewer = document.getElementById('pdf-viewer');
+  viewer.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.5);padding:40px">Loading PDF...</div>';
+
+  try {
+    // Load PDF.js from CDN if not already loaded
+    if (!window.pdfjsLib) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+    viewer.innerHTML = '<canvas id="pdf-canvas" style="max-width:100%;display:block;margin:auto"></canvas>';
+    renderPDFPage(pdfUrl, currentPage, pageStart, pageEnd);
+  } catch(e) {
+    viewer.innerHTML = `<div style="text-align:center;color:#fc8181;padding:40px">Failed to load PDF: ${e.message}</div>`;
+  }
 }
 
-function onCodeSessionChange(){ showCodesForSession(document.getElementById('code-session-select').value); }
+async function renderPDFPage(pdfUrl, page, pageStart, pageEnd) {
+  if (!pdfDoc) return;
+  const pageInfo = document.getElementById('pdf-page-info');
+  const relPage = page - (pageStart || 1) + 1;
+  const totalPages = pageEnd ? (pageEnd - (pageStart || 1) + 1) : pdfDoc.numPages;
+  pageInfo.textContent = `Page ${relPage} of ${totalPages}`;
 
-function showCodesForSession(sessionId){
-  const sessionCodes = codes.filter(c=>c.sessionId===sessionId);
-  const el = document.getElementById('codes-display');
-  if(!sessionId||!sessionCodes.length){ el.innerHTML=''; return; }
-  const active=sessionCodes.filter(c=>c.active&&!c.usedBy);
-  const used=sessionCodes.filter(c=>c.usedBy);
-  const dead=sessionCodes.filter(c=>!c.active&&!c.usedBy);
-  el.innerHTML=`<div class="card"><div style="font-size:13px;color:var(--muted);margin-bottom:12px">${sessionCodes.length} codes · <span style="color:var(--accent)">${active.length} available</span> · ${used.length} used · ${dead.length} deactivated</div><div class="codes-grid">${sessionCodes.map(c=>`<div class="code-chip ${c.usedBy||!c.active?'used':''}"><div class="code-val">${c.code}</div><div class="code-status">${!c.active?'Dead':c.usedBy?'Used':'Available'}</div></div>`).join('')}</div></div>`;
+  try {
+    const pdfPage = await pdfDoc.getPage(page);
+    const canvas = document.getElementById('pdf-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('pdf-viewer');
+    const scale = (container.clientWidth - 32) / pdfPage.getViewport({ scale: 1 }).width;
+    const viewport = pdfPage.getViewport({ scale: Math.max(scale, 0.5) });
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    if (pdfRenderTask) pdfRenderTask.cancel();
+    pdfRenderTask = pdfPage.render({ canvasContext: ctx, viewport });
+    await pdfRenderTask.promise;
+  } catch(e) {
+    if (e.name !== 'RenderingCancelledException') {
+      console.error('PDF render error:', e);
+    }
+  }
 }
 
-function switchTab(tab,el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+function prevPage() {
+  if (!currentSessionContent?.session) return;
+  const { pageStart } = currentSessionContent.session;
+  if (currentPage > (pageStart||1)) {
+    currentPage--;
+    renderPDFPage(activePdfUrl, currentPage, pageStart, currentSessionContent.session.pageEnd);
+  }
+}
+
+function nextPage() {
+  if (!currentSessionContent?.session) return;
+  const { pageEnd } = currentSessionContent.session;
+  if (!pageEnd || currentPage < pageEnd) {
+    currentPage++;
+    renderPDFPage(activePdfUrl, currentPage, currentSessionContent.session.pageStart, pageEnd);
+  }
+}
+
+// ── Notes ─────────────────────────────────────────────────
+function switchNotesTab(tab, el) {
+  document.querySelectorAll('.notes-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.notes-content').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('notes-tab-' + tab).classList.add('active');
 }
 
-function openNewSessionModal(){ document.getElementById('session-modal').classList.add('open'); document.getElementById('s-title').focus(); }
-
-async function createSession(){
-  const title=document.getElementById('s-title').value.trim();
-  const desc=document.getElementById('s-desc').value.trim();
-  const num=document.getElementById('s-number').value;
-  const dur=document.getElementById('s-duration').value||45;
-  const mats=document.getElementById('s-materials').value.trim().split('\n').map(m=>m.trim()).filter(Boolean);
-  const alertEl=document.getElementById('session-alert');
-  if(!title){ showAlert(alertEl,'Session title is required'); return; }
-  const btn=document.getElementById('create-session-btn');
-  const spinner=document.getElementById('create-session-spinner');
-  btn.disabled=true; spinner.style.display='block';
-  document.getElementById('create-session-text').textContent='Creating...';
-  try{
-    const res=await fetch('/api/sessions?action=create-session',{method:'POST',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({title,description:desc,materials:mats,sessionNumber:num?parseInt(num):undefined,durationMinutes:parseInt(dur)})});
-    const data=await res.json();
-    if(!res.ok) throw new Error(data.error||'Failed');
-    sessions.push(data.session);
-    closeModal('session-modal');
-    ['s-title','s-desc','s-number','s-materials'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('s-duration').value='45';
-    renderAll();
-  }catch(e){ showAlert(alertEl,e.message); }
-  btn.disabled=false; spinner.style.display='none';
-  document.getElementById('create-session-text').textContent='Create Session';
+function scheduleNotesSave() {
+  clearTimeout(notesSaveTimeout);
+  notesSaveTimeout = setTimeout(saveNotes, 1500);
 }
 
-async function generateCodes(){
-  const sessionId=document.getElementById('code-session-select').value;
-  const count=parseInt(document.getElementById('code-count').value)||20;
-  if(!sessionId){ alert('Please select a session first'); return; }
-  await doGenerateCodes(sessionId,count);
-}
-
-async function quickGenerateCodes(sessionId){
-  const count=parseInt(prompt('How many codes to generate?','20'));
-  if(!count||count<1) return;
-  await doGenerateCodes(sessionId,count);
-  switchTab('codes',document.querySelectorAll('.tab')[1]);
-  document.getElementById('code-session-select').value=sessionId;
-  showCodesForSession(sessionId);
-}
-
-async function doGenerateCodes(sessionId,count){
-  try{
-    const res=await fetch('/api/sessions?action=generate-codes',{method:'POST',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({sessionId,count})});
-    const data=await res.json();
-    if(!res.ok) throw new Error(data.error||'Failed');
-    codes=[...codes,...data.codes];
-    renderAll();
-    showCodesForSession(sessionId);
-  }catch(e){ alert(e.message); }
-}
-
-async function toggleSession(sessionId){
-  try{
-    const res=await fetch('/api/sessions?action=toggle-session',{method:'PATCH',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({sessionId})});
-    const data=await res.json();
-    if(!res.ok) throw new Error(data.error);
-    const s=sessions.find(s=>s.id===sessionId);
-    if(s) s.active=data.active;
-    renderAll();
-  }catch(e){ alert(e.message); }
-}
-
-// Unlock state helpers — support new per-class-type format with legacy fallback
-function unlockedOnline(s){
-  if(s.unlockedFor) return !!s.unlockedFor.online;
-  return !!s.unlockedForStudents;
-}
-function unlockedInperson(s){
-  if(s.unlockedFor) return !!s.unlockedFor.inperson;
-  return !!s.unlockedForStudents;
-}
-
-async function toggleUnlock(sessionId, classType){
-  try{
-    const res = await fetch('/api/sessions?action=unlock-session',{
-      method:'PATCH',
-      headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
-      body:JSON.stringify({sessionId, classType})
+async function saveNotes() {
+  if (!currentSession || !student) return;
+  const notes = document.getElementById('notes-area').value;
+  try {
+    await fetch('/api/sessions?action=save-notes', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-student-id': student.portalId },
+      body: JSON.stringify({ sessionId: currentSession.id, notes })
     });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error);
-    const s = sessions.find(s=>s.id===sessionId);
-    if(s){
-      s.unlockedFor = data.unlockedFor;
-      s.unlockedForStudents = data.unlockedFor.online || data.unlockedFor.inperson;
-    }
-    renderAll();
-  }catch(e){ alert(e.message); }
+    const msg = document.getElementById('notes-saved');
+    msg.style.display = 'block';
+    setTimeout(() => msg.style.display = 'none', 2000);
+  } catch(e) {}
 }
 
-function openPageModal(sessionId, pageStart, pageEnd){
-  document.getElementById('pages-session-id').value = sessionId;
-  document.getElementById('page-start').value = pageStart||1;
-  document.getElementById('page-end').value = pageEnd||1;
-  document.getElementById('pages-modal').classList.add('open');
-}
+async function downloadNotes() {
+  const notes = document.getElementById('notes-area').value.trim();
+  if (!notes) { alert('No notes to download yet!'); return; }
 
-async function savePageRange(){
-  const sessionId = document.getElementById('pages-session-id').value;
-  const pageStart = parseInt(document.getElementById('page-start').value);
-  const pageEnd = parseInt(document.getElementById('page-end').value);
-  if(pageStart > pageEnd){ alert('Start page must be before end page'); return; }
-  try{
-    const res = await fetch('/api/sessions?action=set-pages',{
-      method:'PATCH',
-      headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
-      body:JSON.stringify({sessionId,pageStart,pageEnd})
-    });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error);
-    const s = sessions.find(s=>s.id===sessionId);
-    if(s){ s.pageStart=pageStart; s.pageEnd=pageEnd; }
-    closeModal('pages-modal');
-    renderAll();
-  }catch(e){ alert(e.message); }
+  // Generate simple PDF using browser print
+  const sessionTitle = currentSession ? `Session ${currentSession.sessionNumber}: ${currentSession.title}` : 'Session Notes';
+  const html = `
+    <html><head><title>Notes — ${sessionTitle}</title>
+    <style>
+      body{font-family:sans-serif;padding:40px;max-width:700px;margin:0 auto;line-height:1.6}
+      h1{color:#2d5a27;margin-bottom:6px;font-size:20px}
+      h2{color:#6b7280;font-size:14px;font-weight:400;margin-bottom:24px}
+      .notes{white-space:pre-wrap;font-size:14px;border-left:3px solid #2d5a27;padding-left:16px}
+      .footer{margin-top:40px;color:#aaa;font-size:11px;border-top:1px solid #eee;padding-top:16px}
+    </style></head>
+    <body>
+      <h1>${sessionTitle}</h1>
+      <h2>Notes by ${student.name} — ${student.portalId}</h2>
+      <div class="notes">${notes.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      <div class="footer">Ghost Digitals Academy • Downloaded ${new Date().toLocaleDateString()}</div>
+    </body></html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url);
+  if (win) setTimeout(() => win.print(), 500);
 }
 
 // ── Quiz ──────────────────────────────────────────────────
-let quizQuestions = [];
+async function startQuiz() {
+  if (!currentSession || !currentSessionContent?.session?.quiz) return;
+  const quiz = currentSessionContent.session.quiz;
+  if (!quiz.questions || !quiz.questions.length) { alert('Quiz not available yet.'); return; }
 
-function openQuizModal(sessionId){
-  const session = sessions.find(s=>s.id===sessionId);
-  quizQuestions = session?.quiz?.questions ? JSON.parse(JSON.stringify(session.quiz.questions)) : [];
-  document.getElementById('quiz-session-id').value = sessionId;
-  document.getElementById('quiz-title-input').value = session?.quiz?.title || `${session?.title} — Quiz`;
-  document.getElementById('quiz-time-limit').value = session?.quiz?.timeLimit || 30;
-  document.getElementById('quiz-alert').classList.remove('show');
-  if(!quizQuestions.length) addQuizQuestion();
-  renderQuizQuestions();
-  document.getElementById('quiz-modal').classList.add('open');
+  const existingResult = quizResults.find(r => r.sessionId === currentSession.id);
+  if (existingResult) { alert(`You already completed this quiz! Score: ${existingResult.percent}%`); return; }
+
+  quizData = quiz;
+  quizAnswers = {};
+  quizCurrentQ = 0;
+  quizSecondsLeft = (quiz.timeLimit || 30) * 60;
+
+  document.getElementById('quiz-overlay').classList.add('open');
+  document.getElementById('quiz-title').textContent = quiz.title || `${currentSession.title} Quiz`;
+  renderQuizQuestion();
+  startQuizTimer();
+
+  // Prevent leaving
+  window.onbeforeunload = () => 'You are in the middle of a quiz. If you leave your score will be 0.';
 }
 
-function addQuizQuestion(){
-  quizQuestions.push({
-    id:'q_'+Date.now()+'_'+quizQuestions.length,
-    type:'multiple-choice',
-    question:'',
-    options:['','','',''],
-    correctAnswer:''
-  });
-  renderQuizQuestions();
+function renderQuizQuestion() {
+  const q = quizData.questions[quizCurrentQ];
+  const total = quizData.questions.length;
+  const progress = ((quizCurrentQ + 1) / total) * 100;
+
+  document.getElementById('quiz-body').innerHTML = `
+    <div class="quiz-progress"><div class="quiz-progress-bar" style="width:${progress}%"></div></div>
+    <div class="quiz-qnum">Question ${quizCurrentQ + 1} of ${total}</div>
+    <div class="quiz-question">${q.question}</div>
+    <div class="quiz-options">
+      ${(q.options || ['True', 'False']).map((opt, i) => `
+        <button class="quiz-option ${quizAnswers[q.id] === opt ? 'selected' : ''}"
+          onclick="selectAnswer('${q.id}','${opt.replace(/'/g,"\\'")}',this)">
+          ${String.fromCharCode(65+i)}. ${opt}
+        </button>`).join('')}
+    </div>`;
+
+  document.getElementById('quiz-prev').style.display = quizCurrentQ > 0 ? '' : 'none';
+  document.getElementById('quiz-next').style.display = quizCurrentQ < total - 1 ? '' : 'none';
+  document.getElementById('quiz-submit').style.display = quizCurrentQ === total - 1 ? '' : 'none';
 }
 
-function renderQuizQuestions(){
-  const container = document.getElementById('quiz-questions-list');
-  container.innerHTML = quizQuestions.map((q,i)=>`
-    <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-size:12px;font-weight:700;color:var(--muted)">QUESTION ${i+1}</div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <select onchange="changeQuizType(${i},this.value)" style="font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-family:inherit;background:var(--surface)">
-            <option value="multiple-choice" ${q.type==='multiple-choice'?'selected':''}>Multiple Choice</option>
-            <option value="true-false" ${q.type==='true-false'?'selected':''}>True/False</option>
-          </select>
-          <button onclick="removeQuestion(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px">✕</button>
-        </div>
-      </div>
-      <textarea placeholder="Enter question..." onchange="quizQuestions[${i}].question=this.value" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;resize:none;height:60px;margin-bottom:10px;outline:none">${q.question}</textarea>
-      ${q.type==='true-false'?`
-        <div style="display:flex;gap:8px;margin-bottom:8px">
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="correct_${i}" value="True" ${q.correctAnswer==='True'?'checked':''} onchange="quizQuestions[${i}].correctAnswer='True';quizQuestions[${i}].options=['True','False']"> True</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="correct_${i}" value="False" ${q.correctAnswer==='False'?'checked':''} onchange="quizQuestions[${i}].correctAnswer='False';quizQuestions[${i}].options=['True','False']"> False</label>
-        </div>
-        <div style="font-size:11px;color:var(--muted)">Select the correct answer above</div>
-      `:`
-        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">OPTIONS (select correct answer)</div>
-        ${(q.options||['','','','']).map((opt,j)=>`
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <input type="radio" name="correct_${i}" value="${String.fromCharCode(65+j)}" ${q.correctAnswer===String.fromCharCode(65+j)?'checked':''} onchange="quizQuestions[${i}].correctAnswer='${String.fromCharCode(65+j)}'">
-            <span style="font-size:12px;font-weight:700;color:var(--muted);width:16px">${String.fromCharCode(65+j)}.</span>
-            <input type="text" value="${opt}" placeholder="Option ${String.fromCharCode(65+j)}" onchange="quizQuestions[${i}].options[${j}]=this.value" style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;outline:none">
-          </div>`).join('')}
-      `}
-    </div>`).join('');
+function selectAnswer(questionId, answer, el) {
+  quizAnswers[questionId] = answer;
+  el.closest('.quiz-options').querySelectorAll('.quiz-option').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
 }
 
-function changeQuizType(i, type){
-  quizQuestions[i].type = type;
-  quizQuestions[i].correctAnswer = '';
-  if(type==='true-false') quizQuestions[i].options = ['True','False'];
-  else quizQuestions[i].options = ['','','',''];
-  renderQuizQuestions();
-}
+function prevQuestion() { if (quizCurrentQ > 0) { quizCurrentQ--; renderQuizQuestion(); } }
+function nextQuestion() { if (quizCurrentQ < quizData.questions.length - 1) { quizCurrentQ++; renderQuizQuestion(); } }
 
-function removeQuestion(i){
-  quizQuestions.splice(i,1);
-  renderQuizQuestions();
-}
-
-async function saveQuiz(){
-  const sessionId = document.getElementById('quiz-session-id').value;
-  const title = document.getElementById('quiz-title-input').value.trim();
-  const timeLimit = parseInt(document.getElementById('quiz-time-limit').value)||30;
-  const alertEl = document.getElementById('quiz-alert');
-
-  if(!quizQuestions.length){ showAlert(alertEl,'Add at least one question'); return; }
-  for(let i=0;i<quizQuestions.length;i++){
-    const q = quizQuestions[i];
-    if(!q.question.trim()){ showAlert(alertEl,`Question ${i+1} is empty`); return; }
-    if(!q.correctAnswer){ showAlert(alertEl,`Select the correct answer for Question ${i+1}`); return; }
-    if(q.type==='multiple-choice' && q.options.some(o=>!o.trim())){ showAlert(alertEl,`Fill all options for Question ${i+1}`); return; }
-  }
-
-  // Convert multiple-choice options to labeled version
-  const questions = quizQuestions.map(q=>({
-    ...q,
-    options: q.type==='true-false' ? ['True','False'] : q.options.map((o,i)=>o),
-  }));
-
-  try{
-    const res = await fetch('/api/sessions?action=save-quiz',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
-      body:JSON.stringify({sessionId,title,questions,timeLimit})
-    });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error);
-    const s = sessions.find(s=>s.id===sessionId);
-    if(s) s.quiz = data.quiz;
-    closeModal('quiz-modal');
-    renderAll();
-    alert('✅ Quiz saved!');
-  }catch(e){ showAlert(alertEl,e.message); }
-}
-
-
-function toggleSelectAll(checked){
-  document.querySelectorAll('.session-checkbox').forEach(cb=>cb.checked=checked);
-  onSessionCheck();
-}
-
-function onSessionCheck(){
-  const checkboxes = document.querySelectorAll('.session-checkbox');
-  const checked = document.querySelectorAll('.session-checkbox:checked');
-  const allChecked = checkboxes.length > 0 && checked.length === checkboxes.length;
-  document.getElementById('select-all-sessions').checked = allChecked;
-  document.getElementById('select-all-sessions').indeterminate = checked.length > 0 && !allChecked;
-  const countEl = document.getElementById('selected-count');
-  const btn = document.getElementById('bulk-delete-btn');
-  if(checked.length > 0){
-    countEl.textContent = `${checked.length} selected`;
-    btn.style.display = '';
-  } else {
-    countEl.textContent = '';
-    btn.style.display = 'none';
-  }
-}
-
-async function deleteSelectedSessions(){
-  const checked = [...document.querySelectorAll('.session-checkbox:checked')];
-  if(!checked.length) return;
-  if(!confirm(`Delete ${checked.length} session${checked.length>1?'s':''}? This cannot be undone.`)) return;
-  const sessionIds = checked.map(cb=>cb.dataset.id);
-  try{
-    const res = await fetch('/api/sessions',{
-      method:'DELETE',
-      headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
-      body: JSON.stringify({sessionIds})
-    });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error||'Failed to delete');
-    const idSet = new Set(sessionIds);
-    sessions = sessions.filter(s=>!idSet.has(s.id));
-    codes = codes.filter(c=>!idSet.has(c.sessionId));
-    renderAll();
-  }catch(e){ alert(e.message); }
-}
-
-async function deleteSession(sessionId){
-  if(!confirm('Delete this session? All codes and attendance for this session will also be deleted. This cannot be undone.')) return;
-  try{
-    const res = await fetch('/api/sessions',{
-      method:'DELETE',
-      headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
-      body:JSON.stringify({sessionId})
-    });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error||'Failed');
-    sessions = sessions.filter(s=>s.id!==sessionId);
-    codes = codes.filter(c=>c.sessionId!==sessionId);
-    renderAll();
-  }catch(e){ alert(e.message); }
-}
-
-
-async function deactivateCodesForSession(sessionId){
-  if(!confirm('Deactivate all unused codes for this session?')) return;
-  try{
-    await fetch('/api/sessions?action=deactivate-codes',{method:'PATCH',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({sessionId})});
-    codes=codes.map(c=>c.sessionId===sessionId&&!c.usedBy?{...c,active:false}:c);
-    renderAll();
-  }catch(e){ alert(e.message); }
-}
-
-async function deactivateSessionCodes(){
-  const sessionId=document.getElementById('code-session-select').value;
-  if(!sessionId){ alert('Please select a session first'); return; }
-  await deactivateCodesForSession(sessionId);
-}
-
-function startClass(sessionId, sessionTitle) {
-  window.open(`/classroom.html?role=teacher&session=${sessionId}&teacher=${teacherData.username}&title=${encodeURIComponent(sessionTitle)}`, '_blank');
-}
-
-function showAlert(el,msg){ el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),4000); }
-function closeModal(id){ document.getElementById(id).classList.remove('open'); }
-function closeModalIf(e,id){ if(e.target===document.getElementById(id)) closeModal(id); }
-
-// ── PDF Upload ─────────────────────────────────────────────
-let selectedPDFFile = null;
-
-const DEFAULT_MODULES = [
-  'Introduction to Digital Marketing',
-  'Social Media Marketing',
-  'Content Marketing',
-  'Search Engine Optimization (SEO)',
-  'Marketing Strategy Development',
-  'Facebook & Instagram Advertising',
-  'Paid Ads Campaign Management',
-  'Influencer Marketing',
-  'Affiliate Marketing',
-  'Email Marketing',
-  'Analytics & Reporting',
-];
-
-function fillDefaultModules() {
-  document.getElementById('upload-modules-text').value = DEFAULT_MODULES.join('\n');
-}
-
-function openUploadModal() {
-  selectedPDFFile = null;
-  document.getElementById('upload-alert').classList.remove('show');
-  document.getElementById('upload-icon').textContent = '📄';
-  document.getElementById('upload-label').textContent = 'Click to select PDF file (optional)';
-  document.getElementById('upload-hint').textContent = 'PDF will be stored and linked to each session';
-  document.getElementById('upload-drop-zone').style.borderColor = 'var(--border)';
-  document.getElementById('pdf-file-input').value = '';
-  document.getElementById('upload-modules-text').value = '';
-  document.getElementById('upload-duration').value = '45';
-  document.getElementById('upload-btn').disabled = false;
-  document.getElementById('upload-btn-text').textContent = 'Create Sessions';
-  document.getElementById('upload-modal').classList.add('open');
-}
-
-function onPDFSelected(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  if (file.size > 10 * 1024 * 1024) { showAlert(document.getElementById('upload-alert'), 'File too large. Max 10MB.'); return; }
-  selectedPDFFile = file;
-  document.getElementById('upload-icon').textContent = '✅';
-  document.getElementById('upload-label').textContent = file.name;
-  document.getElementById('upload-hint').textContent = `${(file.size/1024).toFixed(0)} KB — ready to upload`;
-  document.getElementById('upload-drop-zone').style.borderColor = 'var(--accent)';
-}
-
-async function uploadCoursePDF() {
-  const alertEl = document.getElementById('upload-alert');
-  const duration = parseInt(document.getElementById('upload-duration').value) || 45;
-  const moduleText = document.getElementById('upload-modules-text').value.trim();
-  const moduleLines = moduleText.split('\n').map(l => l.trim()).filter(Boolean);
-
-  if (!moduleLines.length) { showAlert(alertEl, 'Please enter at least one module title'); return; }
-
-  const btn = document.getElementById('upload-btn');
-  const spinner = document.getElementById('upload-spinner');
-  btn.disabled = true; spinner.style.display = 'block';
-  document.getElementById('upload-btn-text').textContent = selectedPDFFile ? 'Uploading PDF...' : 'Creating sessions...';
-
-  try {
-    let pdfUrl = null;
-
-    // Upload PDF if selected
-    if (selectedPDFFile) {
-      const formData = new FormData();
-      formData.append('pdf', selectedPDFFile);
-      formData.append('teacherKey', teacherData.username);
-      formData.append('duration', duration);
-      formData.append('modules', moduleLines.join('\n'));
-
-      const res = await fetch('/api/upload-course', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Upload failed');
-      pdfUrl = data.pdfUrl;
-      sessions = [...sessions, ...data.sessions];
-      renderAll();
-      closeModal('upload-modal');
-      alert(`✅ ${data.sessionsCreated} sessions created!`);
-      return;
+function startQuizTimer() {
+  updateQuizTimerDisplay();
+  quizTimerInterval = setInterval(() => {
+    quizSecondsLeft--;
+    updateQuizTimerDisplay();
+    if (quizSecondsLeft <= 0) {
+      clearInterval(quizTimerInterval);
+      submitQuiz(false, true); // auto-submit when time runs out
     }
-
-    // No PDF — create sessions directly via sessions API
-    document.getElementById('upload-btn-text').textContent = 'Creating sessions...';
-    const newSessions = [];
-    const existingCount = sessions.length;
-    for (let i = 0; i < moduleLines.length; i++) {
-      const res = await fetch('/api/sessions?action=create-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-teacher-key': teacherData.username },
-        body: JSON.stringify({
-          title: moduleLines[i],
-          description: `Module ${i + 1} — ${teacherData.label} course.`,
-          sessionNumber: existingCount + i + 1,
-          durationMinutes: duration,
-          materials: [],
-        })
-      });
-      const data = await res.json();
-      if (data.session) newSessions.push(data.session);
-    }
-    sessions = [...sessions, ...newSessions];
-    renderAll();
-    closeModal('upload-modal');
-    alert(`✅ ${newSessions.length} sessions created!`);
-
-  } catch(e) {
-    showAlert(alertEl, e.message);
-  }
-  btn.disabled = false; spinner.style.display = 'none';
-  document.getElementById('upload-btn-text').textContent = 'Create Sessions';
-}
-
-
-let qrInterval = null;
-let countdownInterval = null;
-let currentAttSessionId = null;
-let attendance = [];
-
-function renderCodesTab(){
-  const sel = document.getElementById('code-session-select');
-  const current = sel.value;
-  sel.innerHTML='<option value="">— Choose a session —</option>'+sessions.map(s=>`<option value="${s.id}" ${s.id===current?'selected':''}>Session ${s.sessionNumber}: ${s.title}</option>`).join('');
-
-  // Also update attendance session select
-  const attSel = document.getElementById('att-session-select');
-  const attCurrent = attSel.value;
-  attSel.innerHTML='<option value="">— Choose a session —</option>'+sessions.map(s=>`<option value="${s.id}" ${s.id===attCurrent?'selected':''}>Session ${s.sessionNumber}: ${s.title}</option>`).join('');
-
-  if(current) showCodesForSession(current);
-}
-
-async function startAttendanceQR(){
-  const sessionId = document.getElementById('att-session-select').value;
-  if(!sessionId){ document.getElementById('att-qr-wrap').style.display='none'; document.getElementById('att-list-wrap').style.display='none'; return; }
-  currentAttSessionId = sessionId;
-  document.getElementById('att-qr-wrap').style.display='block';
-  document.getElementById('att-list-wrap').style.display='block';
-
-  if(qrInterval) clearInterval(qrInterval);
-  if(countdownInterval) clearInterval(countdownInterval);
-
-  await refreshQR(sessionId);
-  loadAttendance(sessionId);
-
-  // Refresh QR every 30 seconds
-  qrInterval = setInterval(()=> refreshQR(sessionId), 30000);
-
-  // Refresh attendance every 5 seconds
-  setInterval(()=> loadAttendance(sessionId), 5000);
-
-  // Countdown timer
-  let secondsLeft = 30 - (Math.floor(Date.now()/1000) % 30);
-  document.getElementById('att-qr-countdown').textContent = secondsLeft;
-  countdownInterval = setInterval(()=>{
-    secondsLeft--;
-    if(secondsLeft <= 0) secondsLeft = 30;
-    document.getElementById('att-qr-countdown').textContent = secondsLeft;
   }, 1000);
 }
 
-async function refreshQR(sessionId){
-  try{
-    const res = await fetch(`/api/sessions?action=qr-token&sessionId=${sessionId}`);
-    const data = await res.json();
-    if(!res.ok) return;
+function updateQuizTimerDisplay() {
+  const m = Math.floor(quizSecondsLeft / 60).toString().padStart(2, '0');
+  const s = (quizSecondsLeft % 60).toString().padStart(2, '0');
+  const el = document.getElementById('quiz-timer');
+  el.textContent = `${m}:${s}`;
+  el.style.color = quizSecondsLeft < 60 ? '#fc8181' : '#f6ad55';
+}
 
-    // Encode token + sessionId as JSON in QR
-    const qrData = JSON.stringify({ sessionId, token: data.token });
-    const canvas = document.getElementById('att-qr-canvas');
-    canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+async function quitQuiz() {
+  if (!confirm('Are you sure you want to quit? Your score will be recorded as 0.')) return;
+  clearInterval(quizTimerInterval);
+  window.onbeforeunload = null;
+  await doSubmitQuiz(true);
+}
 
-    // Use QRCode library
-    const container = document.createElement('div');
-    new QRCode(container, {
-      text: qrData,
-      width: 280,
-      height: 280,
-      colorDark: '#2d5a27',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.H
+async function submitQuiz(e, autoSubmit = false) {
+  const unanswered = quizData.questions.filter(q => !quizAnswers[q.id]).length;
+  if (!autoSubmit && unanswered > 0) {
+    if (!confirm(`You have ${unanswered} unanswered question${unanswered>1?'s':''}. Submit anyway?`)) return;
+  }
+  clearInterval(quizTimerInterval);
+  window.onbeforeunload = null;
+  await doSubmitQuiz(false);
+}
+
+async function doSubmitQuiz(quit) {
+  try {
+    const res = await fetch('/api/sessions?action=submit-quiz', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-student-id': student.portalId },
+      body: JSON.stringify({ sessionId: currentSession.id, answers: quizAnswers, quit })
     });
-    setTimeout(()=>{
-      const img = container.querySelector('img');
-      if(img){
-        const ctx = canvas.getContext('2d');
-        canvas.width=280; canvas.height=280;
-        const image = new Image();
-        image.onload = ()=> ctx.drawImage(image,0,0);
-        image.src = img.src;
-      }
-    }, 100);
-  }catch(e){ console.error('QR refresh error',e); }
-}
-
-async function loadAttendance(sessionId){
-  sessionId = sessionId || currentAttSessionId;
-  if(!sessionId) return;
-  try{
-    const res = await fetch('/api/sessions',{headers:{'x-teacher-key':teacherData.username}});
     const data = await res.json();
-    const records = (data.attendance||[]).filter(a=>a.sessionId===sessionId);
-    const sessionCodes = (data.codes||[]).filter(c=>c.sessionId===sessionId&&c.studentName);
-    const total = sessionCodes.length;
-    const present = records.length;
+    if (!res.ok) throw new Error(data.error || 'Failed to submit');
 
-    document.getElementById('att-count').textContent=`(${present}/${total} present)`;
-    const el = document.getElementById('att-list');
-    if(!records.length){ el.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted)">No students have scanned yet</div>'; return; }
-    el.innerHTML=records.map(r=>`
-      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)">
-        <div style="width:32px;height:32px;border-radius:50%;background:var(--accent-light);color:var(--accent-text);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">${r.studentName?r.studentName[0].toUpperCase():'?'}</div>
-        <div style="flex:1">
-          <div style="font-weight:600;font-size:14px">${r.studentName||'Unknown'}</div>
-          <div style="font-size:12px;color:var(--muted)">${r.studentPhone||''}</div>
-        </div>
-        <div style="font-size:12px;color:var(--accent);font-weight:500">✅ ${new Date(r.markedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
-      </div>`).join('');
-  }catch(e){ console.error(e); }
+    quizResults.push({ sessionId: currentSession.id, score: data.score, total: data.total, percent: data.percent, quit });
+    showQuizResults(data);
+    renderSessions();
+
+    // Update grade
+    const totalScore = quizResults.reduce((s, r) => s + r.score, 0);
+    const totalPossible = quizResults.reduce((s, r) => s + r.total, 0);
+    if (totalPossible > 0) {
+      const pct = Math.round((totalScore / totalPossible) * 100);
+      document.getElementById('grade-pct').textContent = pct + '%';
+      document.getElementById('grade-subtitle').textContent = `Based on ${quizResults.length} completed quiz${quizResults.length !== 1 ? 'zes' : ''}`;
+    }
+  } catch(e) { alert(e.message); }
 }
 
-const saved=localStorage.getItem('teacherSession');
-if(saved){ try{ teacherData=JSON.parse(saved); showApp(); }catch(e){ localStorage.removeItem('teacherSession'); } }
+function showQuizResults(data) {
+  const pct = data.percent;
+  const cls = data.quit ? 'result-zero' : pct >= 60 ? 'result-pass' : 'result-fail';
+  const emoji = data.quit ? '😔' : pct >= 80 ? '🎉' : pct >= 60 ? '✅' : '📚';
+
+  document.getElementById('quiz-body').innerHTML = `
+    <div class="quiz-result">
+      <div class="result-circle ${cls}">
+        <div class="result-pct">${pct}%</div>
+        <div class="result-score">${data.score}/${data.total}</div>
+      </div>
+      <div style="color:#e8eaf0;font-size:20px;font-weight:700;margin-bottom:8px">${emoji} ${data.quit ? 'Quiz Quit' : pct >= 80 ? 'Excellent!' : pct >= 60 ? 'Good Job!' : 'Keep Studying!'}</div>
+      <div style="color:#8b8fa8;font-size:14px;margin-bottom:24px">${data.quit ? 'Quiz was quit. Score recorded as 0.' : `You answered ${data.score} out of ${data.total} questions correctly.`}</div>
+      ${!data.quit && data.results ? `
+      <div class="result-breakdown">
+        ${data.results.map((r, i) => `
+          <div class="result-item">
+            <span>${r.correct ? '✅' : '❌'}</span>
+            <span style="flex:1">Question ${i+1}</span>
+            ${!r.correct && r.correctAnswer ? `<span style="font-size:11px;color:#8b8fa8">Correct: ${r.correctAnswer}</span>` : ''}
+          </div>`).join('')}
+      </div>` : ''}
+      <button onclick="document.getElementById('quiz-overlay').classList.remove('open')"
+        style="margin-top:24px;padding:12px 28px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:700;cursor:pointer">
+        Done
+      </button>
+    </div>`;
+
+  document.getElementById('quiz-footer')?.remove();
+}
+async function submitQuestion() {
+  const input = document.getElementById('ask-input');
+  const question = input.value.trim();
+  const alertEl = document.getElementById('ask-alert');
+  const success = document.getElementById('ask-success');
+
+  if (!question) { showAlert(alertEl, 'Please type your question'); return; }
+
+  try {
+    const res = await fetch('/api/sessions?action=ask-teacher', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-student-id': student.portalId },
+      body: JSON.stringify({ sessionId: currentSession?.id || null, question })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    input.value = '';
+    success.style.display = 'block';
+    setTimeout(() => success.style.display = 'none', 4000);
+  } catch(e) { showAlert(alertEl, e.message); }
+}
+
+// ── Live class ────────────────────────────────────────────
+async function checkLiveClass() {
+  if (student?.classType !== 'online') return;
+  // Check if any session has an active classroom
+  try {
+    for (const s of sessions.filter(s => s.unlocked)) {
+      const res = await fetch(`/api/classroom?sessionId=${s.id}`);
+      const data = await res.json();
+      if (data.room?.active) {
+        classroomActive = true;
+        document.getElementById('live-class-banner').style.display = 'flex';
+        return;
+      }
+    }
+    classroomActive = false;
+    document.getElementById('live-class-banner').style.display = 'none';
+  } catch(e) {}
+}
+
+function joinLiveClass() {
+  if (!currentSession) return;
+  const saved = localStorage.getItem('studentPortalSession');
+  const code = saved ? JSON.parse(saved).portalId : '';
+  window.location.href = `/classroom.html?role=student&session=${currentSession.id}&code=${code}&title=${encodeURIComponent(currentSession.title)}`;
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function showAlert(el, msg) { el.textContent = msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 5000); }
+
+// ── Anti-screenshot (CSS only) ────────────────────────────
+// Disable right-click on PDF area
+document.addEventListener('contextmenu', e => {
+  if (e.target.closest('#pdf-viewer') || e.target.closest('.detail-panel')) e.preventDefault();
+});
+
+// ── Auto login ────────────────────────────────────────────
+const savedSession = localStorage.getItem('studentPortalSession');
+if (savedSession) {
+  try {
+    const { portalId } = JSON.parse(savedSession);
+    document.getElementById('portal-id-input').value = portalId;
+    login();
+  } catch(e) { localStorage.removeItem('studentPortalSession'); }
+}
 </script>
 </body>
 </html>
