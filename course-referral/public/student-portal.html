@@ -395,7 +395,30 @@ function renderSessions() {
     return;
   }
 
-  grid.innerHTML = sessions.map(s => {
+  // Group sessions by course so multi-course students see clear sections
+  const groups = {};
+  const groupOrder = [];
+  sessions.forEach(s => {
+    const key = s.courseLabel || s.course || 'Course';
+    if (!groups[key]) { groups[key] = []; groupOrder.push(key); }
+    groups[key].push(s);
+  });
+  const multiCourse = groupOrder.length > 1;
+
+  grid.innerHTML = groupOrder.map(courseName => {
+    const header = multiCourse
+      ? `<div style="grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:18px 0 4px">
+           <div style="font-size:15px;font-weight:800;letter-spacing:.02em">📚 ${courseName}</div>
+           <div style="flex:1;height:1px;background:var(--border,rgba(0,0,0,.1))"></div>
+           <div style="font-size:12px;color:var(--muted)">${groups[courseName].length} session${groups[courseName].length!==1?'s':''}</div>
+         </div>`
+      : '';
+    return header + renderSessionCards(groups[courseName]);
+  }).join('');
+}
+
+function renderSessionCards(list) {
+  return list.map(s => {
     const qResult = quizResults.find(r => r.sessionId === s.id);
     const locked = !s.unlocked;
     return `
