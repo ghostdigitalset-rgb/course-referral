@@ -134,8 +134,8 @@ export default async function handler(req, res) {
     if (!student.portalActive) return res.status(403).json({ error: 'Your access has been deactivated.' });
 
     const studentSessions = (data.sessions || []).filter(s => matchesCourse(s.course, student.course)).map(s => ({
-      id: s.id, title: s.title, sessionNumber: s.sessionNumber, courseLabel: s.courseLabel,
-      active: s.active, unlocked: s.unlockedForStudents || false,
+      id: s.id, title: s.title, sessionNumber: s.sessionNumber, courseLabel: s.courseLabel, course: s.course,
+      active: s.active, unlocked: isUnlockedFor(s, student.classType),
       durationMinutes: s.durationMinutes || 45,
       hasQuiz: !!(s.quiz?.questions?.length), hasPdf: !!s.pdfUrl,
       pageStart: s.pageStart, pageEnd: s.pageEnd, pdfUrl: s.pdfUrl, description: s.description, materials: s.materials || [],
@@ -179,7 +179,7 @@ export default async function handler(req, res) {
     if (!student) return res.status(401).json({ error: 'Unauthorized' });
     const session = data.sessions.find(s => s.id === req.query.sessionId);
     if (!session) return res.status(404).json({ error: 'Not found' });
-    if (!session.unlockedForStudents) return res.status(403).json({ error: 'Session not yet unlocked.' });
+    if (!isUnlockedFor(session, student.classType)) return res.status(403).json({ error: 'Session not yet unlocked.' });
     const noteKey = `${student.id}_${req.query.sessionId}`;
     return res.status(200).json({
       ok: true,
@@ -394,15 +394,25 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, timer: session.timer });
   }
 
-  // ── PATCH: unlock session ─────────────────────────────────
+  // ── PATCH: unlock session (per class type) ────────────────
   if (req.method === 'PATCH' && action === 'unlock-session') {
     if (!teacher) return res.status(401).json({ error: 'Unauthorized' });
     const body = await parseJSON(req);
     const session = data.sessions.find(s => s.id === body.sessionId && s.course === teacher.course);
     if (!session) return res.status(404).json({ error: 'Not found' });
-    session.unlockedForStudents = !session.unlockedForStudents;
+    // Migrate legacy flag into the new per-class-type structure on first touch
+    if (!session.unlockedFor) {
+      session.unlockedFor = {
+        online: !!session.unlockedForStudents,
+        inperson: !!session.unlockedForStudents,
+      };
+    }
+    const ct = normalizeClassType(body.classType);
+    session.unlockedFor[ct] = !session.unlockedFor[ct];
+    // Keep legacy field in sync (true if unlocked for anyone) for old clients
+    session.unlockedForStudents = session.unlockedFor.online || session.unlockedFor.inperson;
     await setData(data);
-    return res.status(200).json({ ok: true, unlocked: session.unlockedForStudents });
+    return res.status(200).json({ ok: true, unlockedFor: session.unlockedFor });
   }
 
   // ── PATCH: set page range ─────────────────────────────────
@@ -494,6 +504,18 @@ export default async function handler(req, res) {
 
 function sanitizeSession(s) {
   return { id: s.id, title: s.title, sessionNumber: s.sessionNumber, courseLabel: s.courseLabel, description: s.description, materials: s.materials, pdfUrl: s.pdfUrl, pageStart: s.pageStart, pageEnd: s.pageEnd, durationMinutes: s.durationMinutes||45 };
+}
+
+// ── Class-type aware unlock ─────────────────────────────────
+// New format: session.unlockedFor = { online: bool, inperson: bool }
+// Legacy fallback: session.unlockedForStudents (single global flag)
+function normalizeClassType(ct) {
+  return (ct === 'online') ? 'online' : 'inperson';
+}
+
+function isUnlockedFor(session, classType) {
+  if (session.unlockedFor) return !!session.unlockedFor[normalizeClassType(classType)];
+  return !!session.unlockedForStudents; // legacy sessions keep working
 }
 
 function matchesCourse(sessionCourse, studentCourse) {
