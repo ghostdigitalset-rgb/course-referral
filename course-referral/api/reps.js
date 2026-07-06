@@ -22,11 +22,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Name is required' });
     }
 
-    // Generate a unique short ID for the referral link
-    let id;
-    do {
-      id = Math.random().toString(36).slice(2, 8);
-    } while (data.reps.some((r) => r.id === id));
+    // Generate ID matching the original format: rep_<timestamp>
+    let id = 'rep_' + Date.now();
+    while (data.reps.some((r) => r.id === id)) {
+      id = 'rep_' + Date.now() + Math.floor(Math.random() * 1000);
+    }
 
     const rep = {
       id,
