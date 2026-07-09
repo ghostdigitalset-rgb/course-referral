@@ -821,7 +821,7 @@ function renderQuizQuestions(){
         <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">OPTIONS (select correct answer)</div>
         ${(q.options||['','','','']).map((opt,j)=>`
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <input type="radio" name="correct_${i}" value="${String.fromCharCode(65+j)}" ${q.correctAnswer===String.fromCharCode(65+j)?'checked':''} onchange="quizQuestions[${i}].correctAnswer='${String.fromCharCode(65+j)}'">
+            <input type="radio" name="correct_${i}" value="${j}" ${q.correctAnswer===j?'checked':''} onchange="quizQuestions[${i}].correctAnswer=${j}">
             <span style="font-size:12px;font-weight:700;color:var(--muted);width:16px">${String.fromCharCode(65+j)}.</span>
             <input type="text" value="${opt}" placeholder="Option ${String.fromCharCode(65+j)}" onchange="quizQuestions[${i}].options[${j}]=this.value" style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;outline:none">
           </div>`).join('')}
@@ -852,15 +852,18 @@ async function saveQuiz(){
   for(let i=0;i<quizQuestions.length;i++){
     const q = quizQuestions[i];
     if(!q.question.trim()){ showAlert(alertEl,`Question ${i+1} is empty`); return; }
-    if(!q.correctAnswer){ showAlert(alertEl,`Select the correct answer for Question ${i+1}`); return; }
+    if(q.correctAnswer===''||q.correctAnswer===undefined||q.correctAnswer===null){ showAlert(alertEl,`Select the correct answer for Question ${i+1}`); return; }
     if(q.type==='multiple-choice' && q.options.some(o=>!o.trim())){ showAlert(alertEl,`Fill all options for Question ${i+1}`); return; }
   }
 
-  // Convert multiple-choice options to labeled version
-  const questions = quizQuestions.map(q=>({
-    ...q,
-    options: q.type==='true-false' ? ['True','False'] : q.options.map((o,i)=>o),
-  }));
+  // Convert to server format: correctAnswer stored as the option TEXT (matches what students submit)
+  const questions = quizQuestions.map(q=>{
+    const options = q.type==='true-false' ? ['True','False'] : q.options.map(o=>o);
+    const correctAnswer = q.type==='true-false'
+      ? q.correctAnswer                        // already 'True'/'False'
+      : options[q.correctAnswer];              // index -> option text
+    return { ...q, options, correctAnswer };
+  });
 
   try{
     const res = await fetch('/api/sessions?action=save-quiz',{
