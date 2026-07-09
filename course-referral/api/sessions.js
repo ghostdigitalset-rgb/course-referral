@@ -325,9 +325,21 @@ export default async function handler(req, res) {
     let score = 0;
     const results = session.quiz.questions.map(q => {
       const selected = quit ? null : answers[q.id];
-      const correct = !quit && selected === q.correctAnswer;
+      // Resolve correctAnswer to option TEXT, tolerating legacy formats:
+      // - text (new): "Paris"
+      // - letter (old MC): "A"/"B"/"C"/"D"
+      // - index (numeric): 0/1/2/3
+      const opts = q.options || ['True', 'False'];
+      let correctText = q.correctAnswer;
+      if (typeof correctText === 'number') {
+        correctText = opts[correctText];
+      } else if (typeof correctText === 'string' && /^[A-Z]$/.test(correctText) && !opts.includes(correctText)) {
+        const idx = correctText.charCodeAt(0) - 65;
+        if (opts[idx] !== undefined) correctText = opts[idx];
+      }
+      const correct = !quit && selected != null && selected === correctText;
       if (correct) score++;
-      return { questionId: q.id, correct, selected, correctAnswer: q.correctAnswer };
+      return { questionId: q.id, correct, selected, correctAnswer: correctText };
     });
     const result = { id: 'qr_'+Date.now(), studentId: student.id, studentName: student.name, sessionId, sessionTitle: session.title, score, total: session.quiz.questions.length, percent: quit?0:Math.round((score/session.quiz.questions.length)*100), quit: !!quit, results, submittedAt: new Date().toISOString() };
     data.quizResults.push(result);
