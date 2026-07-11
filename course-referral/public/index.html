@@ -607,6 +607,14 @@ tr:last-child td{border-bottom:none}
             <span id="courses-save-text">Save courses</span>
             <div class="spinner" id="courses-spinner"></div>
           </button>
+
+          <!-- ===== TEACHER LOGINS ===== -->
+          <div style="border-top:1.5px solid var(--border);margin:36px 0 24px;max-width:720px"></div>
+          <div class="page-title">Teacher Logins</div>
+          <div class="page-subtitle">Each course has its own teacher login for the teacher portal. Set or reset passwords here and share them with your teachers.</div>
+          <div id="teacher-logins-alert" class="alert alert-danger" style="max-width:720px"></div>
+          <div id="teacher-logins-success" class="alert alert-success" style="max-width:720px"></div>
+          <div id="teacher-logins-list" style="max-width:720px"></div>
         </div>
       </div>
     </div>
@@ -1305,6 +1313,73 @@ function populateSettingsForm(settings){
   courseDraft = Array.isArray(settings.courses) ? JSON.parse(JSON.stringify(settings.courses)) : [];
   document.getElementById('set-bundle-discount').value = (settings.bundleDiscount ?? 0);
   renderCourseEditor();
+  loadTeacherLogins();
+}
+
+// ── Teacher logins ─────────────────────────────────────────
+let teacherLogins = [];
+async function loadTeacherLogins(){
+  try{
+    const res = await fetch('/api/sessions?action=teacher-logins',{headers:{'x-admin-key':adminKey}});
+    const data = await res.json();
+    teacherLogins = data.logins || [];
+  }catch(e){ teacherLogins = []; }
+  renderTeacherLogins();
+}
+
+function renderTeacherLogins(){
+  const wrap = document.getElementById('teacher-logins-list');
+  if(!wrap) return;
+  if(!teacherLogins.length){ wrap.innerHTML='<div class="empty" style="padding:20px 0">No courses yet — create a course above to get a teacher login.</div>'; return; }
+  wrap.innerHTML = teacherLogins.map(t=>{
+    const pwCell = t.builtin
+      ? `<span class="muted sm">Set via server config</span>`
+      : (t.password
+          ? `<span style="font-family:monospace;font-weight:700;color:var(--accent);cursor:pointer" title="Click to copy" onclick="copyText('${t.password.replace(/'/g,"\\'")}')">${t.password} 📋</span>`
+          : `<span class="muted sm">No password set</span>`);
+    return `<div class="data-card" style="padding:16px 20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div>
+        <div style="font-weight:600;font-size:14px">${t.label} ${t.builtin?'<span class="badge badge-gold" style="font-size:10px">built-in</span>':''}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">Username: <span style="font-family:monospace;font-weight:700;cursor:pointer" title="Click to copy" onclick="copyText('${t.username}')">${t.username} 📋</span></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">Password: ${pwCell}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="action-btn sm primary" onclick="resetTeacherPassword('${t.username}',true)">🎲 Auto-generate</button>
+        <button class="action-btn sm" onclick="resetTeacherPassword('${t.username}',false)">Set password…</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function resetTeacherPassword(username, auto){
+  let password = '';
+  if(!auto){
+    password = prompt('Enter a new password for this teacher login (min 6 characters):');
+    if(password===null) return;
+    if(password.trim().length<6){ alert('Password must be at least 6 characters.'); return; }
+  }
+  const alertEl = document.getElementById('teacher-logins-alert');
+  const successEl = document.getElementById('teacher-logins-success');
+  alertEl.classList.remove('show'); successEl.classList.remove('show');
+  try{
+    const res = await fetch('/api/sessions?action=set-teacher-password',{
+      method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({username,password:auto?'':password.trim()})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed');
+    await loadTeacherLogins();
+    successEl.textContent = `✓ Password for ${data.label} set to: ${data.password} — copy and share it with the teacher.`;
+    successEl.classList.add('show');
+  }catch(e){ showAlert(alertEl,e.message); }
+}
+
+function copyText(t){
+  navigator.clipboard.writeText(t).then(()=>{
+    // brief inline feedback
+    const s=document.getElementById('teacher-logins-success');
+    if(s){ s.textContent='✓ Copied: '+t; s.classList.add('show'); setTimeout(()=>s.classList.remove('show'),1500); }
+  });
 }
 
 // ── Admin course editor ───────────────────────────────────
@@ -1400,6 +1475,7 @@ async function saveCourses(){
     renderCourseEditor();
     renderCourseCards();
     renderManualCourseList();
+    loadTeacherLogins();
     successEl.textContent = '✓ Courses updated';
     successEl.classList.add('show');
     setTimeout(()=>successEl.classList.remove('show'),3000);
