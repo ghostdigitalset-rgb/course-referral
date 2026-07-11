@@ -40,8 +40,46 @@ export default async function handler(req, res) {
 
   // ── PATCH (single student only) ───────────────────────────
   if (req.method === 'PATCH') {
-    // Bulk classType update from body (no id needed)
     const body = req.body || {};
+
+    // Bulk batch assignment: { assignBatch: batchId|null, studentIds: [...] }
+    if (body.assignBatch !== undefined && Array.isArray(body.studentIds)) {
+      const batch = body.assignBatch ? (data.batches || []).find(b => b.id === body.assignBatch) : null;
+      if (body.assignBatch && !batch) return res.status(404).json({ error: 'Batch not found' });
+      const idSet = new Set(body.studentIds);
+      let count = 0;
+      data.students.forEach(s => {
+        if (idSet.has(s.id)) {
+          s.batchId = batch ? batch.id : null;
+          s.batchName = batch ? batch.name : null;
+          count++;
+        }
+      });
+      await setData(data);
+      return res.status(200).json({ ok: true, updated: count });
+    }
+
+    // Full profile edit: { studentId, fields:{...} }
+    if (body.studentId && body.fields && typeof body.fields === 'object') {
+      const student = data.students.find(s => s.id === body.studentId);
+      if (!student) return res.status(404).json({ error: 'Student not found' });
+      const f = body.fields;
+      const allowed = ['name','phone','email','notes','course','courseLabel','classType','fee','paymentStatus','paymentMethod','paymentMethodLabel','batchId'];
+      for (const k of allowed) {
+        if (f[k] !== undefined) student[k] = f[k];
+      }
+      // Keep denormalized fields consistent.
+      if (f.batchId !== undefined) {
+        const batch = f.batchId ? (data.batches || []).find(b => b.id === f.batchId) : null;
+        student.batchId = batch ? batch.id : null;
+        student.batchName = batch ? batch.name : null;
+      }
+      if (f.paymentStatus !== undefined) student.paid = f.paymentStatus === 'verified';
+      await setData(data);
+      return res.status(200).json({ ok: true, student });
+    }
+
+    // Bulk classType update from body (no id needed) — existing behavior
     if (body.studentId && body.classType) {
       const student = data.students.find(s => s.id === body.studentId);
       if (!student) return res.status(404).json({ error: 'Student not found' });
