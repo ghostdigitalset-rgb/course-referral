@@ -215,7 +215,15 @@ tr:last-child td{border-bottom:none}
 .modal-overlay{position:fixed;inset:0;background:rgba(15,25,12,.42);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
 .modal-overlay.show{display:flex;animation:overlayIn .18s ease}
 @keyframes overlayIn{from{opacity:0}to{opacity:1}}
-.modal{background:var(--surface);border-radius:var(--radius-lg);padding:26px;width:360px;max-width:100%;border:1px solid var(--border);box-shadow:var(--shadow-lg);animation:modalIn .22s cubic-bezier(.2,.8,.2,1)}
+.modal{background:var(--surface);border-radius:var(--radius-lg);padding:26px;width:360px;max-width:100%;max-height:90vh;overflow-y:auto;border:1px solid var(--border);box-shadow:var(--shadow-lg);animation:modalIn .22s cubic-bezier(.2,.8,.2,1)}
+.modal::-webkit-scrollbar{width:10px}
+.modal::-webkit-scrollbar-thumb{background:#d3d8cd;border-radius:8px;border:3px solid var(--surface)}
+.modal::-webkit-scrollbar-track{background:transparent}
+/* Large form modals: sticky header + footer, scrollable body */
+.modal.modal-form{padding:0;display:flex;flex-direction:column}
+.modal.modal-form h3{margin:0;padding:20px 24px;border-bottom:1px solid var(--border);background:var(--grad-surface);position:sticky;top:0;z-index:2;border-radius:var(--radius-lg) var(--radius-lg) 0 0}
+.modal-form-body{padding:22px 24px;overflow-y:auto;flex:1}
+.modal.modal-form .modal-actions{margin:0;padding:16px 24px;border-top:1px solid var(--border);background:var(--grad-surface);position:sticky;bottom:0;z-index:2;border-radius:0 0 var(--radius-lg) var(--radius-lg)}
 @keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
 .modal h3{font-size:17px;font-weight:700;margin-bottom:18px;letter-spacing:-.2px}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
@@ -883,8 +891,9 @@ tr:last-child td{border-bottom:none}
 
 <!-- Add student modal -->
 <div class="modal-overlay" id="add-student-modal" onclick="closeAddStudentModalIf(event)">
-  <div class="modal" style="width:460px;max-width:95vw">
+  <div class="modal modal-form" style="width:480px;max-width:95vw">
     <h3>Add student manually</h3>
+    <div class="modal-form-body">
     <div id="add-student-alert" class="alert alert-danger"></div>
     <div class="field">
       <label>Full name *</label>
@@ -904,7 +913,7 @@ tr:last-child td{border-bottom:none}
       <label>Course(s) *</label>
       <div id="ms-course-list" style="display:flex;flex-direction:column;gap:7px;margin-top:2px"></div>
     </div>
-    <div id="ms-total-row" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 13px;margin-bottom:4px;font-size:13px">
+    <div id="ms-total-row" style="display:none;background:var(--accent-light);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;font-size:13px">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <span style="color:var(--muted)">Total</span>
         <span id="ms-total" style="font-weight:700;font-size:16px;color:var(--accent)"></span>
@@ -914,7 +923,7 @@ tr:last-child td{border-bottom:none}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="field">
         <label>Payment method</label>
-        <select id="ms-payment-method" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)">
+        <select id="ms-payment-method" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)">
           <option value="cash">💵 Cash (in person)</option>
           <option value="telebirr">📱 Telebirr</option>
           <option value="cbe">🏦 CBE</option>
@@ -922,7 +931,7 @@ tr:last-child td{border-bottom:none}
       </div>
       <div class="field">
         <label>Payment status</label>
-        <select id="ms-payment-status" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)">
+        <select id="ms-payment-status" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)">
           <option value="verified">✅ Verified</option>
           <option value="pending">⏳ Pending</option>
         </select>
@@ -930,7 +939,7 @@ tr:last-child td{border-bottom:none}
     </div>
     <div class="field">
       <label>Class Type *</label>
-      <select id="ms-class-type" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)">
+      <select id="ms-class-type" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)">
         <option value="in-person">🏫 In-Person</option>
         <option value="online">💻 Online (Video Call)</option>
       </select>
@@ -954,9 +963,10 @@ tr:last-child td{border-bottom:none}
     </div>
     <div class="field" style="margin-bottom:0">
       <label>Notes (optional)</label>
-      <textarea id="ms-notes" rows="2" placeholder="Any notes about this student..." style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);resize:vertical;line-height:1.5"></textarea>
+      <textarea id="ms-notes" rows="2" placeholder="Any notes about this student..." style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);resize:vertical;line-height:1.5"></textarea>
     </div>
-    <div class="modal-actions" style="margin-top:18px">
+    </div>
+    <div class="modal-actions">
       <button class="action-btn" onclick="closeAddStudentModal()">Cancel</button>
       <button class="action-btn primary" onclick="addStudentManually()" id="ms-submit-btn">
         <span id="ms-submit-text">Add student</span>
