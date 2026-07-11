@@ -365,7 +365,7 @@ function showPortal(data) {
 
   document.getElementById('h-name').textContent = student.name;
   document.getElementById('h-id').textContent = student.portalId;
-  document.getElementById('grade-course').textContent = student.courseLabel || student.course;
+  document.getElementById('grade-course').textContent = (student.courseLabel || student.course) + (student.batchName ? ` · ${student.batchName}` : '');
 
   const badge = document.getElementById('class-type-badge');
   if (student.classType === 'online') {
