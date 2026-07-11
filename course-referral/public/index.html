@@ -284,49 +284,21 @@ tr:last-child td{border-bottom:none}
       <!-- Course selection -->
       <div class="form-card">
         <h2>Choose your course</h2>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Select one or more courses. Choosing all 3 unlocks a bundle discount.</p>
-        <div class="course-grid">
-          <div class="course-card" id="card-digital" onclick="toggleCourse('digital')">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
-              <div class="icon">📣</div>
-              <div class="course-check" id="check-digital">✓</div>
-            </div>
-            <h3>Digital Marketing</h3>
-            <div class="fee">10,000 ETB</div>
-            <div class="desc">Social media, SEO, ads & more</div>
-          </div>
-          <div class="course-card" id="card-event" onclick="toggleCourse('event')">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
-              <div class="icon">🎪</div>
-              <div class="course-check" id="check-event">✓</div>
-            </div>
-            <h3>Event Organizing</h3>
-            <div class="fee">8,000 ETB</div>
-            <div class="desc">Planning, logistics & execution</div>
-          </div>
-          <div class="course-card" id="card-ai" onclick="toggleCourse('ai')" style="grid-column:1/-1">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
-              <div class="icon">🤖</div>
-              <div class="course-check" id="check-ai">✓</div>
-            </div>
-            <h3>Applied AI: Tools, Techniques, and Real-World Use Cases</h3>
-            <div class="fee">10,000 ETB</div>
-            <div class="desc">AI tools, prompt engineering & practical applications</div>
-          </div>
-        </div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px" id="course-select-hint">Select one or more courses.</p>
+        <div class="course-grid" id="course-grid"></div>
 
-        <!-- Bundle shortcut -->
-        <div class="course-both" id="bundle-card" onclick="selectAll3()">
+        <!-- Bundle shortcut (shown only if a bundle discount is set) -->
+        <div class="course-both" id="bundle-card" onclick="selectAllCourses()" style="display:none">
           <div class="course-both-left">
             <span style="font-size:22px">⭐</span>
             <div>
-              <h3>All 3 courses together</h3>
-              <div style="font-size:12px;color:var(--muted)">Get all three for less</div>
+              <h3>All courses together</h3>
+              <div style="font-size:12px;color:var(--muted)">Get everything for less</div>
             </div>
           </div>
           <div style="text-align:right">
-            <div class="fee" style="font-size:16px;color:var(--gold);font-weight:600">25,000 ETB</div>
-            <div style="font-size:11px;color:var(--muted)">Save 3,000 ETB</div>
+            <div class="fee" style="font-size:16px;color:var(--gold);font-weight:600" id="bundle-price"></div>
+            <div style="font-size:11px;color:var(--muted)" id="bundle-save"></div>
           </div>
         </div>
 
@@ -503,24 +475,7 @@ tr:last-child td{border-bottom:none}
               <div class="lbl">Est. revenue (ETB)</div>
             </div>
           </div>
-          <div class="metrics-row" style="grid-template-columns:repeat(4,1fr)">
-            <div class="metric-card">
-              <div class="val" id="a-digital">—</div>
-              <div class="lbl">Digital Marketing</div>
-            </div>
-            <div class="metric-card">
-              <div class="val" id="a-event">—</div>
-              <div class="lbl">Event Organizing</div>
-            </div>
-            <div class="metric-card">
-              <div class="val" id="a-ai">—</div>
-              <div class="lbl">Applied AI</div>
-            </div>
-            <div class="metric-card">
-              <div class="val" id="a-both">—</div>
-              <div class="lbl">All 3 courses</div>
-            </div>
-          </div>
+          <div class="metrics-row" id="a-course-breakdown" style="grid-template-columns:repeat(4,1fr)"></div>
         </div>
 
         <!-- Reps tab -->
@@ -616,6 +571,31 @@ tr:last-child td{border-bottom:none}
           <button class="submit-btn" style="max-width:480px" onclick="saveSettings()" id="settings-save-btn">
             <span id="settings-save-text">Save changes</span>
             <div class="spinner" id="settings-spinner"></div>
+          </button>
+
+          <!-- ===== COURSE MANAGEMENT ===== -->
+          <div style="border-top:1.5px solid var(--border);margin:36px 0 24px;max-width:720px"></div>
+          <div class="page-title">Courses</div>
+          <div class="page-subtitle">Add, edit or remove the courses students can register for</div>
+
+          <div id="courses-alert" class="alert alert-danger" style="max-width:720px"></div>
+          <div id="courses-success" class="alert alert-success" style="max-width:720px"></div>
+
+          <div id="courses-editor" style="max-width:720px"></div>
+
+          <button class="btn-outline" onclick="addCourseRow()" style="margin-bottom:20px">+ Add course</button>
+
+          <div class="data-card" style="max-width:720px;padding:20px 24px;margin-bottom:20px">
+            <div class="field" style="margin-bottom:0">
+              <label>Bundle discount (%) — applied when a student selects ALL courses</label>
+              <input type="number" id="set-bundle-discount" min="0" max="90" placeholder="10" style="max-width:160px">
+              <div style="font-size:12px;color:var(--muted);margin-top:6px">Set to 0 for no bundle discount.</div>
+            </div>
+          </div>
+
+          <button class="submit-btn" style="max-width:720px" onclick="saveCourses()" id="courses-save-btn">
+            <span id="courses-save-text">Save courses</span>
+            <div class="spinner" id="courses-spinner"></div>
           </button>
         </div>
       </div>
@@ -809,11 +789,7 @@ tr:last-child td{border-bottom:none}
     </div>
     <div class="field">
       <label>Course(s) *</label>
-      <div style="display:flex;flex-direction:column;gap:7px;margin-top:2px">
-        <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:400;color:var(--text);cursor:pointer"><input type="checkbox" class="ms-course-cb" value="digital" onchange="updateManualTotal()"> 📣 Digital Marketing — 10,000 ETB</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:400;color:var(--text);cursor:pointer"><input type="checkbox" class="ms-course-cb" value="event" onchange="updateManualTotal()"> 🎪 Event Organizing — 8,000 ETB</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:400;color:var(--text);cursor:pointer"><input type="checkbox" class="ms-course-cb" value="ai" onchange="updateManualTotal()"> 🤖 Applied AI — 10,000 ETB</label>
-      </div>
+      <div id="ms-course-list" style="display:flex;flex-direction:column;gap:7px;margin-top:2px"></div>
     </div>
     <div id="ms-total-row" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 13px;margin-bottom:4px;font-size:13px">
       <div style="display:flex;justify-content:space-between;align-items:center">
@@ -878,11 +854,8 @@ tr:last-child td{border-bottom:none}
 </div>
 
 <script>
-const FEES = {digital:10000,event:8000,ai:10000};
-const BUNDLE_PRICE = 25000;
-const BUNDLE_FULL = 28000; // 10000+8000+10000
-const COURSE_LABELS = {digital:'Digital Marketing',event:'Event Organizing',ai:'Applied AI'};
-
+let COURSES = [];          // loaded from /api/settings
+let BUNDLE_DISCOUNT = 0;    // percent off when ALL courses selected
 let selectedCourses = new Set();
 let currentPaymentMethod = 'telebirr';
 let proofUrl = '';
@@ -925,12 +898,54 @@ async function loadPaymentSettings(){
     const res = await fetch('/api/settings');
     if(!res.ok) throw new Error('Failed to load');
     paymentSettings = await res.json();
+    COURSES = Array.isArray(paymentSettings.courses) ? paymentSettings.courses : [];
+    BUNDLE_DISCOUNT = Number(paymentSettings.bundleDiscount) || 0;
     renderPaymentSettings();
+    renderCourseCards();
   }catch(e){
     document.getElementById('pm-telebirr-number').textContent = 'Unavailable — contact us';
     document.getElementById('pm-cbe-number').textContent = 'Unavailable — contact us';
   }
 }
+
+// Build the registration course cards from loaded COURSES
+function renderCourseCards(){
+  const grid = document.getElementById('course-grid');
+  if(!grid) return;
+  if(!COURSES.length){
+    grid.innerHTML = '<div style="color:var(--muted);font-size:13px">No courses available yet. Please check back soon.</div>';
+    document.getElementById('bundle-card').style.display = 'none';
+    return;
+  }
+  grid.innerHTML = COURSES.map((c,i)=>{
+    const full = i === COURSES.length-1 && COURSES.length % 2 === 1; // last odd card spans full width
+    const durationLine = c.duration ? `<div class="desc" style="margin-top:2px">⏱ ${escapeHtml(c.duration)}</div>` : '';
+    return `<div class="course-card" id="card-${c.id}" onclick="toggleCourse('${c.id}')" ${full?'style="grid-column:1/-1"':''}>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+        <div class="icon">${c.icon||'📚'}</div>
+        <div class="course-check" id="check-${c.id}">✓</div>
+      </div>
+      <h3>${escapeHtml(c.name)}</h3>
+      <div class="fee">${Number(c.price).toLocaleString()} ETB</div>
+      ${c.description?`<div class="desc">${escapeHtml(c.description)}</div>`:''}
+      ${durationLine}
+    </div>`;
+  }).join('');
+
+  // Bundle card only if a discount is configured and 2+ courses exist
+  const bundleCard = document.getElementById('bundle-card');
+  if(BUNDLE_DISCOUNT > 0 && COURSES.length >= 2){
+    const fullTotal = COURSES.reduce((s,c)=>s+Number(c.price||0),0);
+    const bundleTotal = Math.round(fullTotal*(1-BUNDLE_DISCOUNT/100));
+    document.getElementById('bundle-price').textContent = bundleTotal.toLocaleString()+' ETB';
+    document.getElementById('bundle-save').textContent = 'Save '+(fullTotal-bundleTotal).toLocaleString()+' ETB';
+    bundleCard.style.display = 'flex';
+  } else {
+    bundleCard.style.display = 'none';
+  }
+}
+
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 
 function renderPaymentSettings(){
   if(!paymentSettings) return;
@@ -941,60 +956,58 @@ function renderPaymentSettings(){
 }
 
 // ── Course multi-select ───────────────────────────────────
+function courseById(id){ return COURSES.find(c=>c.id===id); }
+
 function toggleCourse(key){
   if(selectedCourses.has(key)) selectedCourses.delete(key);
   else selectedCourses.add(key);
   updateCourseUI();
 }
 
-function selectAll3(){
-  const all = ['digital','event','ai'];
-  const allSelected = all.every(k=>selectedCourses.has(k));
-  if(allSelected){
-    all.forEach(k=>selectedCourses.delete(k));
-  } else {
-    all.forEach(k=>selectedCourses.add(k));
-  }
+function selectAllCourses(){
+  const allIds = COURSES.map(c=>c.id);
+  const allSelected = allIds.every(k=>selectedCourses.has(k));
+  if(allSelected){ selectedCourses.clear(); }
+  else { allIds.forEach(k=>selectedCourses.add(k)); }
   updateCourseUI();
 }
 
 function updateCourseUI(){
-  const all = ['digital','event','ai'];
-  const allSelected = all.every(k=>selectedCourses.has(k));
+  const allIds = COURSES.map(c=>c.id);
+  const allSelected = allIds.length>0 && allIds.every(k=>selectedCourses.has(k));
 
   // Update individual card states
-  all.forEach(k=>{
-    document.getElementById('card-'+k).classList.toggle('selected', selectedCourses.has(k));
+  COURSES.forEach(c=>{
+    const card = document.getElementById('card-'+c.id);
+    if(card) card.classList.toggle('selected', selectedCourses.has(c.id));
   });
 
   // Update bundle card state
-  document.getElementById('bundle-card').classList.toggle('selected', allSelected);
+  const bundleCard = document.getElementById('bundle-card');
+  if(bundleCard) bundleCard.classList.toggle('selected', allSelected && BUNDLE_DISCOUNT>0);
 
   // Compute total
-  let total, isBundle = false;
-  if(allSelected){
-    total = BUNDLE_PRICE;
-    isBundle = true;
-  } else {
-    total = [...selectedCourses].reduce((s,k)=>s+(FEES[k]||0),0);
-  }
+  const rawTotal = [...selectedCourses].reduce((s,k)=>s+Number(courseById(k)?.price||0),0);
+  const isBundle = allSelected && BUNDLE_DISCOUNT>0 && COURSES.length>=2;
+  const total = isBundle ? Math.round(rawTotal*(1-BUNDLE_DISCOUNT/100)) : rawTotal;
 
   // Show/hide summary box
   const box = document.getElementById('course-total-box');
-  if(selectedCourses.size === 0){
-    box.style.display = 'none';
-    return;
-  }
+  if(selectedCourses.size === 0){ box.style.display = 'none'; return; }
   box.style.display = 'block';
 
   // Build line items
-  const lines = [...selectedCourses].map(k=>`<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span>${COURSE_LABELS[k]}</span><span>${(FEES[k]||0).toLocaleString()} ETB</span></div>`).join('');
+  const lines = [...selectedCourses].map(k=>{
+    const c = courseById(k);
+    return `<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span>${escapeHtml(c?.name||k)}</span><span>${Number(c?.price||0).toLocaleString()} ETB</span></div>`;
+  }).join('');
   document.getElementById('course-total-lines').innerHTML = lines;
   document.getElementById('course-total-amount').textContent = total.toLocaleString()+' ETB';
 
   const discountNote = document.getElementById('course-discount-note');
   discountNote.style.display = isBundle ? 'block' : 'none';
   if(isBundle){
+    discountNote.textContent = `🎉 Bundle discount applied — you save ${(rawTotal-total).toLocaleString()} ETB!`;
     document.getElementById('course-total-amount').style.color = 'var(--gold)';
   } else {
     document.getElementById('course-total-amount').style.color = 'var(--accent)';
@@ -1108,11 +1121,13 @@ async function submitReg(){
   if(proofUploading){showAlert(alert,'Please wait for your proof of payment to finish uploading');return;}
   if(!proofPathname){showAlert(alert,'Please attach your proof of payment before submitting');return;}
 
-  const all3 = ['digital','event','ai'].every(k=>selectedCourses.has(k));
+  const allIds = COURSES.map(c=>c.id);
   const coursesArr = [...selectedCourses];
-  const fee = all3 ? BUNDLE_PRICE : coursesArr.reduce((s,k)=>s+(FEES[k]||0),0);
-  const courseKey = all3 ? 'all3' : (coursesArr.length===1 ? coursesArr[0] : coursesArr.join('+'));
-  const courseLabel = all3 ? 'All 3 courses' : coursesArr.map(k=>COURSE_LABELS[k]).join(' + ');
+  const isBundle = allIds.length>=2 && BUNDLE_DISCOUNT>0 && allIds.every(k=>selectedCourses.has(k));
+  const rawFee = coursesArr.reduce((s,k)=>s+Number(courseById(k)?.price||0),0);
+  const fee = isBundle ? Math.round(rawFee*(1-BUNDLE_DISCOUNT/100)) : rawFee;
+  const courseKey = isBundle ? 'all' : (coursesArr.length===1 ? coursesArr[0] : coursesArr.join('+'));
+  const courseLabel = isBundle ? 'All courses' : coursesArr.map(k=>courseById(k)?.name||k).join(' + ');
 
   const btn = document.getElementById('reg-btn');
   const spinner = document.getElementById('reg-spinner');
@@ -1191,30 +1206,29 @@ function renderAdminDashboard(){
   const {reps,students} = adminData;
   const revenue = students.reduce((s,st)=>s+st.fee,0);
 
-  // Count each course key — a student counts for each course they enrolled in
-  // e.g. course='digital+ai' counts for both digital AND ai
-  const breakdown = {digital:0, event:0, ai:0, all3:0};
+  // Count enrollments per dynamic course. A student's course field is like
+  // "digital+ai", a single id, or "all" (bundle = every course).
+  const allIds = COURSES.map(c=>c.id);
+  const counts = {};
+  COURSES.forEach(c=>counts[c.id]=0);
   students.forEach(s=>{
     const c = s.course || '';
-    if(c === 'all3'){
-      breakdown.all3++;
-    } else if(c === 'both'){
-      // Legacy "both" = Digital Marketing + Event Organizing
-      breakdown.digital++;
-      breakdown.event++;
-    } else {
-      if(c.includes('digital')) breakdown.digital++;
-      if(c.includes('event'))   breakdown.event++;
-      if(c.includes('ai'))      breakdown.ai++;
-    }
+    if(c === 'all' || c === 'all3'){ allIds.forEach(id=>counts[id]!==undefined&&counts[id]++); return; }
+    if(c === 'both'){ if(counts['digital']!==undefined)counts['digital']++; if(counts['event']!==undefined)counts['event']++; return; }
+    const parts = c.split('+');
+    parts.forEach(id=>{ if(counts[id]!==undefined) counts[id]++; });
   });
   document.getElementById('a-reps').textContent = reps.length;
   document.getElementById('a-students').textContent = students.length;
   document.getElementById('a-revenue').textContent = revenue.toLocaleString();
-  document.getElementById('a-digital').textContent = breakdown.digital||0;
-  document.getElementById('a-event').textContent = breakdown.event||0;
-  document.getElementById('a-ai').textContent = breakdown.ai||0;
-  document.getElementById('a-both').textContent = breakdown.all3||0;
+  const bd = document.getElementById('a-course-breakdown');
+  if(bd){
+    const cols = Math.min(4, Math.max(1, COURSES.length));
+    bd.style.gridTemplateColumns = `repeat(${cols},1fr)`;
+    bd.innerHTML = COURSES.length
+      ? COURSES.map(c=>`<div class="metric-card"><div class="val">${counts[c.id]||0}</div><div class="lbl">${escapeHtml(c.name)}</div></div>`).join('')
+      : '<div style="color:var(--muted);font-size:13px;padding:8px">No courses yet.</div>';
+  }
   document.getElementById('reps-count-label').textContent = `All reps (${reps.length})`;
   document.getElementById('students-count-label').textContent = `All students (${students.length})`;
   renderRepsTable(reps);
@@ -1227,6 +1241,113 @@ function populateSettingsForm(settings){
   document.getElementById('set-telebirr-holder').value = settings.telebirr?.holder || '';
   document.getElementById('set-cbe-number').value = settings.cbe?.number || '';
   document.getElementById('set-cbe-holder').value = settings.cbe?.holder || '';
+  // Courses
+  courseDraft = Array.isArray(settings.courses) ? JSON.parse(JSON.stringify(settings.courses)) : [];
+  document.getElementById('set-bundle-discount').value = (settings.bundleDiscount ?? 0);
+  renderCourseEditor();
+}
+
+// ── Admin course editor ───────────────────────────────────
+let courseDraft = [];
+
+function renderCourseEditor(){
+  const wrap = document.getElementById('courses-editor');
+  if(!wrap) return;
+  if(!courseDraft.length){
+    wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;margin-bottom:14px">No courses yet. Click "Add course" to create one.</div>';
+    return;
+  }
+  wrap.innerHTML = courseDraft.map((c,i)=>`
+    <div class="data-card" style="padding:18px 20px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:var(--muted)">COURSE ${i+1}</div>
+        <button onclick="deleteCourseRow(${i})" style="background:none;border:none;color:var(--danger,#e53e3e);cursor:pointer;font-size:16px" title="Delete course">🗑</button>
+      </div>
+      <div class="field">
+        <label>Name *</label>
+        <input type="text" value="${escapeAttr(c.name)}" oninput="courseDraft[${i}].name=this.value" placeholder="e.g. Digital Marketing">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field">
+          <label>Price (ETB) *</label>
+          <input type="number" min="0" value="${Number(c.price)||0}" oninput="courseDraft[${i}].price=this.value" placeholder="10000">
+        </div>
+        <div class="field">
+          <label>Duration</label>
+          <input type="text" value="${escapeAttr(c.duration||'')}" oninput="courseDraft[${i}].duration=this.value" placeholder="e.g. 6 weeks">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:80px 1fr;gap:12px">
+        <div class="field" style="margin-bottom:0">
+          <label>Icon</label>
+          <input type="text" value="${escapeAttr(c.icon||'📚')}" oninput="courseDraft[${i}].icon=this.value" placeholder="📚" maxlength="4">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Description</label>
+          <input type="text" value="${escapeAttr(c.description||'')}" oninput="courseDraft[${i}].description=this.value" placeholder="Short summary shown to students">
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escapeAttr(s){return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+
+function addCourseRow(){
+  courseDraft.push({ id:'', name:'', price:0, description:'', duration:'', icon:'📚' });
+  renderCourseEditor();
+}
+
+function deleteCourseRow(i){
+  if(!confirm('Delete this course? Students will no longer be able to select it.')) return;
+  courseDraft.splice(i,1);
+  renderCourseEditor();
+}
+
+async function saveCourses(){
+  const alertEl = document.getElementById('courses-alert');
+  const successEl = document.getElementById('courses-success');
+  alertEl.classList.remove('show'); successEl.classList.remove('show');
+
+  for(let i=0;i<courseDraft.length;i++){
+    if(!courseDraft[i].name.trim()){ showAlert(alertEl,`Course ${i+1} needs a name`); return; }
+    const p = Number(courseDraft[i].price);
+    if(!Number.isFinite(p)||p<0){ showAlert(alertEl,`Course ${i+1} has an invalid price`); return; }
+  }
+
+  const btn=document.getElementById('courses-save-btn');
+  const spinner=document.getElementById('courses-spinner');
+  const text=document.getElementById('courses-save-text');
+  btn.disabled=true; spinner.style.display='block'; text.textContent='Saving...';
+
+  try{
+    const res = await fetch('/api/settings',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({
+        action:'courses',
+        courses: courseDraft,
+        bundleDiscount: Number(document.getElementById('set-bundle-discount').value)||0
+      })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed to save');
+    adminData.settings = data.settings;
+    // Refresh live state so registration + editor reflect new courses
+    COURSES = data.settings.courses || [];
+    BUNDLE_DISCOUNT = Number(data.settings.bundleDiscount)||0;
+    courseDraft = JSON.parse(JSON.stringify(COURSES));
+    renderCourseEditor();
+    renderCourseCards();
+    renderManualCourseList();
+    successEl.textContent = '✓ Courses updated';
+    successEl.classList.add('show');
+    setTimeout(()=>successEl.classList.remove('show'),3000);
+  }catch(e){
+    showAlert(alertEl,e.message);
+  }finally{
+    btn.disabled=false; spinner.style.display='none'; text.textContent='Save courses';
+  }
 }
 
 async function saveSettings(){
@@ -1252,6 +1373,7 @@ async function saveSettings(){
       method:'POST',
       headers:{'Content-Type':'application/json','x-admin-key':adminKey},
       body:JSON.stringify({
+        action:'payment',
         telebirr:{number:telebirrNumber,holder:telebirrHolder},
         cbe:{number:cbeNumber,holder:cbeHolder}
       })
@@ -1614,6 +1736,7 @@ let msProofPathname = '';
 let msProofUploading = false;
 
 function openAddStudentModal(){
+  renderManualCourseList();
   document.getElementById('add-student-modal').classList.add('show');
   document.getElementById('ms-name').focus();
 }
@@ -1636,6 +1759,15 @@ function closeAddStudentModal(){
 }
 function closeAddStudentModalIf(e){if(e.target===document.getElementById('add-student-modal'))closeAddStudentModal();}
 
+function renderManualCourseList(){
+  const wrap = document.getElementById('ms-course-list');
+  if(!wrap) return;
+  if(!COURSES.length){ wrap.innerHTML='<div style="color:var(--muted);font-size:13px">No courses configured yet.</div>'; return; }
+  wrap.innerHTML = COURSES.map(c=>
+    `<label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:400;color:var(--text);cursor:pointer"><input type="checkbox" class="ms-course-cb" value="${c.id}" onchange="updateManualTotal()"> ${c.icon||'📚'} ${escapeHtml(c.name)} — ${Number(c.price).toLocaleString()} ETB</label>`
+  ).join('');
+}
+
 function updateManualTotal(){
   const checked = [...document.querySelectorAll('.ms-course-cb:checked')].map(cb=>cb.value);
   const totalRow = document.getElementById('ms-total-row');
@@ -1643,11 +1775,16 @@ function updateManualTotal(){
   const discountNote = document.getElementById('ms-discount-note');
   if(!checked.length){ totalRow.style.display='none'; return; }
   totalRow.style.display='block';
-  const all3 = ['digital','event','ai'].every(k=>checked.includes(k));
-  const total = all3 ? BUNDLE_PRICE : checked.reduce((s,k)=>s+(FEES[k]||0),0);
+  const allIds = COURSES.map(c=>c.id);
+  const isBundle = allIds.length>=2 && BUNDLE_DISCOUNT>0 && allIds.every(k=>checked.includes(k));
+  const raw = checked.reduce((s,k)=>s+Number(courseById(k)?.price||0),0);
+  const total = isBundle ? Math.round(raw*(1-BUNDLE_DISCOUNT/100)) : raw;
   totalEl.textContent = total.toLocaleString()+' ETB';
-  totalEl.style.color = all3 ? 'var(--gold)' : 'var(--accent)';
-  discountNote.style.display = all3 ? 'block' : 'none';
+  totalEl.style.color = isBundle ? 'var(--gold)' : 'var(--accent)';
+  if(discountNote){
+    discountNote.style.display = isBundle ? 'block' : 'none';
+    if(isBundle) discountNote.textContent = `🎉 Bundle discount — saves ${(raw-total).toLocaleString()} ETB`;
+  }
 }
 
 async function handleMsProofSelect(event){
@@ -1717,10 +1854,12 @@ async function addStudentManually(){
   if(!checked.length){showAlert(alertEl,'Please select at least one course');return;}
   if(msProofUploading){showAlert(alertEl,'Please wait for the proof to finish uploading');return;}
 
-  const all3 = ['digital','event','ai'].every(k=>checked.includes(k));
-  const fee = all3 ? BUNDLE_PRICE : checked.reduce((s,k)=>s+(FEES[k]||0),0);
-  const courseKey = all3 ? 'all3' : (checked.length===1 ? checked[0] : checked.join('+'));
-  const courseLabel = all3 ? 'All 3 courses' : checked.map(k=>COURSE_LABELS[k]).join(' + ');
+  const allIds = COURSES.map(c=>c.id);
+  const isBundle = allIds.length>=2 && BUNDLE_DISCOUNT>0 && allIds.every(k=>checked.includes(k));
+  const rawFee = checked.reduce((s,k)=>s+Number(courseById(k)?.price||0),0);
+  const fee = isBundle ? Math.round(rawFee*(1-BUNDLE_DISCOUNT/100)) : rawFee;
+  const courseKey = isBundle ? 'all' : (checked.length===1 ? checked[0] : checked.join('+'));
+  const courseLabel = isBundle ? 'All courses' : checked.map(k=>courseById(k)?.name||k).join(' + ');
   const paymentMethodLabel = {cash:'Cash',telebirr:'Telebirr',cbe:'CBE'}[paymentMethod]||paymentMethod;
 
   const classType = document.getElementById('ms-class-type').value;
