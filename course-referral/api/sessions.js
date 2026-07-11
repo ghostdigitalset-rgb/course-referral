@@ -8,6 +8,30 @@ const TEACHER_CREDENTIALS = {
   'ai':      { password: process.env.TEACHER_AI_PASS      || 'TeacherAI2026', course: 'ai',      label: 'Applied AI' },
 };
 
+// Build the full teacher map: the 3 built-in logins PLUS one per course
+// created in the course manager (stored in data.teacherAuth, keyed by course id).
+// A dynamic entry for a built-in key can override its password, but built-ins
+// always remain as a fallback so nothing ever locks out.
+function teacherMap(data) {
+  const map = { ...TEACHER_CREDENTIALS };
+  const courses = data?.settings?.courses || [];
+  const auth = data?.teacherAuth || {};
+  for (const c of courses) {
+    const key = String(c.id);
+    map[key] = {
+      password: auth[key]?.password || map[key]?.password || null,
+      course: key,
+      label: c.name || map[key]?.label || key,
+      dynamic: true,
+    };
+  }
+  return map;
+}
+function resolveTeacher(key, data) {
+  if (!key) return null;
+  return teacherMap(data)[key] || null;
+}
+
 export const config = { api: { bodyParser: false } };
 
 function generateCode() {
@@ -101,14 +125,53 @@ export default async function handler(req, res) {
   // ── Teacher login ─────────────────────────────────────────
   if (req.method === 'POST' && action === 'login') {
     const body = await parseJSON(req);
-    const teacher = TEACHER_CREDENTIALS[body.username];
-    if (!teacher || teacher.password !== body.password) return res.status(401).json({ error: 'Invalid credentials' });
+    const teacher = resolveTeacher(body.username, data);
+    if (!teacher || !teacher.password || teacher.password !== body.password) return res.status(401).json({ error: 'Invalid credentials' });
     return res.status(200).json({ ok: true, username: body.username, course: teacher.course, label: teacher.label });
+  }
+
+  // ── Teacher logins: list (admin) ──────────────────────────
+  if (req.method === 'GET' && action === 'teacher-logins') {
+    if (adminKey !== process.env.ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+    const map = teacherMap(data);
+    const builtins = new Set(Object.keys(TEACHER_CREDENTIALS));
+    const logins = Object.entries(map).map(([username, t]) => ({
+      username,
+      label: t.label,
+      course: t.course,
+      builtin: builtins.has(username),
+      hasPassword: !!t.password,
+      // Only expose the password for dynamic (course-manager) teachers, so the
+      // admin can share it. Built-in passwords stay in env/code and are hidden.
+      password: builtins.has(username) ? null : (data.teacherAuth?.[username]?.password || null),
+    }));
+    return res.status(200).json({ ok: true, logins });
+  }
+  // ── Teacher logins: set / reset password (admin) ──────────
+  if (req.method === 'POST' && action === 'set-teacher-password') {
+    if (adminKey !== process.env.ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    const username = String(body.username || '').trim();
+    if (!username) return res.status(400).json({ error: 'Course/username required' });
+    // Must correspond to a real course (or a built-in key).
+    const course = (data.settings?.courses || []).find(c => String(c.id) === username);
+    if (!course && !TEACHER_CREDENTIALS[username]) return res.status(404).json({ error: 'No matching course for that login.' });
+    let password = String(body.password || '').trim();
+    if (!password) {
+      // Auto-generate a readable password.
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+      password = 'T' + Array.from({length: 9}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+    }
+    if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    if (!data.teacherAuth) data.teacherAuth = {};
+    data.teacherAuth[username] = { password, updatedAt: new Date().toISOString() };
+    await setData(data);
+    return res.status(200).json({ ok: true, username, password, label: course?.name || TEACHER_CREDENTIALS[username]?.label || username });
   }
 
   // ── Batches: list (teacher or admin) ──────────────────────
   if (req.method === 'GET' && action === 'batches') {
-    if (!teacherKeyValid(teacherKey) && adminKey !== process.env.ADMIN_PASSWORD)
+    if (!teacherKeyValid(teacherKey, data) && adminKey !== process.env.ADMIN_PASSWORD)
       return res.status(401).json({ error: 'Unauthorized' });
     return res.status(200).json({ ok: true, batches: data.batches || [] });
   }
@@ -265,7 +328,7 @@ export default async function handler(req, res) {
   // ── Verify teacher ────────────────────────────────────────
   let teacher = null;
   if (teacherKey) {
-    teacher = TEACHER_CREDENTIALS[teacherKey];
+    teacher = resolveTeacher(teacherKey, data);
     if (!teacher) return res.status(401).json({ error: 'Unauthorized' });
   } else if (action !== 'portal-login' && action !== 'student-login' && action !== 'save-notes' && action !== 'save-highlights' && action !== 'submit-quiz' && action !== 'ask-teacher' && !studentId) {
     if (adminKey !== process.env.ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
@@ -291,7 +354,7 @@ export default async function handler(req, res) {
     const { title, description, materials, sessionNumber, durationMinutes } = body;
     if (!title) return res.status(400).json({ error: 'Title required' });
     const course = teacher?.course || body.course;
-    const t = Object.values(TEACHER_CREDENTIALS).find(t => t.course === course);
+    const t = resolveTeacher(course, data);
     const duration = parseInt(durationMinutes)||45;
     const batchId = body.batchId || null;
     const batch = batchId ? (data.batches||[]).find(b => b.id === batchId) : null;
@@ -304,7 +367,7 @@ export default async function handler(req, res) {
   // ── POST: upload course PDF ───────────────────────────────
   if (req.method === 'POST' && action === 'upload-course') {
     const { fileBuffer, fileName, duration, teacherKey: tk, modulesText, batchId } = await parseMultipart(req);
-    const t = TEACHER_CREDENTIALS[tk];
+    const t = resolveTeacher(tk, data);
     if (!t) return res.status(401).json({ error: 'Unauthorized' });
     const moduleLines = (modulesText||'').split('\n').map(l=>l.trim()).filter(Boolean);
     if (!moduleLines.length) return res.status(400).json({ error: 'No module titles provided' });
@@ -588,8 +651,8 @@ function isUnlockedFor(session, classType) {
   return !!session.unlockedForStudents; // legacy sessions keep working
 }
 
-function teacherKeyValid(key) {
-  return !!key && !!TEACHER_CREDENTIALS[key];
+function teacherKeyValid(key, data) {
+  return !!resolveTeacher(key, data);
 }
 
 function matchesCourse(sessionCourse, studentCourse) {
