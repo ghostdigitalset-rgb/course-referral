@@ -514,11 +514,21 @@ tr:last-child td{border-bottom:none}
                 <option value="verified">Verified ✅</option>
                 <option value="rejected">Rejected ❌</option>
               </select>
+              <select id="batch-filter" onchange="filterStudents()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--bg);color:var(--text)">
+                <option value="all">All batches</option>
+                <option value="none">No batch</option>
+              </select>
+              <button class="action-btn sm" onclick="openBatchManager()" style="white-space:nowrap">🎯 Manage Batches</button>
             </div>
             <!-- Bulk action bar — shown when 1+ selected -->
-            <div id="bulk-bar" style="display:none;align-items:center;gap:12px;padding:10px 16px;background:#fdf0ee;border-bottom:1px solid #f0c0bb">
+            <div id="bulk-bar" style="display:none;align-items:center;gap:12px;padding:10px 16px;background:#fdf0ee;border-bottom:1px solid #f0c0bb;flex-wrap:wrap">
               <span id="bulk-count" style="font-size:13px;font-weight:600;color:var(--danger)">0 selected</span>
               <button class="action-btn sm primary" onclick="openGenerateCodesModal()">🔑 Generate Class Codes</button>
+              <select id="bulk-batch-select" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--bg);color:var(--text)">
+                <option value="">Assign to batch…</option>
+                <option value="__none__">➖ Remove from batch</option>
+              </select>
+              <button class="action-btn sm" onclick="bulkAssignBatch()">Apply</button>
               <button class="action-btn sm danger" onclick="bulkDelete()">🗑 Delete selected</button>
               <button class="action-btn sm" onclick="clearSelection()" style="margin-left:auto">✕ Clear selection</button>
             </div>
@@ -725,6 +735,55 @@ tr:last-child td{border-bottom:none}
     <div style="display:flex;gap:10px;justify-content:flex-end">
       <button onclick="closeEditClassType()" class="action-btn">Cancel</button>
       <button onclick="saveEditClassType()" class="action-btn primary">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Batch Manager modal -->
+<div class="modal-overlay" id="batch-manager-modal" onclick="if(event.target===this)closeBatchManager()">
+  <div class="modal" style="width:560px;max-width:95vw">
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">🎯 Manage Batches</h3>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:18px">Group students into cohorts. Sessions can be assigned to a batch so each cohort sees only their own classes.</p>
+    <div id="batch-alert" class="alert alert-danger"></div>
+    <div style="border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:18px;background:var(--bg)">
+      <div style="font-weight:600;font-size:13px;margin-bottom:10px">Create a new batch</div>
+      <div class="field"><label>Batch name *</label>
+        <input type="text" id="nb-name" placeholder="e.g. July 2026 — DM + Event" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
+      <div class="field"><label>Start date (optional)</label>
+        <input type="date" id="nb-start" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
+      <div class="field"><label>Courses in this batch (optional — for your reference)</label>
+        <div id="nb-courses" style="margin-top:4px"></div></div>
+      <button class="action-btn primary" onclick="createBatch()" style="margin-top:6px">+ Create batch</button>
+    </div>
+    <div style="font-weight:600;font-size:13px;margin-bottom:10px">Existing batches</div>
+    <div id="batch-list"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:16px">
+      <button onclick="closeBatchManager()" class="action-btn">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Student (full profile) modal -->
+<div class="modal-overlay" id="edit-student-modal" onclick="if(event.target===this)closeEditStudent()">
+  <div class="modal" style="width:520px;max-width:95vw">
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">✏️ Edit Student</h3>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:16px">Update this student's full profile. Their Portal ID stays the same.</p>
+    <div id="es-alert" class="alert alert-danger"></div>
+    <input type="hidden" id="es-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>Name *</label><input type="text" id="es-name" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
+      <div class="field"><label>Phone</label><input type="text" id="es-phone" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
+      <div class="field"><label>Email</label><input type="email" id="es-email" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
+      <div class="field"><label>Fee (ETB)</label><input type="number" id="es-fee" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
+      <div class="field"><label>Course</label><select id="es-course" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></select></div>
+      <div class="field"><label>Class type</label><select id="es-class" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"><option value="in-person">🏫 In-Person</option><option value="online">💻 Online</option></select></div>
+      <div class="field"><label>Batch</label><select id="es-batch" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></select></div>
+      <div class="field"><label>Payment status</label><select id="es-paystatus" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"><option value="pending">⏳ Pending</option><option value="verified">✅ Verified</option><option value="rejected">❌ Rejected</option></select></div>
+    </div>
+    <div class="field" style="margin-top:4px"><label>Notes</label><textarea id="es-notes" rows="2" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);resize:vertical"></textarea></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button onclick="closeEditStudent()" class="action-btn">Cancel</button>
+      <button onclick="saveEditStudent()" class="action-btn primary">Save changes</button>
     </div>
   </div>
 </div>
@@ -1179,6 +1238,7 @@ async function adminLogin(){
     if(!res.ok) throw new Error('Wrong password');
     adminKey = pw;
     adminData = await res.json();
+    await loadBatches();
     document.getElementById('admin-login-screen').style.display='none';
     document.getElementById('admin-dashboard-screen').style.display='block';
     renderAdminDashboard();
@@ -1439,11 +1499,11 @@ function renderStudentsTable(students,reps){
         <button class="action-btn sm danger" onclick="setPaymentStatus('${s.id}','rejected')">Reject</button>
       </div>`;
 
-    return `<tr data-id="${s.id}" data-name="${s.name.toLowerCase()}" data-phone="${s.phone}" data-status="${status}">
+    return `<tr data-id="${s.id}" data-name="${s.name.toLowerCase()}" data-phone="${s.phone}" data-status="${status}" data-batch="${s.batchId||''}">
       <td><input type="checkbox" class="student-cb" data-id="${s.id}" onchange="onStudentCheck()" style="cursor:pointer;width:15px;height:15px"></td>
       <td style="font-weight:500">${s.name}</td>
       <td style="color:var(--muted)">${s.phone}</td>
-      <td><span class="badge ${courseBadge}">${s.courseLabel||s.course}</span></td>
+      <td><span class="badge ${courseBadge}">${s.courseLabel||s.course}</span>${s.batchName?`<div style="font-size:10.5px;color:var(--muted);margin-top:3px">🎯 ${s.batchName}</div>`:''}</td>
       <td><span class="badge ${s.classType==='online'?'badge-blue':'badge-green'}" onclick="openEditClassType('${s.id}','${s.classType||'in-person'}')" style="cursor:pointer" title="Click to change">${s.classType==='online'?'💻 Online':'🏫 In-Person'} ✏️</span></td>
       <td style="font-family:monospace;font-size:12px;font-weight:700;color:var(--accent)">
         ${s.portalId 
@@ -1456,11 +1516,15 @@ function renderStudentsTable(students,reps){
       <td style="color:var(--muted)">${s.date}</td>
       <td>${statusBadge}${methodLine}${reviewBtns}</td>
       <td>${proofCell}</td>
-      <td><button class="action-btn sm danger" onclick="deleteStudent('${s.id}')">Delete</button></td>
+      <td><div style="display:flex;flex-direction:column;gap:5px">
+        <button class="action-btn sm" onclick="openEditStudent('${s.id}')">✏️ Edit</button>
+        <button class="action-btn sm danger" onclick="deleteStudent('${s.id}')">Delete</button>
+      </div></td>
     </tr>`;
   }).join('');
   // reset selection UI after re-render
   updateBulkBar();
+  if(typeof populateBatchDropdowns==='function') populateBatchDropdowns();
 }
 
 async function setPaymentStatus(id,status){
@@ -1477,11 +1541,14 @@ async function setPaymentStatus(id,status){
 function filterStudents(){
   const q = document.getElementById('student-search').value.toLowerCase();
   const filter = document.getElementById('payment-filter').value;
+  const batchF = (document.getElementById('batch-filter')||{}).value || 'all';
   document.querySelectorAll('#students-tbody tr').forEach(row=>{
     if(!row.dataset.name) return;
     const matchSearch = !q || row.dataset.name.includes(q) || row.dataset.phone.includes(q);
     const matchPay = filter==='all' || row.dataset.status===filter;
-    row.style.display = matchSearch && matchPay ? '' : 'none';
+    const rb = row.dataset.batch || '';
+    const matchBatch = batchF==='all' || (batchF==='none' ? !rb : rb===batchF);
+    row.style.display = matchSearch && matchPay && matchBatch ? '' : 'none';
   });
   updateBulkBar();
 }
@@ -1494,6 +1561,213 @@ async function deleteStudent(id){
     adminData.students = adminData.students.filter(s=>s.id!==id);
     renderAdminDashboard();
   }catch(e){alert(e.message);}
+}
+
+/* ==================== BATCHES ==================== */
+let batches = [];
+
+async function loadBatches(){
+  try{
+    const res = await fetch('/api/sessions?action=batches',{headers:{'x-admin-key':adminKey}});
+    const data = await res.json();
+    batches = data.batches || [];
+  }catch(e){ batches = []; }
+  populateBatchDropdowns();
+}
+
+function populateBatchDropdowns(){
+  const active = batches.filter(b=>b.status!=='archived');
+  // Filter dropdown
+  const bf = document.getElementById('batch-filter');
+  if(bf){
+    const cur = bf.value;
+    bf.innerHTML = '<option value="all">All batches</option><option value="none">No batch</option>'
+      + batches.map(b=>`<option value="${b.id}">${b.name}${b.status==='archived'?' (archived)':''}</option>`).join('');
+    bf.value = cur || 'all';
+  }
+  // Bulk assign dropdown
+  const bb = document.getElementById('bulk-batch-select');
+  if(bb){
+    bb.innerHTML = '<option value="">Assign to batch…</option><option value="__none__">➖ Remove from batch</option>'
+      + active.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  }
+}
+
+function batchCourseNames(courses){
+  if(!courses||!courses.length) return 'All courses';
+  return courses.map(c=>{
+    const found = (adminData?.settings?.courses||[]).find(x=>x.id===c);
+    return found?found.name:c;
+  }).join(', ');
+}
+
+function openBatchManager(){
+  renderBatchManager();
+  document.getElementById('batch-manager-modal').classList.add('show');
+}
+function closeBatchManager(){ document.getElementById('batch-manager-modal').classList.remove('show'); }
+
+function renderBatchManager(){
+  const wrap = document.getElementById('batch-list');
+  const courseOpts = (adminData?.settings?.courses||[]).map(c=>
+    `<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;margin-right:10px;font-weight:400"><input type="checkbox" class="nb-course" value="${c.id}"> ${c.name}</label>`).join('');
+  document.getElementById('nb-courses').innerHTML = courseOpts || '<span class="muted sm">No courses defined</span>';
+
+  if(!batches.length){
+    wrap.innerHTML = '<div class="empty" style="padding:20px 0">No batches yet. Create your first one above.</div>';
+    return;
+  }
+  wrap.innerHTML = batches.map(b=>{
+    const count = adminData.students.filter(s=>s.batchId===b.id).length;
+    return `<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;${b.status==='archived'?'opacity:.6':''}">
+      <div>
+        <div style="font-weight:600;font-size:14px">${b.name} ${b.status==='archived'?'<span class="badge badge-gold" style="font-size:10px">Archived</span>':''}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">${batchCourseNames(b.courses)} · ${count} student${count!==1?'s':''}${b.startDate?` · starts ${b.startDate}`:''}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="action-btn sm" onclick="toggleBatchArchive('${b.id}')">${b.status==='archived'?'Unarchive':'Archive'}</button>
+        <button class="action-btn sm danger" onclick="deleteBatch('${b.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function createBatch(){
+  const name = document.getElementById('nb-name').value.trim();
+  const startDate = document.getElementById('nb-start').value || null;
+  const courses = [...document.querySelectorAll('.nb-course:checked')].map(c=>c.value);
+  const alertEl = document.getElementById('batch-alert');
+  alertEl.classList.remove('show');
+  if(!name){ showAlert(alertEl,'Batch name is required'); return; }
+  try{
+    const res = await fetch('/api/sessions?action=create-batch',{
+      method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({name,startDate,courses})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed');
+    batches.push(data.batch);
+    document.getElementById('nb-name').value='';
+    document.getElementById('nb-start').value='';
+    document.querySelectorAll('.nb-course:checked').forEach(c=>c.checked=false);
+    populateBatchDropdowns();
+    renderBatchManager();
+  }catch(e){ showAlert(alertEl,e.message); }
+}
+
+async function toggleBatchArchive(id){
+  const b = batches.find(x=>x.id===id); if(!b) return;
+  const next = b.status==='archived'?'active':'archived';
+  try{
+    const res = await fetch('/api/sessions?action=update-batch',{
+      method:'PATCH',headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({batchId:id,status:next})
+    });
+    if(!res.ok) throw new Error('Failed');
+    b.status = next;
+    populateBatchDropdowns(); renderBatchManager();
+  }catch(e){ alert(e.message); }
+}
+
+async function deleteBatch(id){
+  const count = adminData.students.filter(s=>s.batchId===id).length;
+  if(!confirm(`Delete this batch?${count?` ${count} student(s) will be unassigned.`:''} Sessions in this batch become global again. This cannot be undone.`)) return;
+  try{
+    const res = await fetch('/api/sessions?action=delete-batch&batchId='+id,{method:'DELETE',headers:{'x-admin-key':adminKey}});
+    if(!res.ok) throw new Error('Failed');
+    batches = batches.filter(b=>b.id!==id);
+    adminData.students.forEach(s=>{ if(s.batchId===id){ s.batchId=null; s.batchName=null; } });
+    populateBatchDropdowns(); renderBatchManager(); renderAdminDashboard();
+  }catch(e){ alert(e.message); }
+}
+
+async function bulkAssignBatch(){
+  const sel = document.getElementById('bulk-batch-select').value;
+  if(!sel){ alert('Pick a batch (or "Remove from batch") first.'); return; }
+  const ids = getCheckedIds();
+  if(!ids.length){ alert('No students selected.'); return; }
+  const assignBatch = sel==='__none__' ? null : sel;
+  try{
+    const res = await fetch('/api/students',{
+      method:'PATCH',headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({assignBatch,studentIds:ids})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed');
+    const b = assignBatch ? batches.find(x=>x.id===assignBatch) : null;
+    adminData.students.forEach(s=>{ if(ids.includes(s.id)){ s.batchId=b?b.id:null; s.batchName=b?b.name:null; } });
+    clearSelection();
+    renderAdminDashboard();
+    alert(`✅ ${data.updated} student(s) ${b?`assigned to ${b.name}`:'removed from batch'}.`);
+  }catch(e){ alert(e.message); }
+}
+
+/* ==================== FULL PROFILE EDIT ==================== */
+function openEditStudent(id){
+  const s = adminData.students.find(x=>x.id===id);
+  if(!s) return;
+  document.getElementById('es-id').value = s.id;
+  document.getElementById('es-name').value = s.name||'';
+  document.getElementById('es-phone').value = s.phone||'';
+  document.getElementById('es-email').value = s.email||'';
+  document.getElementById('es-fee').value = s.fee||0;
+  document.getElementById('es-class').value = s.classType||'in-person';
+  document.getElementById('es-paystatus').value = s.paymentStatus || (s.paid?'verified':'pending');
+  document.getElementById('es-notes').value = s.notes||'';
+  // Course dropdown from settings courses (+ keep current value if legacy)
+  const courseSel = document.getElementById('es-course');
+  const courses = adminData?.settings?.courses||[];
+  let opts = courses.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  // legacy/combo values that may not be in list
+  const known = new Set(courses.map(c=>c.id));
+  const legacyLabels = {both:'Both courses (legacy)',all3:'All courses',all:'All courses',digital:'Digital Marketing',event:'Event Organizing',ai:'Applied AI'};
+  if(s.course && !known.has(s.course)){
+    opts = `<option value="${s.course}">${s.courseLabel||legacyLabels[s.course]||s.course}</option>` + opts;
+  }
+  courseSel.innerHTML = opts;
+  courseSel.value = s.course || (courses[0]?.id||'');
+  // Batch dropdown
+  const batchSel = document.getElementById('es-batch');
+  batchSel.innerHTML = '<option value="">— No batch —</option>' +
+    batches.filter(b=>b.status!=='archived'||b.id===s.batchId).map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  batchSel.value = s.batchId||'';
+  document.getElementById('es-alert').classList.remove('show');
+  document.getElementById('edit-student-modal').classList.add('show');
+}
+function closeEditStudent(){ document.getElementById('edit-student-modal').classList.remove('show'); }
+
+async function saveEditStudent(){
+  const id = document.getElementById('es-id').value;
+  const alertEl = document.getElementById('es-alert');
+  alertEl.classList.remove('show');
+  const courseSel = document.getElementById('es-course');
+  const courseLabel = courseSel.options[courseSel.selectedIndex]?.text || '';
+  const fields = {
+    name: document.getElementById('es-name').value.trim(),
+    phone: document.getElementById('es-phone').value.trim(),
+    email: document.getElementById('es-email').value.trim(),
+    fee: parseInt(document.getElementById('es-fee').value)||0,
+    classType: document.getElementById('es-class').value,
+    paymentStatus: document.getElementById('es-paystatus').value,
+    notes: document.getElementById('es-notes').value.trim(),
+    course: courseSel.value,
+    courseLabel,
+    batchId: document.getElementById('es-batch').value || null,
+  };
+  if(!fields.name){ showAlert(alertEl,'Name is required'); return; }
+  try{
+    const res = await fetch('/api/students',{
+      method:'PATCH',headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({studentId:id,fields})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed');
+    // update local
+    const s = adminData.students.find(x=>x.id===id);
+    if(s){ Object.assign(s, data.student); }
+    closeEditStudent();
+    renderAdminDashboard();
+  }catch(e){ showAlert(alertEl,e.message); }
 }
 
 // ── Bulk selection ─────────────────────────────────────────
