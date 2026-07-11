@@ -10,13 +10,15 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#faf9f7;
+  --bg:#f4f6f2;
   --surface:#ffffff;
-  --border:#e8e4df;
-  --text:#1a1917;
-  --muted:#6b6860;
+  --border:#e4e8df;
+  --text:#161a14;
+  --muted:#69706280;
+  --muted:#697062;
   --accent:#2d5a27;
-  --accent-light:#edf5ec;
+  --accent-2:#3f7a34;
+  --accent-light:#eaf3e7;
   --accent-text:#1e4019;
   --danger:#c0392b;
   --danger-bg:#fdf0ee;
@@ -24,8 +26,15 @@
   --info-bg:#eef3fb;
   --gold:#c4860a;
   --gold-bg:#fdf6e3;
-  --radius:10px;
-  --radius-lg:16px;
+  --radius:12px;
+  --radius-lg:18px;
+  --grad-accent:linear-gradient(135deg,#3f7a34 0%,#2d5a27 55%,#204019 100%);
+  --grad-surface:linear-gradient(180deg,#ffffff 0%,#fbfcfa 100%);
+  --grad-page:radial-gradient(1200px 600px at 100% -10%,#e7f0e3 0%,rgba(231,240,227,0) 55%),radial-gradient(900px 500px at -10% 0%,#eef4ea 0%,rgba(238,244,234,0) 50%);
+  --shadow-sm:0 1px 2px rgba(20,30,15,.04),0 1px 3px rgba(20,30,15,.06);
+  --shadow-md:0 4px 12px rgba(20,40,15,.06),0 2px 6px rgba(20,40,15,.05);
+  --shadow-lg:0 18px 44px rgba(20,45,15,.12),0 6px 16px rgba(20,45,15,.08);
+  --ring:0 0 0 3px rgba(45,90,39,.14);
 }
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
 
@@ -133,49 +142,65 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn-outline{padding:10px 20px;border:1px solid var(--border);border-radius:8px;background:transparent;font-family:inherit;font-size:14px;cursor:pointer;color:var(--text);transition:all 0.15s}
 .btn-outline:hover{background:var(--bg);border-color:var(--text)}
 
-/* ===== ADMIN PAGE ===== */
-.admin-layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 57px)}
-.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:24px 16px}
-.sidebar-title{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:12px;padding:0 8px}
-.sidebar-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:14px;color:var(--muted);cursor:pointer;transition:all 0.12s;margin-bottom:2px}
-.sidebar-item:hover{background:var(--bg);color:var(--text)}
-.sidebar-item.active{background:var(--accent-light);color:var(--accent-text);font-weight:500}
-.sidebar-icon{font-size:17px;width:20px;text-align:center}
-.main-area{padding:28px 32px;overflow-y:auto}
-.page-title{font-family:'DM Serif Display',serif;font-size:24px;margin-bottom:6px}
-.page-subtitle{font-size:14px;color:var(--muted);margin-bottom:24px}
-.metrics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
-.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px}
-.metric-card .val{font-size:28px;font-weight:600;line-height:1.1;margin-bottom:4px}
-.metric-card .lbl{font-size:12px;color:var(--muted)}
-.metric-card.accent{background:var(--accent);border-color:var(--accent)}
+/* ===== ADMIN PAGE (premium top-tab layout) ===== */
+.admin-shell{min-height:100vh;background:var(--bg);background-image:var(--grad-page);background-attachment:fixed}
+.admin-topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.82);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--border);box-shadow:var(--shadow-sm)}
+.admin-topbar-inner{max-width:1180px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.admin-brand{display:flex;align-items:center;gap:12px;min-width:0}
+.admin-brand-mark{width:40px;height:40px;border-radius:12px;background:var(--grad-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:17px;letter-spacing:.5px;box-shadow:var(--shadow-md),inset 0 1px 0 rgba(255,255,255,.18);flex-shrink:0}
+.admin-brand-text{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.admin-brand-text strong{font-family:'DM Serif Display',serif;font-size:17px;color:var(--text);font-weight:400}
+.admin-brand-text span{font-size:11.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.admin-logout-btn{border:1px solid var(--border);background:var(--surface);color:var(--muted);padding:9px 16px;border-radius:10px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;box-shadow:var(--shadow-sm);white-space:nowrap}
+.admin-logout-btn:hover{color:var(--danger);border-color:#f0c0bb;background:var(--danger-bg)}
+.admin-tabs{max-width:1180px;margin:0 auto;padding:0 14px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.admin-tabs::-webkit-scrollbar{display:none}
+.admin-tab{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border:none;background:none;font-family:inherit;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;position:relative;white-space:nowrap;transition:.15s;border-radius:10px 10px 0 0}
+.admin-tab:hover{color:var(--text);background:rgba(45,90,39,.05)}
+.admin-tab.active{color:var(--accent)}
+.admin-tab.active::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--grad-accent)}
+.admin-tab-ic{font-size:16px}
+.admin-main{max-width:1180px;margin:0 auto;padding:30px 22px 60px}
+.main-area{overflow-y:visible}
+.page-title{font-family:'DM Serif Display',serif;font-size:28px;letter-spacing:-.4px;margin-bottom:6px;color:var(--text)}
+.page-subtitle{font-size:14.5px;color:var(--muted);margin-bottom:26px}
+.metrics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:26px}
+.metric-card{position:relative;background:var(--grad-surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 24px;box-shadow:var(--shadow-md);overflow:hidden;transition:transform .18s,box-shadow .18s}
+.metric-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad-accent);opacity:.5}
+.metric-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.metric-card .val{font-family:'DM Serif Display',serif;font-size:34px;font-weight:400;line-height:1.05;margin-bottom:4px;color:var(--text)}
+.metric-card .lbl{font-size:12.5px;color:var(--muted);font-weight:500;letter-spacing:.02em}
+.metric-card.accent{background:var(--grad-accent);border-color:transparent;box-shadow:var(--shadow-lg)}
+.metric-card.accent::before{opacity:0;background:none}
 .metric-card.accent .val,.metric-card.accent .lbl{color:#fff}
-.metric-card.accent .lbl{opacity:0.8}
+.metric-card.accent .lbl{opacity:.85}
 
 /* Tables */
-.data-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
-.data-card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
-.data-card-header h3{font-size:15px;font-weight:600}
-.action-btn{padding:7px 13px;border-radius:7px;font-size:13px;font-family:inherit;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);transition:all 0.12s;display:inline-flex;align-items:center;gap:6px}
-.action-btn:hover{background:var(--bg)}
-.action-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-.action-btn.primary:hover{opacity:0.9}
-.action-btn.danger{color:var(--danger);border-color:#f0c0bb}
+.data-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-md)}
+.data-card-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);background:var(--grad-surface)}
+.data-card-header h3{font-size:15px;font-weight:700;letter-spacing:-.1px}
+.action-btn{padding:8px 14px;border-radius:9px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;box-shadow:var(--shadow-sm)}
+.action-btn:hover{background:var(--bg);border-color:#d5dacf;transform:translateY(-1px)}
+.action-btn.primary{background:var(--grad-accent);color:#fff;border-color:transparent;box-shadow:var(--shadow-md)}
+.action-btn.primary:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.action-btn.danger{color:var(--danger);border-color:#f0c0bb;background:var(--surface)}
 .action-btn.danger:hover{background:var(--danger-bg)}
-.action-btn.sm{padding:5px 10px;font-size:12px}
+.action-btn.sm{padding:6px 11px;font-size:12px;border-radius:8px}
 table{width:100%;border-collapse:collapse}
-th{text-align:left;padding:10px 16px;font-size:12px;font-weight:600;color:var(--muted);background:var(--bg);border-bottom:1px solid var(--border)}
-td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border)}
+th{text-align:left;padding:12px 18px;font-size:11.5px;font-weight:700;color:var(--muted);background:var(--bg);border-bottom:1px solid var(--border);letter-spacing:.04em;text-transform:uppercase}
+td{padding:14px 18px;font-size:13.5px;border-bottom:1px solid var(--border)}
+tbody tr{transition:background .12s}
+tbody tr:hover{background:rgba(45,90,39,.028)}
 tr:last-child td{border-bottom:none}
-.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge{display:inline-flex;align-items:center;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.01em}
 .badge-green{background:var(--accent-light);color:var(--accent-text)}
 .badge-blue{background:var(--info-bg);color:var(--info)}
 .badge-gold{background:var(--gold-bg);color:var(--gold)}
 .link-cell{font-family:monospace;font-size:11px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rep-name-cell{display:flex;align-items:center;gap:10px}
-.avatar{width:32px;height:32px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--accent-text);flex-shrink:0}
-.empty{text-align:center;padding:32px;color:var(--muted);font-size:13px}
-.empty-icon{font-size:32px;margin-bottom:8px}
+.avatar{width:34px;height:34px;border-radius:11px;background:var(--grad-accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:var(--shadow-sm)}
+.empty{text-align:center;padding:40px 32px;color:var(--muted);font-size:13.5px}
+.empty-icon{font-size:34px;margin-bottom:10px;opacity:.8}
 .tab-nav{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:20px}
 .tab-nav button{padding:8px 16px;border:none;background:none;font-family:inherit;font-size:14px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
 .tab-nav button.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
@@ -187,16 +212,18 @@ tr:last-child td{border-bottom:none}
 .copy-btn:hover{border-color:var(--accent);color:var(--accent)}
 
 /* Modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:none;align-items:center;justify-content:center;z-index:200}
-.modal-overlay.show{display:flex}
-.modal{background:var(--surface);border-radius:var(--radius-lg);padding:24px;width:360px;border:1px solid var(--border)}
-.modal h3{font-size:16px;font-weight:600;margin-bottom:18px}
+.modal-overlay{position:fixed;inset:0;background:rgba(15,25,12,.42);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+.modal-overlay.show{display:flex;animation:overlayIn .18s ease}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--surface);border-radius:var(--radius-lg);padding:26px;width:360px;max-width:100%;border:1px solid var(--border);box-shadow:var(--shadow-lg);animation:modalIn .22s cubic-bezier(.2,.8,.2,1)}
+@keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:18px;letter-spacing:-.2px}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 
 /* Admin login */
-.admin-login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg)}
-.login-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px;width:360px;text-align:center}
-.login-box h2{font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:6px}
+.admin-login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);background-image:var(--grad-page);background-attachment:fixed;padding:20px}
+.login-box{background:var(--grad-surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:38px 34px;width:380px;max-width:100%;text-align:center;box-shadow:var(--shadow-lg)}
+.login-box h2{font-family:'DM Serif Display',serif;font-size:24px;margin-bottom:6px}
 .login-box p{font-size:13px;color:var(--muted);margin-bottom:22px}
 .login-box .field{text-align:left}
 
@@ -223,14 +250,23 @@ tr:last-child td{border-bottom:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* Responsive */
+@media(max-width:860px){
+  .admin-main{padding:24px 16px 60px}
+  .metrics-row{grid-template-columns:1fr 1fr}
+  #a-course-breakdown{grid-template-columns:1fr 1fr !important}
+}
 @media(max-width:640px){
   .course-grid{grid-template-columns:1fr}
   .grid-2{grid-template-columns:1fr}
-  .admin-layout{grid-template-columns:1fr}
-  .sidebar{display:none}
-  .metrics-row{grid-template-columns:1fr 1fr}
+  .metrics-row{grid-template-columns:1fr}
   .rep-metrics{grid-template-columns:1fr}
-  .main-area{padding:20px 16px}
+  .admin-topbar-inner{padding:12px 16px}
+  .admin-brand-text span{display:none}
+  .admin-tab{padding:11px 14px;font-size:13px}
+  .admin-tab-ic{font-size:15px}
+  .page-title{font-size:23px}
+  .metric-card{padding:18px 20px}
+  .metric-card .val{font-size:29px}
 }
 </style>
 </head>
@@ -434,29 +470,38 @@ tr:last-child td{border-bottom:none}
 
   <!-- Admin Dashboard -->
   <div id="admin-dashboard-screen" style="display:none">
-    <div class="admin-layout">
-      <div class="sidebar">
-        <div class="sidebar-title">Dashboard</div>
-        <div class="sidebar-item active" onclick="switchAdminTab('overview',this)">
-          <span class="sidebar-icon">📊</span> Overview
-        </div>
-        <div class="sidebar-item" onclick="switchAdminTab('reps',this)">
-          <span class="sidebar-icon">👥</span> Sales reps
-        </div>
-        <div class="sidebar-item" onclick="switchAdminTab('students',this)">
-          <span class="sidebar-icon">🎓</span> Students
-        </div>
-        <div class="sidebar-item" onclick="switchAdminTab('settings',this)">
-          <span class="sidebar-icon">⚙️</span> Payment settings
-        </div>
-        <div style="margin-top:auto;padding-top:20px;border-top:1px solid var(--border);margin-top:32px">
-          <div class="sidebar-item" onclick="adminLogout()">
-            <span class="sidebar-icon">🚪</span> Logout
+    <div class="admin-shell">
+      <header class="admin-topbar">
+        <div class="admin-topbar-inner">
+          <div class="admin-brand">
+            <div class="admin-brand-mark">GD</div>
+            <div class="admin-brand-text">
+              <strong>GhostDigitals</strong>
+              <span>Academy · Admin</span>
+            </div>
           </div>
+          <button class="admin-logout-btn" onclick="adminLogout()">
+            <span>Sign out</span>
+          </button>
         </div>
-      </div>
+        <nav class="admin-tabs" id="admin-tabs">
+          <button class="admin-tab active" data-tab="overview" onclick="switchAdminTab('overview',this)">
+            <span class="admin-tab-ic">📊</span><span>Overview</span>
+          </button>
+          <button class="admin-tab" data-tab="reps" onclick="switchAdminTab('reps',this)">
+            <span class="admin-tab-ic">👥</span><span>Sales reps</span>
+          </button>
+          <button class="admin-tab" data-tab="students" onclick="switchAdminTab('students',this)">
+            <span class="admin-tab-ic">🎓</span><span>Students</span>
+          </button>
+          <button class="admin-tab" data-tab="settings" onclick="switchAdminTab('settings',this)">
+            <span class="admin-tab-ic">⚙️</span><span>Settings</span>
+          </button>
+        </nav>
+      </header>
 
-      <div class="main-area">
+      <div class="admin-main">
+        <div class="main-area">
         <!-- Overview tab -->
         <div id="admin-overview" class="admin-content active">
           <div class="page-title">Overview</div>
@@ -616,6 +661,7 @@ tr:last-child td{border-bottom:none}
           <div id="teacher-logins-success" class="alert alert-success" style="max-width:720px"></div>
           <div id="teacher-logins-list" style="max-width:720px"></div>
         </div>
+      </div>
       </div>
     </div>
   </div>
@@ -1264,9 +1310,12 @@ function adminLogout(){
 
 function switchAdminTab(name,el){
   document.querySelectorAll('.admin-content').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
+  document.querySelectorAll('.admin-tab').forEach(i=>i.classList.remove('active'));
   document.getElementById('admin-'+name).classList.add('active');
-  el.classList.add('active');
+  if(el) el.classList.add('active');
+  // Keep the active tab visible on mobile horizontal scroll
+  if(el && el.scrollIntoView) el.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function renderAdminDashboard(){
