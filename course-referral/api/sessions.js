@@ -39,7 +39,7 @@ async function parseMultipart(req) {
   const boundary = boundaryMatch[1].trim();
   const boundaryBuf = Buffer.from('--' + boundary);
 
-  let fileBuffer = null, fileName = 'course.pdf', duration = 45, teacherKey = '', modulesText = '';
+  let fileBuffer = null, fileName = 'course.pdf', duration = 45, teacherKey = '', modulesText = '', batchId = '';
   let pos = 0;
 
   while (pos < buffer.length) {
@@ -63,9 +63,10 @@ async function parseMultipart(req) {
     else if (fieldName === 'duration') duration = parseInt(body.toString('utf8').trim()) || 45;
     else if (fieldName === 'teacherKey') teacherKey = body.toString('utf8').trim();
     else if (fieldName === 'modules') modulesText = body.toString('utf8').trim();
+    else if (fieldName === 'batchId') batchId = body.toString('utf8').trim();
     pos = nextBoundary === -1 ? buffer.length : nextBoundary;
   }
-  return { fileBuffer, fileName, duration, teacherKey, modulesText };
+  return { fileBuffer, fileName, duration, teacherKey, modulesText, batchId };
 }
 
 async function parseJSON(req) {
@@ -82,6 +83,7 @@ export default async function handler(req, res) {
   const QR_SECRET = process.env.QR_SECRET || 'ghostdigitals-qr-secret-2026';
   const data = await getData();
   if (!data.sessions) data.sessions = [];
+  if (!data.batches) data.batches = [];
   if (!data.sessionCodes) data.sessionCodes = [];
   if (!data.attendance) data.attendance = [];
   if (!data.classrooms) data.classrooms = {};
@@ -102,6 +104,58 @@ export default async function handler(req, res) {
     const teacher = TEACHER_CREDENTIALS[body.username];
     if (!teacher || teacher.password !== body.password) return res.status(401).json({ error: 'Invalid credentials' });
     return res.status(200).json({ ok: true, username: body.username, course: teacher.course, label: teacher.label });
+  }
+
+  // ── Batches: list (teacher or admin) ──────────────────────
+  if (req.method === 'GET' && action === 'batches') {
+    if (!teacherKeyValid(teacherKey) && adminKey !== process.env.ADMIN_PASSWORD)
+      return res.status(401).json({ error: 'Unauthorized' });
+    return res.status(200).json({ ok: true, batches: data.batches || [] });
+  }
+  // ── Batches: create (admin) ───────────────────────────────
+  if (req.method === 'POST' && action === 'create-batch') {
+    if (adminKey !== process.env.ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    if (!body.name || !body.name.trim()) return res.status(400).json({ error: 'Batch name is required' });
+    const batch = {
+      id: 'batch_' + Date.now(),
+      name: body.name.trim(),
+      courses: Array.isArray(body.courses) ? body.courses : [],
+      startDate: body.startDate || null,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+    };
+    data.batches.push(batch);
+    await setData(data);
+    return res.status(201).json({ ok: true, batch });
+  }
+  // ── Batches: update (admin) ───────────────────────────────
+  if (req.method === 'PATCH' && action === 'update-batch') {
+    if (adminKey !== process.env.ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    const batch = (data.batches || []).find(b => b.id === body.batchId);
+    if (!batch) return res.status(404).json({ error: 'Batch not found' });
+    if (body.name !== undefined) batch.name = String(body.name).trim() || batch.name;
+    if (body.courses !== undefined) batch.courses = Array.isArray(body.courses) ? body.courses : batch.courses;
+    if (body.startDate !== undefined) batch.startDate = body.startDate;
+    if (body.status !== undefined && ['active', 'archived'].includes(body.status)) batch.status = body.status;
+    // Keep denormalized batchName on sessions in sync.
+    (data.sessions || []).forEach(s => { if (s.batchId === batch.id) s.batchName = batch.name; });
+    await setData(data);
+    return res.status(200).json({ ok: true, batch });
+  }
+  // ── Batches: delete (admin) ───────────────────────────────
+  if (req.method === 'DELETE' && action === 'delete-batch') {
+    if (adminKey !== process.env.ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+    const batchId = req.query.batchId;
+    if (!batchId) return res.status(400).json({ error: 'batchId required' });
+    // Un-batch any sessions that pointed here (they become legacy/global) so
+    // content is never orphaned/hidden by accident.
+    (data.sessions || []).forEach(s => { if (s.batchId === batchId) { s.batchId = null; s.batchName = null; } });
+    (data.students || []).forEach(st => { if (st.batchId === batchId) { st.batchId = null; st.batchName = null; } });
+    data.batches = (data.batches || []).filter(b => b.id !== batchId);
+    await setData(data);
+    return res.status(200).json({ ok: true });
   }
 
   // ── Student auth (replaces student-auth.js) ────────────────
@@ -133,7 +187,7 @@ export default async function handler(req, res) {
     if (!student) return res.status(404).json({ error: 'Student ID not found.' });
     if (!student.portalActive) return res.status(403).json({ error: 'Your access has been deactivated.' });
 
-    const studentSessions = (data.sessions || []).filter(s => matchesCourse(s.course, student.course)).map(s => ({
+    const studentSessions = (data.sessions || []).filter(s => studentSeesSession(s, student)).map(s => ({
       id: s.id, title: s.title, sessionNumber: s.sessionNumber, courseLabel: s.courseLabel, course: s.course,
       active: s.active, unlocked: isUnlockedFor(s, student.classType),
       durationMinutes: s.durationMinutes || 45,
@@ -146,7 +200,7 @@ export default async function handler(req, res) {
     const totalPossible = quizResults.reduce((s, r) => s + (r.total||0), 0);
     const gradePercent = totalPossible > 0 ? Math.round((totalScore/totalPossible)*100) : null;
 
-    return res.status(200).json({ ok: true, student: { id: student.id, name: student.name, portalId: student.portalId, course: student.course, courseLabel: student.courseLabel, classType: student.classType||'in-person' }, sessions: studentSessions, quizResults, gradePercent });
+    return res.status(200).json({ ok: true, student: { id: student.id, name: student.name, portalId: student.portalId, course: student.course, courseLabel: student.courseLabel, classType: student.classType||'in-person', batchId: student.batchId||null, batchName: student.batchName||null }, sessions: studentSessions, quizResults, gradePercent });
   }
 
   // ── Public: timer state ───────────────────────────────────
@@ -239,7 +293,9 @@ export default async function handler(req, res) {
     const course = teacher?.course || body.course;
     const t = Object.values(TEACHER_CREDENTIALS).find(t => t.course === course);
     const duration = parseInt(durationMinutes)||45;
-    const session = { id: 's_'+Date.now(), course, courseLabel: t?.label||course, sessionNumber: sessionNumber||(data.sessions.filter(s=>s.course===course).length+1), title, description: description||'', materials: materials||[], durationMinutes: duration, timer: { paused: true, secondsLeft: duration*60, lastUpdated: null }, createdAt: new Date().toISOString(), active: true };
+    const batchId = body.batchId || null;
+    const batch = batchId ? (data.batches||[]).find(b => b.id === batchId) : null;
+    const session = { id: 's_'+Date.now(), course, courseLabel: t?.label||course, batchId, batchName: batch?.name || null, sessionNumber: sessionNumber||(data.sessions.filter(s=>s.course===course).length+1), title, description: description||'', materials: materials||[], durationMinutes: duration, timer: { paused: true, secondsLeft: duration*60, lastUpdated: null }, createdAt: new Date().toISOString(), active: true };
     data.sessions.push(session);
     await setData(data);
     return res.status(201).json({ ok: true, session });
@@ -247,7 +303,7 @@ export default async function handler(req, res) {
 
   // ── POST: upload course PDF ───────────────────────────────
   if (req.method === 'POST' && action === 'upload-course') {
-    const { fileBuffer, fileName, duration, teacherKey: tk, modulesText } = await parseMultipart(req);
+    const { fileBuffer, fileName, duration, teacherKey: tk, modulesText, batchId } = await parseMultipart(req);
     const t = TEACHER_CREDENTIALS[tk];
     if (!t) return res.status(401).json({ error: 'Unauthorized' });
     const moduleLines = (modulesText||'').split('\n').map(l=>l.trim()).filter(Boolean);
@@ -256,8 +312,10 @@ export default async function handler(req, res) {
     if (fileBuffer?.length > 100) {
       try { const blob = await put(`courses/${tk}/${Date.now()}_${fileName}`, fileBuffer, { access: 'public', contentType: 'application/pdf' }); pdfUrl = blob.url; } catch(e) {}
     }
+    const bId = batchId || null;
+    const batch = bId ? (data.batches||[]).find(b => b.id === bId) : null;
     const existingCount = data.sessions.filter(s => s.course === t.course).length;
-    const newSessions = moduleLines.map((title, i) => ({ id: 's_'+Date.now()+'_'+i, course: t.course, courseLabel: t.label, sessionNumber: existingCount+i+1, title, description: `Module ${i+1} — ${t.label} course.`, materials: pdfUrl?[`Course PDF: ${pdfUrl}`]:[], durationMinutes: parseInt(duration)||45, timer: { paused: true, secondsLeft: (parseInt(duration)||45)*60, lastUpdated: null }, createdAt: new Date().toISOString(), active: true, fromPDF: !!pdfUrl, pdfUrl }));
+    const newSessions = moduleLines.map((title, i) => ({ id: 's_'+Date.now()+'_'+i, course: t.course, courseLabel: t.label, batchId: bId, batchName: batch?.name || null, sessionNumber: existingCount+i+1, title, description: `Module ${i+1} — ${t.label} course.`, materials: pdfUrl?[`Course PDF: ${pdfUrl}`]:[], durationMinutes: parseInt(duration)||45, timer: { paused: true, secondsLeft: (parseInt(duration)||45)*60, lastUpdated: null }, createdAt: new Date().toISOString(), active: true, fromPDF: !!pdfUrl, pdfUrl }));
     data.sessions = [...data.sessions, ...newSessions];
     await setData(data);
     return res.status(200).json({ ok: true, sessionsCreated: newSessions.length, sessions: newSessions, pdfUrl });
@@ -530,9 +588,26 @@ function isUnlockedFor(session, classType) {
   return !!session.unlockedForStudents; // legacy sessions keep working
 }
 
+function teacherKeyValid(key) {
+  return !!key && !!TEACHER_CREDENTIALS[key];
+}
+
 function matchesCourse(sessionCourse, studentCourse) {
   if (!studentCourse) return false;
-  if (studentCourse === 'all3') return true;
+  if (studentCourse === 'all3' || studentCourse === 'all') return true;
+  // Legacy value from the original 2-course system: Digital Marketing + Event Organizing
+  if (studentCourse === 'both') return sessionCourse === 'digital' || sessionCourse === 'event';
   if (studentCourse.includes('+')) return studentCourse.split('+').includes(sessionCourse);
   return sessionCourse === studentCourse;
+}
+
+// A student sees a session when the course matches AND (batch rules permit).
+// Batch rules are backward-compatible:
+//  - If the session has no batchId, everyone matching the course sees it (legacy).
+//  - If the session HAS a batchId, only students in that batch see it.
+//  - A student with no batchId only sees batch-less (legacy) sessions.
+function studentSeesSession(session, student) {
+  if (!matchesCourse(session.course, student.course)) return false;
+  if (!session.batchId) return true;              // legacy/global session
+  return student.batchId === session.batchId;     // batched session
 }
