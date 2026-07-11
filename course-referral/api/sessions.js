@@ -254,7 +254,7 @@ export default async function handler(req, res) {
       id: s.id, title: s.title, sessionNumber: s.sessionNumber, courseLabel: s.courseLabel, course: s.course,
       active: s.active, unlocked: isUnlockedFor(s, student.classType),
       durationMinutes: s.durationMinutes || 45,
-      hasQuiz: !!(s.quiz?.questions?.length), hasPdf: !!s.pdfUrl,
+      hasQuiz: !!(s.quiz?.questions?.length) && isQuizUnlockedFor(s, student.classType), hasPdf: !!s.pdfUrl,
       pageStart: s.pageStart, pageEnd: s.pageEnd, pdfUrl: s.pdfUrl, description: s.description, materials: s.materials || [],
     }));
 
@@ -302,7 +302,7 @@ export default async function handler(req, res) {
       ok: true,
       session: {
         ...sanitizeSession(session),
-        quiz: session.quiz ? { id: session.quiz.id, title: session.quiz.title, timeLimit: session.quiz.timeLimit||30, questionCount: session.quiz.questions?.length||0, questions: session.quiz.questions.map(q => ({ id: q.id, type: q.type, question: q.question, options: q.options })) } : null,
+        quiz: (session.quiz && isQuizUnlockedFor(session, student.classType)) ? { id: session.quiz.id, title: session.quiz.title, timeLimit: session.quiz.timeLimit||30, questionCount: session.quiz.questions?.length||0, questions: session.quiz.questions.map(q => ({ id: q.id, type: q.type, question: q.question, options: q.options })) } : null,
       },
       notes: data.studentNotes[noteKey] || '',
       highlights: data.highlights[noteKey] || [],
@@ -428,7 +428,8 @@ export default async function handler(req, res) {
     const body = await parseJSON(req);
     const session = data.sessions.find(s => s.id === body.sessionId);
     if (!session || session.course !== teacher.course) return res.status(404).json({ error: 'Not found' });
-    session.quiz = { id: 'quiz_'+Date.now(), title: body.title||`${session.title} — Quiz`, questions: body.questions, timeLimit: parseInt(body.timeLimit)||30, createdAt: new Date().toISOString() };
+    const prevLock = session.quiz?.unlockedFor || { online: false, inperson: false };
+    session.quiz = { id: session.quiz?.id || 'quiz_'+Date.now(), title: body.title||`${session.title} — Quiz`, questions: body.questions, timeLimit: parseInt(body.timeLimit)||30, unlockedFor: prevLock, createdAt: session.quiz?.createdAt || new Date().toISOString() };
     await setData(data);
     return res.status(200).json({ ok: true, quiz: session.quiz });
   }
@@ -441,6 +442,7 @@ export default async function handler(req, res) {
     const { sessionId, answers, quit } = body;
     const session = data.sessions.find(s => s.id === sessionId);
     if (!session?.quiz) return res.status(404).json({ error: 'Quiz not found' });
+    if (!isQuizUnlockedFor(session, student.classType)) return res.status(403).json({ error: 'This quiz is locked.' });
     const existing = data.quizResults.find(r => r.studentId === student.id && r.sessionId === sessionId);
     if (existing) return res.status(400).json({ error: 'Already submitted.' });
     let score = 0;
@@ -548,6 +550,19 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, unlockedFor: session.unlockedFor });
   }
 
+  // ── PATCH: lock/unlock quiz (per class type) ──────────────
+  if (req.method === 'PATCH' && action === 'unlock-quiz') {
+    if (!teacher) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    const session = data.sessions.find(s => s.id === body.sessionId && s.course === teacher.course);
+    if (!session) return res.status(404).json({ error: 'Not found' });
+    if (!session.quiz) return res.status(404).json({ error: 'This session has no quiz.' });
+    if (!session.quiz.unlockedFor) session.quiz.unlockedFor = { online: false, inperson: false };
+    const ct = normalizeClassType(body.classType);
+    session.quiz.unlockedFor[ct] = !session.quiz.unlockedFor[ct];
+    await setData(data);
+    return res.status(200).json({ ok: true, unlockedFor: session.quiz.unlockedFor });
+  }
   // ── PATCH: set page range ─────────────────────────────────
   if (req.method === 'PATCH' && action === 'set-pages') {
     if (!teacher) return res.status(401).json({ error: 'Unauthorized' });
@@ -649,6 +664,15 @@ function normalizeClassType(ct) {
 function isUnlockedFor(session, classType) {
   if (session.unlockedFor) return !!session.unlockedFor[normalizeClassType(classType)];
   return !!session.unlockedForStudents; // legacy sessions keep working
+}
+
+// Quiz has its own independent per-class-type lock. Locked by default:
+// if a quiz has no unlockedFor set, it is NOT visible to students.
+function isQuizUnlockedFor(session, classType) {
+  const q = session.quiz;
+  if (!q) return false;
+  if (!q.unlockedFor) return false; // default locked
+  return !!q.unlockedFor[normalizeClassType(classType)];
 }
 
 function teacherKeyValid(key, data) {
