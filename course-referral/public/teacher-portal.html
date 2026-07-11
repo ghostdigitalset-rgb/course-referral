@@ -211,6 +211,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <input type="number" id="upload-duration" value="45" min="10" max="300">
     </div>
 
+    <div class="field">
+      <label>Batch (which cohort are these sessions for?)</label>
+      <select id="upload-batch"><option value="">🌐 All students (no specific batch)</option></select>
+    </div>
+
     <!-- Module titles -->
     <div class="field">
       <label style="display:flex;align-items:center;justify-content:space-between">
@@ -236,6 +241,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="alert alert-danger" id="session-alert"></div>
     <div class="field"><label>Session Title *</label><input type="text" id="s-title" placeholder="e.g. Introduction to Social Media Marketing"></div>
     <div class="field"><label>Session Number (optional)</label><input type="number" id="s-number" placeholder="Auto-assigned if empty" min="1"></div>
+    <div class="field"><label>Batch (which cohort is this for?)</label><select id="s-batch"><option value="">🌐 All students (no specific batch)</option></select></div>
     <div class="field"><label>Duration (minutes)</label><input type="number" id="s-duration" value="45" min="5" max="300"></div>
     <div class="field"><label>Description</label><textarea id="s-desc" placeholder="What will students learn in this session?"></textarea></div>
     <div class="field"><label>Materials (one per line)</label><textarea id="s-materials" rows="5" placeholder="Slide deck: https://...&#10;Reading: Chapter 3&#10;Watch: https://youtube.com/..."></textarea></div>
@@ -340,6 +346,7 @@ function showApp(){
   loadData();
 }
 
+let teacherBatches = [];
 async function loadData(){
   try{
     const res = await fetch('/api/sessions',{headers:{'x-teacher-key':teacherData.username}});
@@ -347,8 +354,21 @@ async function loadData(){
     sessions = data.sessions||[];
     codes = data.codes||[];
     quizResults = data.quizResults||[];
+    await loadTeacherBatches();
     renderAll();
   }catch(e){ console.error(e); }
+}
+
+async function loadTeacherBatches(){
+  try{
+    const res = await fetch('/api/sessions?action=batches',{headers:{'x-teacher-key':teacherData.username}});
+    const data = await res.json();
+    teacherBatches = (data.batches||[]).filter(b=>b.status!=='archived');
+  }catch(e){ teacherBatches = []; }
+  const opts = '<option value="">🌐 All students (no specific batch)</option>' +
+    teacherBatches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  const sb = document.getElementById('s-batch'); if(sb) sb.innerHTML = opts;
+  const ub = document.getElementById('upload-batch'); if(ub) ub.innerHTML = opts;
 }
 
 function renderAll(){ renderStats(); renderSessions(); renderCodesTab(); renderQuizResultsTab(); }
@@ -535,6 +555,7 @@ function renderSessions(){
           <input type="checkbox" class="session-checkbox" data-id="${s.id}" onchange="onSessionCheck()" style="width:16px;height:16px;margin-top:4px;cursor:pointer;accent-color:var(--accent);flex-shrink:0">
           <div>
             <span class="session-num">Session ${s.sessionNumber}</span>
+            ${s.batchName?`<span class="badge badge-blue" style="margin-left:6px;font-size:10px">🎯 ${s.batchName}</span>`:''}
             <div class="session-title" style="margin-top:6px">${s.title}</div>
           </div>
         </div>
@@ -664,7 +685,7 @@ async function createSession(){
   btn.disabled=true; spinner.style.display='block';
   document.getElementById('create-session-text').textContent='Creating...';
   try{
-    const res=await fetch('/api/sessions?action=create-session',{method:'POST',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({title,description:desc,materials:mats,sessionNumber:num?parseInt(num):undefined,durationMinutes:parseInt(dur)})});
+    const res=await fetch('/api/sessions?action=create-session',{method:'POST',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({title,description:desc,materials:mats,sessionNumber:num?parseInt(num):undefined,durationMinutes:parseInt(dur),batchId:(document.getElementById('s-batch')||{}).value||null})});
     const data=await res.json();
     if(!res.ok) throw new Error(data.error||'Failed');
     sessions.push(data.session);
@@ -1027,6 +1048,7 @@ async function uploadCoursePDF() {
   try {
     let pdfUrl = null;
 
+    const uploadBatchId = (document.getElementById('upload-batch')||{}).value || '';
     // Upload PDF if selected
     if (selectedPDFFile) {
       const formData = new FormData();
@@ -1034,6 +1056,7 @@ async function uploadCoursePDF() {
       formData.append('teacherKey', teacherData.username);
       formData.append('duration', duration);
       formData.append('modules', moduleLines.join('\n'));
+      formData.append('batchId', uploadBatchId);
 
       const res = await fetch('/api/upload-course', { method: 'POST', body: formData });
       const data = await res.json();
@@ -1060,6 +1083,7 @@ async function uploadCoursePDF() {
           sessionNumber: existingCount + i + 1,
           durationMinutes: duration,
           materials: [],
+          batchId: uploadBatchId || null,
         })
       });
       const data = await res.json();
