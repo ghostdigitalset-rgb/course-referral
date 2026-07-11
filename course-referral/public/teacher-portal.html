@@ -584,6 +584,10 @@ function renderSessions(){
         <button class="btn ${unlockedOnline(s)?'btn-danger':'btn-outline'}" onclick="toggleUnlock('${s.id}','online')">${unlockedOnline(s)?'🔒 Lock Online':'🔓 Unlock Online 💻'}</button>
         <button class="btn ${unlockedInperson(s)?'btn-danger':'btn-outline'}" onclick="toggleUnlock('${s.id}','inperson')">${unlockedInperson(s)?'🔒 Lock In-Person':'🔓 Unlock In-Person 🏫'}</button>
         <button class="btn btn-gold" onclick="openQuizModal('${s.id}')">📝 ${s.quiz?'Edit Quiz':'Add Quiz'}</button>
+        ${s.quiz?`
+        <button class="btn ${quizUnlockedOnline(s)?'btn-danger':'btn-outline'}" onclick="toggleQuizUnlock('${s.id}','online')" title="Control whether Online students can see this quiz">${quizUnlockedOnline(s)?'🔒 Lock Quiz (Online)':'🔓 Unlock Quiz 💻'}</button>
+        <button class="btn ${quizUnlockedInperson(s)?'btn-danger':'btn-outline'}" onclick="toggleQuizUnlock('${s.id}','inperson')" title="Control whether In-Person students can see this quiz">${quizUnlockedInperson(s)?'🔒 Lock Quiz (In-Person)':'🔓 Unlock Quiz 🏫'}</button>
+        `:''}
         <button class="btn btn-outline" onclick="openPageModal('${s.id}',${s.pageStart||1},${s.pageEnd||1})">📄 Set Pages</button>
         <button class="btn btn-outline" onclick="quickGenerateCodes('${s.id}')">🔑 Codes</button>
         <button class="btn btn-danger" onclick="deleteSession('${s.id}')">🗑 Delete</button>
@@ -760,6 +764,25 @@ async function toggleUnlock(sessionId, classType){
       s.unlockedFor = data.unlockedFor;
       s.unlockedForStudents = data.unlockedFor.online || data.unlockedFor.inperson;
     }
+    renderAll();
+  }catch(e){ alert(e.message); }
+}
+
+// Quiz lock state helpers (locked by default when no unlockedFor present)
+function quizUnlockedOnline(s){ return !!(s.quiz && s.quiz.unlockedFor && s.quiz.unlockedFor.online); }
+function quizUnlockedInperson(s){ return !!(s.quiz && s.quiz.unlockedFor && s.quiz.unlockedFor.inperson); }
+
+async function toggleQuizUnlock(sessionId, classType){
+  try{
+    const res = await fetch('/api/sessions?action=unlock-quiz',{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
+      body:JSON.stringify({sessionId, classType})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error);
+    const s = sessions.find(s=>s.id===sessionId);
+    if(s && s.quiz){ s.quiz.unlockedFor = data.unlockedFor; }
     renderAll();
   }catch(e){ alert(e.message); }
 }
