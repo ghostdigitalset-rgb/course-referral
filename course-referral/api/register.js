@@ -114,6 +114,7 @@ export default async function handler(req, res) {
     paid: isVerified,
     manualEntry: !!manualEntry,
     classType: classType || 'in-person',
+    status: 'ongoing',
     portalId,
     portalActive: true,
     date: new Date().toLocaleDateString('en-GB'),
