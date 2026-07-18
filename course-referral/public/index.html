@@ -208,6 +208,48 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .course-card h4{font-size:16px;font-weight:700;margin-bottom:4px;color:var(--text)}
 .course-card .cc-count{font-size:13px;color:var(--muted)}
 .course-card .cc-arrow{margin-top:14px;display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--accent)}
+/* student card grid */
+.students-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;padding:16px}
+.st-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:17px;transition:transform .16s,box-shadow .16s;position:relative}
+.st-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.st-card.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light)}
+.st-card-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:13px}
+.st-card .st-cb{position:absolute;top:15px;right:15px;width:16px;height:16px;cursor:pointer}
+.st-avatar{width:50px;height:50px;border-radius:13px;background:var(--grad-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;background-size:cover;background-position:center}
+.st-card-top .info{flex:1;min-width:0;padding-right:22px}
+.st-card-top .info h4{font-size:15px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-card-top .info .sub{font-size:11.5px;color:var(--muted)}
+.st-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.pill-ongoing{background:var(--info-bg);color:var(--info)}
+.pill-completed{background:var(--accent-light);color:var(--accent-text)}
+.pill-hold{background:var(--gold-bg);color:var(--gold)}
+.pill-dropped{background:var(--danger-bg);color:var(--danger)}
+.pay-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700}
+.pay-verified{background:var(--accent-light);color:var(--accent-text)}
+.pay-pending{background:var(--gold-bg);color:var(--gold)}
+.pay-rejected{background:var(--danger-bg);color:var(--danger)}
+.st-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.st-chip{font-size:11px;color:var(--muted);background:var(--bg);padding:4px 9px;border-radius:8px;display:inline-flex;align-items:center;gap:4px}
+.st-chip svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none}
+.st-portal{font-family:monospace;font-size:11.5px;font-weight:700;color:var(--accent);cursor:pointer}
+.st-card-foot{display:flex;gap:7px;border-top:1px solid var(--border);padding-top:12px;margin-top:2px}
+.st-card-foot button{flex:1;padding:7px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:600;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;gap:5px;transition:.13s}
+.st-card-foot button:hover{background:var(--bg)}
+.st-card-foot button.primary{background:var(--grad-accent);color:#fff;border-color:transparent}
+.st-card-foot button svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none}
+.st-review{display:flex;gap:6px;margin-top:10px}
+.st-review button{flex:1;padding:6px;border-radius:7px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface)}
+.st-review .v{border-color:#b8d9b4;color:var(--accent-text)}
+.st-review .r{border-color:#f0c0bb;color:var(--danger)}
+.seg button{padding:8px 15px;border:none;background:none;border-radius:9px;font-family:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:.13s;display:inline-flex;align-items:center;gap:5px}
+.seg button:hover{color:var(--text)}
+.seg button.active{background:var(--accent-light);color:var(--accent-text)}
+.report-bd-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px}
+.report-bd-card h3{font-size:14px;font-weight:700;padding:15px 18px;border-bottom:1px solid var(--border)}
+.rb-row{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);font-size:13.5px}
+.rb-row:last-child{border-bottom:none}
+.rb-bar-track{height:8px;background:var(--bg);border-radius:6px;overflow:hidden;flex:1;margin:0 14px;max-width:220px}
+.rb-bar-fill{height:100%;background:var(--grad-accent);border-radius:6px}
 
 /* Tables */
 .data-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-md)}
@@ -530,6 +572,9 @@ tr:last-child td{border-bottom:none}
           <button class="admin-tab" data-tab="students" onclick="switchAdminTab('students',this)">
             <svg viewBox="0 0 24 24"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg><span>Students</span>
           </button>
+          <button class="admin-tab" data-tab="reports" onclick="switchAdminTab('reports',this)">
+            <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><span>Reports</span>
+          </button>
           <div class="admin-sb-sec">Administration</div>
           <button class="admin-tab" data-tab="settings" onclick="switchAdminTab('settings',this)">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span>
@@ -621,6 +666,13 @@ tr:last-child td{border-bottom:none}
                 <option value="verified">Verified</option>
                 <option value="rejected">Rejected</option>
               </select>
+              <select id="status-filter" onchange="filterStudents()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--bg);color:var(--text)">
+                <option value="all">All statuses</option>
+                <option value="ongoing">Ongoing</option>
+                <option value="completed">Completed</option>
+                <option value="hold">On Hold</option>
+                <option value="dropped">Dropped</option>
+              </select>
               <select id="batch-filter" onchange="filterStudents()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--bg);color:var(--text)">
                 <option value="all">All batches</option>
                 <option value="none">No batch</option>
@@ -639,19 +691,26 @@ tr:last-child td{border-bottom:none}
               <button class="action-btn sm danger" onclick="bulkDelete()"><svg viewBox="0 0 24 24" class="ico"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete selected</button>
               <button class="action-btn sm" onclick="clearSelection()" style="margin-left:auto">✕ Clear selection</button>
             </div>
-            <div style="overflow-x:auto">
-              <table>
-                <thead><tr>
-                  <th style="width:36px"><input type="checkbox" id="select-all-cb" onchange="toggleSelectAll(this)" style="cursor:pointer;width:15px;height:15px"></th>
-                  <th>Name</th><th>Phone</th><th>Course</th><th>Class</th><th>Portal ID</th><th>Fee</th><th>Referred by</th><th>Date</th><th>Payment</th><th>Proof</th><th></th>
-                </tr></thead>
-                <tbody id="students-tbody">
-                  <tr><td colspan="10"><div class="empty">No registrations yet</div></td></tr>
-                </tbody>
-              </table>
+            <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+              <label style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);cursor:pointer"><input type="checkbox" id="select-all-cb" onchange="toggleSelectAll(this)" style="cursor:pointer;width:15px;height:15px"> Select all</label>
+            </div>
+            <div id="students-cards" class="students-cards">
+              <div class="empty" style="grid-column:1/-1">No registrations yet</div>
             </div>
           </div>
           </div>
+        </div>
+
+        <!-- Reports tab -->
+        <div id="admin-reports" class="admin-content">
+          <div class="seg" id="report-range-seg" style="display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:20px;gap:2px">
+            <button onclick="loadReports('today')">Today</button>
+            <button onclick="loadReports('week')">This week</button>
+            <button class="active" onclick="loadReports('month')">This month</button>
+            <button onclick="loadReports('all')">All time</button>
+            <button onclick="exportReportsCSV()" style="margin-left:6px"><svg viewBox="0 0 24 24" class="ico"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Export CSV</button>
+          </div>
+          <div id="reports-body"></div>
         </div>
 
         <!-- Settings tab -->
@@ -911,6 +970,7 @@ tr:last-child td{border-bottom:none}
       <div class="field"><label>Class type</label><select id="es-class" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"><option value="in-person">🏫 In-Person</option><option value="online">💻 Online</option></select></div>
       <div class="field"><label>Batch</label><select id="es-batch" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></select></div>
       <div class="field"><label>Payment status</label><select id="es-paystatus" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"><option value="pending">⏳ Pending</option><option value="verified">✅ Verified</option><option value="rejected">❌ Rejected</option></select></div>
+      <div class="field"><label>Enrollment status</label><select id="es-status" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"><option value="ongoing">Ongoing</option><option value="completed">Completed</option><option value="hold">On Hold</option><option value="dropped">Dropped</option></select></div>
     </div>
     <div class="field" style="margin-top:4px"><label>Address</label><input type="text" id="es-address" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
     <div class="field" style="margin-top:4px"><label>Notes</label><textarea id="es-notes" rows="2" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);resize:vertical"></textarea></div>
@@ -1413,7 +1473,82 @@ function adminLogout(){
   document.getElementById('admin-dashboard-screen').style.display='none';
 }
 
-const ADMIN_TAB_META={overview:['Overview','Your course business at a glance'],reps:['Sales reps','Manage your team and referral links'],students:['Students','All course registrations'],settings:['Settings','Payment, courses & teacher logins']};
+// ── Reports ────────────────────────────────────────────────
+let _reportRange='month';
+function _rangeStart(range){
+  const now=new Date();
+  if(range==='today'){ const d=new Date(now); d.setHours(0,0,0,0); return d; }
+  if(range==='week'){ const d=new Date(now); const day=(d.getDay()+6)%7; d.setDate(d.getDate()-day); d.setHours(0,0,0,0); return d; }
+  if(range==='month'){ return new Date(now.getFullYear(),now.getMonth(),1); }
+  return new Date(2000,0,1);
+}
+function _studentDate(s){
+  if(s.createdAt) return new Date(s.createdAt);
+  if(s.date){ const p=s.date.split('/'); if(p.length===3) return new Date(+p[2],+p[1]-1,+p[0]); }
+  return new Date(2000,0,1);
+}
+function _reportData(range){
+  const start=_rangeStart(range);
+  const students=(adminData&&adminData.students)||[];
+  const inRange=students.filter(s=>_studentDate(s)>=start);
+  const paid=inRange.filter(s=>(s.paymentStatus||(s.paid?'verified':''))==='verified');
+  const totalIncome=paid.reduce((t,s)=>t+(s.fee||0),0);
+  const byMethod={Telebirr:0,CBE:0,Cash:0};
+  paid.forEach(s=>{ const m=s.paymentMethodLabel||({telebirr:'Telebirr',cbe:'CBE',cash:'Cash'}[s.paymentMethod])||'Other'; byMethod[m]=(byMethod[m]||0)+(s.fee||0); });
+  const byCourse={};
+  COURSES.forEach(c=>byCourse[c.id]={name:c.name,income:0,count:0});
+  paid.forEach(s=>{ const c=s.course||''; const ids=(c==='all'||c==='all3')?COURSES.map(x=>x.id):c.split('+'); ids.forEach(id=>{ if(byCourse[id]){ byCourse[id].income+=(s.fee||0)/ids.length; byCourse[id].count++; } }); });
+  const compCourse={};
+  COURSES.forEach(c=>compCourse[c.id]={name:c.name,total:0,completed:0});
+  inRange.forEach(s=>{ const c=s.course||''; const ids=(c==='all'||c==='all3')?COURSES.map(x=>x.id):c.split('+'); ids.forEach(id=>{ if(compCourse[id]){ compCourse[id].total++; if(s.status==='completed')compCourse[id].completed++; } }); });
+  return {start,count:inRange.length,paidCount:paid.length,totalIncome,byMethod,byCourse,compCourse,
+    pending:inRange.filter(s=>(s.paymentStatus||'pending')==='pending').length};
+}
+function loadReports(range){
+  _reportRange=range;
+  document.querySelectorAll('#report-range-seg button').forEach(b=>{
+    const oc=b.getAttribute('onclick')||''; if(oc.includes('loadReports')) b.classList.toggle('active', oc.includes("'"+range+"'"));
+  });
+  const r=_reportData(range);
+  const rangeLabel={today:'Today',week:'This week',month:'This month',all:'All time'}[range];
+  const methodRows=Object.entries(r.byMethod).map(([m,v])=>`<div class="rb-row"><span>${m}</span><strong>${v.toLocaleString()} ETB</strong></div>`).join('')||'<div class="rb-row"><span style="color:var(--muted)">No data</span></div>';
+  const maxCourse=Math.max(1,...Object.values(r.byCourse).map(c=>c.income));
+  const courseRows=Object.values(r.byCourse).map(c=>`<div class="rb-row"><span style="min-width:120px">${escapeHtml(c.name)}</span><div class="rb-bar-track"><div class="rb-bar-fill" style="width:${Math.round(c.income/maxCourse*100)}%"></div></div><strong>${Math.round(c.income).toLocaleString()} ETB</strong></div>`).join('')||'<div class="rb-row"><span style="color:var(--muted)">No courses</span></div>';
+  const compRows=Object.values(r.compCourse).map(c=>{const pct=c.total?Math.round(c.completed/c.total*100):0;return `<div class="rb-row"><span style="min-width:120px">${escapeHtml(c.name)}</span><div class="rb-bar-track"><div class="rb-bar-fill" style="width:${pct}%"></div></div><strong>${pct}% <span style="font-weight:400;color:var(--muted)">(${c.completed}/${c.total})</span></strong></div>`;}).join('')||'<div class="rb-row"><span style="color:var(--muted)">No data</span></div>';
+  document.getElementById('reports-body').innerHTML=`
+    <div class="metrics-row">
+      <div class="metric-card accent"><div><div class="val">${r.totalIncome.toLocaleString()}</div><div class="lbl">Income — ${rangeLabel} (ETB)</div></div><div class="tile"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></div></div>
+      <div class="metric-card"><div><div class="val">${r.paidCount}</div><div class="lbl">Paid registrations</div></div><div class="tile"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div></div>
+      <div class="metric-card"><div><div class="val">${r.count}</div><div class="lbl">New students</div></div><div class="tile blue"><svg viewBox="0 0 24 24"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg></div></div>
+    </div>
+    <div class="charts-row">
+      <div class="report-bd-card"><h3>Income by course</h3>${courseRows}</div>
+      <div class="report-bd-card"><h3>Payment method breakdown</h3>${methodRows}</div>
+    </div>
+    <div class="report-bd-card"><h3>Completion rate per course</h3>${compRows}</div>`;
+}
+function exportReportsCSV(){
+  const r=_reportData(_reportRange);
+  const rangeLabel={today:'today',week:'week',month:'month',all:'all-time'}[_reportRange];
+  const rows=[['Ghost Digitals Academy — Income Report ('+rangeLabel+')'],[],
+    ['Metric','Value'],
+    ['Total income (ETB)',r.totalIncome],
+    ['Paid registrations',r.paidCount],
+    ['New students',r.count],
+    ['Pending payments',r.pending],[],
+    ['Payment method','Income (ETB)'],
+    ...Object.entries(r.byMethod).map(([m,v])=>[m,v]),[],
+    ['Course','Income (ETB)','Students'],
+    ...Object.values(r.byCourse).map(c=>[c.name,Math.round(c.income),c.count]),[],
+    ['Course','Completion %','Completed','Total'],
+    ...Object.values(r.compCourse).map(c=>[c.name,c.total?Math.round(c.completed/c.total*100):0,c.completed,c.total]),
+  ];
+  const csv='\uFEFF'+rows.map(row=>row.map(v=>{v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Ghost_Academy_Report_'+rangeLabel+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+const ADMIN_TAB_META={overview:['Overview','Your course business at a glance'],reps:['Sales reps','Manage your team and referral links'],students:['Students','All course registrations'],reports:['Reports','Income & performance'],settings:['Settings','Payment, courses & teacher logins']};
 function switchAdminTab(name,el){
   document.querySelectorAll('.admin-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.admin-tab').forEach(i=>i.classList.remove('active'));
@@ -1423,6 +1558,7 @@ function switchAdminTab(name,el){
   const meta=ADMIN_TAB_META[name];
   if(meta){ const h=document.getElementById('admin-page-heading'),s=document.getElementById('admin-page-sub'); if(h)h.textContent=meta[0]; if(s)s.textContent=meta[1]; }
   if(name==='students'){ backToCourses(); }
+  if(name==='reports'){ loadReports(_reportRange); }
   closeAdminSidebar();
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -1745,55 +1881,67 @@ function renderRepsTable(reps){
   </table></div>`;
 }
 
+const STATUS_META={
+  ongoing:['pill-ongoing','● Ongoing'],
+  completed:['pill-completed','✓ Completed'],
+  hold:['pill-hold','On Hold'],
+  dropped:['pill-dropped','Dropped']
+};
 function renderStudentsTable(students,reps){
-  const tbody = document.getElementById('students-tbody');
-  if(!students.length){tbody.innerHTML='<tr><td colspan="10"><div class="empty"><div class="empty-icon">🎓</div>No registrations yet</div></td></tr>';return;}
-  tbody.innerHTML = [...students].reverse().map(s=>{
+  const grid = document.getElementById('students-cards');
+  if(!grid) return;
+  if(!students.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1">No registrations yet</div>';return;}
+  grid.innerHTML = [...students].reverse().map(s=>{
     const rep = s.ref ? reps.find(r=>r.id===s.ref) : null;
-    const refCell = rep ? `<span class="badge badge-blue">${rep.name}</span>` : '<span style="color:var(--muted)">Direct</span>';
-    const courseBadge = s.course==='both'||s.course==='all3'?'badge-gold':s.course==='digital'?'badge-blue':'badge-green';
-    const status = s.paymentStatus || (s.paid ? 'verified' : 'pending');
-
-    let statusBadge;
-    if(status==='verified') statusBadge = '<span style="padding:4px 10px;border-radius:20px;background:#edf5ec;color:#1e4019;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;stroke-width:2.5;fill:none"><path d="M20 6L9 17l-5-5"/></svg>Verified</span>';
-    else if(status==='rejected') statusBadge = '<span style="padding:4px 10px;border-radius:20px;background:#fdf0ee;color:#c0392b;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;stroke-width:2.5;fill:none"><path d="M18 6L6 18M6 6l12 12"/></svg>Rejected</span>';
-    else statusBadge = '<span style="padding:4px 10px;border-radius:20px;background:#fdf6e3;color:#c4860a;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;stroke-width:2.5;fill:none"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Pending</span>';
-
-    const methodLine = s.paymentMethodLabel ? `<div style="font-size:11px;color:var(--muted);margin-top:3px">${s.paymentMethodLabel}</div>` : '';
-
-    const proofCell = s.proofUrl
-      ? `<a href="${s.proofUrl}" target="_blank" rel="noopener"><img src="${s.proofUrl}" alt="Payment proof" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border);display:block"></a>`
-      : '<span style="color:var(--muted);font-size:12px">No file</span>';
-
-    const reviewBtns = `<div style="display:flex;gap:5px;margin-top:6px">
-        <button class="action-btn sm" style="border-color:#b8d9b4;color:var(--accent-text)" onclick="setPaymentStatus('${s.id}','verified')">Verify</button>
-        <button class="action-btn sm danger" onclick="setPaymentStatus('${s.id}','rejected')">Reject</button>
-      </div>`;
-
-    return `<tr data-id="${s.id}" data-name="${s.name.toLowerCase()}" data-phone="${s.phone}" data-status="${status}" data-batch="${s.batchId||''}" data-course-raw="${s.course||''}">
-      <td><input type="checkbox" class="student-cb" data-id="${s.id}" onchange="onStudentCheck()" style="cursor:pointer;width:15px;height:15px"></td>
-      <td style="font-weight:500"><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="${s.photoUrl?`background-image:url('${s.photoUrl}');background-size:cover;background-position:center;color:transparent`:''}">${s.photoUrl?'':(s.name||'?').trim().charAt(0).toUpperCase()}</div><div><div>${s.name}</div>${(s.age||s.gender)?`<div style="font-size:10.5px;color:var(--muted);margin-top:1px;font-weight:400">${[s.gender,s.age?s.age+' yrs':''].filter(Boolean).join(' · ')}</div>`:''}</div></div></td>
-      <td style="color:var(--muted)">${s.phone}</td>
-      <td><span class="badge ${courseBadge}">${s.courseLabel||s.course}</span>${s.batchName?`<div style="font-size:10.5px;color:var(--muted);margin-top:3px">${s.batchName}</div>`:''}</td>
-      <td><span class="badge ${s.classType==='online'?'badge-blue':'badge-green'}" onclick="openEditClassType('${s.id}','${s.classType||'in-person'}')" style="cursor:pointer" title="Click to change">${s.classType==='online'?'Online':'In-Person'}</span></td>
-      <td style="font-family:monospace;font-size:12px;font-weight:700;color:var(--accent)">
-        ${s.portalId 
-          ? `<span title="Click to copy" onclick="copyPortalId('${s.portalId}')" style="cursor:pointer">${s.portalId} 📋</span>`
-          : `<button class="action-btn sm" onclick="generatePortalId('${s.id}')">Generate ID</button>`
-        }
-      </td>
-      <td>${(s.fee||0).toLocaleString()}</td>
-      <td>${refCell}</td>
-      <td style="color:var(--muted)">${s.date}</td>
-      <td>${statusBadge}${methodLine}${reviewBtns}</td>
-      <td>${proofCell}</td>
-      <td><div style="display:flex;flex-direction:column;gap:5px">
-        <button class="action-btn sm" onclick="openEditStudent('${s.id}')">✏️ Edit</button>
-        <button class="action-btn sm danger" onclick="deleteStudent('${s.id}')">Delete</button>
-      </div></td>
-    </tr>`;
+    const payStatus = s.paymentStatus || (s.paid ? 'verified' : 'pending');
+    const enrollStatus = s.status || 'ongoing';
+    const sm = STATUS_META[enrollStatus] || STATUS_META.ongoing;
+    const initial = (s.name||'?').trim().charAt(0).toUpperCase();
+    const avatar = s.photoUrl
+      ? `<div class="st-avatar" style="background-image:url('${s.photoUrl}')"></div>`
+      : `<div class="st-avatar">${initial}</div>`;
+    const sub = [s.gender,s.age?s.age+' yrs':'',s.phone].filter(Boolean).join(' · ');
+    const payPill = payStatus==='verified'
+      ? '<span class="pay-pill pay-verified"><svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;stroke-width:2.5;fill:none"><path d="M20 6L9 17l-5-5"/></svg>Paid</span>'
+      : payStatus==='rejected'
+      ? '<span class="pay-pill pay-rejected">Rejected</span>'
+      : '<span class="pay-pill pay-pending">Pending</span>';
+    const gradIco='<svg viewBox="0 0 24 24"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg>';
+    const classChip = `<span class="st-chip">${s.classType==='online'?'Online':'In-Person'}</span>`;
+    const batchChip = s.batchName?`<span class="st-chip">${escapeHtml(s.batchName)}</span>`:'';
+    const portalLine = s.portalId
+      ? `<span class="st-portal" onclick="copyPortalId('${s.portalId}')" title="Click to copy">${s.portalId}</span>`
+      : `<button class="action-btn sm" onclick="generatePortalId('${s.id}')" style="padding:3px 8px;font-size:11px">Generate ID</button>`;
+    const reviewRow = payStatus==='pending'
+      ? `<div class="st-review"><button class="v" onclick="setPaymentStatus('${s.id}','verified')">Verify payment</button><button class="r" onclick="setPaymentStatus('${s.id}','rejected')">Reject</button></div>`
+      : '';
+    return `<div class="st-card" data-id="${s.id}" data-name="${(s.name||'').toLowerCase()}" data-phone="${s.phone||''}" data-status="${payStatus}" data-estatus="${enrollStatus}" data-batch="${s.batchId||''}" data-course-raw="${s.course||''}">
+      <input type="checkbox" class="student-cb st-cb" data-id="${s.id}" onchange="onStudentCheck()">
+      <div class="st-card-top">
+        ${avatar}
+        <div class="info">
+          <h4>${escapeHtml(s.name||'')}</h4>
+          <div class="sub">${escapeHtml(sub)}</div>
+          <div style="margin-top:7px;display:flex;gap:6px;flex-wrap:wrap"><span class="st-pill ${sm[0]}">${sm[1]}</span>${payPill}</div>
+        </div>
+      </div>
+      <div class="st-chips">
+        <span class="st-chip">${gradIco}${escapeHtml(s.courseLabel||s.course||'—')}</span>
+        ${classChip}${batchChip}
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;font-size:12px">
+        <span style="color:var(--muted)">Fee: <strong style="color:var(--accent-text)">${(s.fee||0).toLocaleString()} ETB</strong></span>
+        ${portalLine}
+      </div>
+      ${rep?`<div style="font-size:11px;color:var(--muted);margin-bottom:10px">Referred by ${escapeHtml(rep.name)}</div>`:''}
+      ${reviewRow}
+      <div class="st-card-foot">
+        <button class="primary" onclick="openEditStudent('${s.id}')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Edit</button>
+        ${s.proofUrl?`<button onclick="window.open('${s.proofUrl}','_blank')"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Proof</button>`:''}
+        <button onclick="deleteStudent('${s.id}')"><svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Delete</button>
+      </div>
+    </div>`;
   }).join('');
-  // reset selection UI after re-render
   updateBulkBar();
   if(typeof populateBatchDropdowns==='function') populateBatchDropdowns();
 }
@@ -1872,14 +2020,16 @@ function filterStudents(){
   const q = document.getElementById('student-search').value.toLowerCase();
   const filter = document.getElementById('payment-filter').value;
   const batchF = (document.getElementById('batch-filter')||{}).value || 'all';
-  document.querySelectorAll('#students-tbody tr').forEach(row=>{
-    if(!row.dataset.name) return;
-    const matchSearch = !q || row.dataset.name.includes(q) || row.dataset.phone.includes(q);
+  const statusF = (document.getElementById('status-filter')||{}).value || 'all';
+  document.querySelectorAll('#students-cards .st-card').forEach(row=>{
+    if(!row.dataset.name && row.dataset.name!=='') return;
+    const matchSearch = !q || row.dataset.name.includes(q) || (row.dataset.phone||'').includes(q);
     const matchPay = filter==='all' || row.dataset.status===filter;
     const rb = row.dataset.batch || '';
     const matchBatch = batchF==='all' || (batchF==='none' ? !rb : rb===batchF);
+    const matchStatus = statusF==='all' || row.dataset.estatus===statusF;
     const matchCourse = !_activeCourse || rowMatchesCourse(row.dataset.courseRaw||'', _activeCourse);
-    row.style.display = matchSearch && matchPay && matchBatch && matchCourse ? '' : 'none';
+    row.style.display = matchSearch && matchPay && matchBatch && matchStatus && matchCourse ? '' : 'none';
   });
   updateBulkBar();
 }
@@ -2085,6 +2235,7 @@ function openEditStudent(id){
   document.getElementById('es-address').value = s.address||'';
   document.getElementById('es-class').value = s.classType||'in-person';
   document.getElementById('es-paystatus').value = s.paymentStatus || (s.paid?'verified':'pending');
+  document.getElementById('es-status').value = s.status || 'ongoing';
   document.getElementById('es-notes').value = s.notes||'';
   // Course dropdown from settings courses (+ keep current value if legacy)
   const courseSel = document.getElementById('es-course');
@@ -2128,6 +2279,7 @@ async function saveEditStudent(){
     address: document.getElementById('es-address').value.trim(),
     classType: document.getElementById('es-class').value,
     paymentStatus: document.getElementById('es-paystatus').value,
+    status: document.getElementById('es-status').value,
     notes: document.getElementById('es-notes').value.trim(),
     course: courseSel.value,
     courseLabel,
@@ -2152,7 +2304,8 @@ async function saveEditStudent(){
 // ── Bulk selection ─────────────────────────────────────────
 function getVisibleCheckboxes(){
   return [...document.querySelectorAll('.student-cb')].filter(cb=>{
-    return cb.closest('tr').style.display !== 'none';
+    const card = cb.closest('.st-card');
+    return card && card.style.display !== 'none';
   });
 }
 
