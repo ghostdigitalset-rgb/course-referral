@@ -143,37 +143,62 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn-outline:hover{background:var(--bg);border-color:var(--text)}
 
 /* ===== ADMIN PAGE (premium top-tab layout) ===== */
-.admin-shell{min-height:100vh;background:var(--bg);background-image:var(--grad-page);background-attachment:fixed}
-.admin-topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.82);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--border);box-shadow:var(--shadow-sm)}
-.admin-topbar-inner{max-width:1180px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.admin-brand{display:flex;align-items:center;gap:12px;min-width:0}
-.admin-brand-mark{width:40px;height:40px;border-radius:12px;background:var(--grad-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:17px;letter-spacing:.5px;box-shadow:var(--shadow-md),inset 0 1px 0 rgba(255,255,255,.18);flex-shrink:0}
-.admin-brand-text{display:flex;flex-direction:column;line-height:1.15;min-width:0}
-.admin-brand-text strong{font-family:'DM Serif Display',serif;font-size:17px;color:var(--text);font-weight:400}
-.admin-brand-text span{font-size:11.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
-.admin-logout-btn{border:1px solid var(--border);background:var(--surface);color:var(--muted);padding:9px 16px;border-radius:10px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;box-shadow:var(--shadow-sm);white-space:nowrap}
-.admin-logout-btn:hover{color:var(--danger);border-color:#f0c0bb;background:var(--danger-bg)}
-.admin-tabs{max-width:1180px;margin:0 auto;padding:0 14px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
-.admin-tabs::-webkit-scrollbar{display:none}
-.admin-tab{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border:none;background:none;font-family:inherit;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;position:relative;white-space:nowrap;transition:.15s;border-radius:10px 10px 0 0}
-.admin-tab:hover{color:var(--text);background:rgba(45,90,39,.05)}
-.admin-tab.active{color:var(--accent)}
-.admin-tab.active::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--grad-accent)}
-.admin-tab-ic{font-size:16px}
-.admin-main{max-width:1180px;margin:0 auto;padding:30px 22px 60px}
+.admin-shell{min-height:100vh;background:var(--bg);display:flex}
+/* ===== Premium sidebar layout (Bensen-style) ===== */
+.admin-sidebar{width:248px;background:var(--surface);border-right:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.admin-sb-brand{padding:22px 20px 18px;display:flex;align-items:center;gap:11px}
+.admin-sb-brand .mark{width:42px;height:42px;border-radius:12px;background:var(--grad-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:17px;flex-shrink:0;box-shadow:var(--shadow-md)}
+.admin-sb-brand .txt strong{display:block;font-family:'DM Serif Display',serif;font-size:16px;color:var(--text);line-height:1.15;font-weight:400}
+.admin-sb-brand .txt span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.admin-sb-sec{padding:6px 14px;font-size:10.5px;font-weight:700;color:var(--muted);opacity:.65;text-transform:uppercase;letter-spacing:.07em;margin-top:12px}
+.admin-nav{padding:6px 12px;flex:1;overflow-y:auto}
+.admin-tab{display:flex;align-items:center;gap:12px;width:100%;padding:11px 13px;border-radius:11px;color:var(--muted);font-family:inherit;font-size:14px;font-weight:600;margin-bottom:2px;transition:all .13s;cursor:pointer;border:none;background:none;text-align:left;position:relative}
+.admin-tab svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.admin-tab:hover{background:var(--bg);color:var(--text)}
+.admin-tab.active{background:var(--accent-light);color:var(--accent-text)}
+.admin-tab.active::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3.5px;border-radius:0 4px 4px 0;background:var(--accent)}
+.admin-tab-ic{display:none}
+.admin-sb-foot{padding:12px;border-top:1px solid var(--border)}
+.admin-logout-btn{display:flex;align-items:center;gap:12px;width:100%;border:none;background:none;color:var(--muted);padding:11px 13px;border-radius:11px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:.13s}
+.admin-logout-btn svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.admin-logout-btn:hover{color:var(--danger);background:var(--danger-bg)}
+/* main column */
+.admin-main-col{flex:1;min-width:0;display:flex;flex-direction:column}
+.admin-topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--border)}
+.admin-topbar-inner{padding:13px 26px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.admin-topbar-title h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;letter-spacing:-.2px;color:var(--text)}
+.admin-topbar-title span{font-size:12px;color:var(--muted)}
+.menu-btn{display:none;width:40px;height:40px;border-radius:11px;background:var(--bg);border:1px solid var(--border);align-items:center;justify-content:center;cursor:pointer}
+.menu-btn svg{width:22px;height:22px;stroke:var(--text);stroke-width:2;fill:none}
+.sb-backdrop{display:none;position:fixed;inset:0;background:rgba(20,25,15,.4);z-index:45}
+.sb-backdrop.show{display:block}
+.admin-main{padding:26px;flex:1}
 .main-area{overflow-y:visible}
-.page-title{font-family:'DM Serif Display',serif;font-size:28px;letter-spacing:-.4px;margin-bottom:6px;color:var(--text)}
-.page-subtitle{font-size:14.5px;color:var(--muted);margin-bottom:26px}
-.metrics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:26px}
-.metric-card{position:relative;background:var(--grad-surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 24px;box-shadow:var(--shadow-md);overflow:hidden;transition:transform .18s,box-shadow .18s}
-.metric-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad-accent);opacity:.5}
-.metric-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
-.metric-card .val{font-family:'DM Serif Display',serif;font-size:34px;font-weight:400;line-height:1.05;margin-bottom:4px;color:var(--text)}
-.metric-card .lbl{font-size:12.5px;color:var(--muted);font-weight:500;letter-spacing:.02em}
+.page-title{font-family:'DM Serif Display',serif;font-size:26px;letter-spacing:-.4px;margin-bottom:6px;color:var(--text)}
+.page-subtitle{font-size:14px;color:var(--muted);margin-bottom:24px}
+/* ===== Premium stat cards ===== */
+.metrics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:22px}
+.metric-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px;box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:space-between;gap:12px;transition:transform .16s,box-shadow .16s;overflow:hidden}
+.metric-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.metric-card .val{font-family:'DM Serif Display',serif;font-size:30px;font-weight:400;line-height:1;margin-bottom:5px;color:var(--text)}
+.metric-card .lbl{font-size:12.5px;color:var(--muted);font-weight:500}
+.metric-card .tile{width:52px;height:52px;border-radius:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--accent-light);color:var(--accent)}
+.metric-card .tile svg{width:25px;height:25px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .metric-card.accent{background:var(--grad-accent);border-color:transparent;box-shadow:var(--shadow-lg)}
-.metric-card.accent::before{opacity:0;background:none}
 .metric-card.accent .val,.metric-card.accent .lbl{color:#fff}
 .metric-card.accent .lbl{opacity:.85}
+.metric-card.accent .tile{background:rgba(255,255,255,.18);color:#fff}
+.tile.blue{background:var(--info-bg);color:var(--info)}
+.tile.gold{background:var(--gold-bg);color:var(--gold)}
+.tile.danger{background:var(--danger-bg);color:var(--danger)}
+/* charts row */
+.charts-row{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:22px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow-sm);overflow:hidden}
+.chart-card-h{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.chart-card-h h3{font-size:15px;font-weight:700}
+.chart-card-h span{font-size:11.5px;color:var(--muted)}
+.chart-card-body{padding:20px}
+@media(max-width:1000px){.charts-row{grid-template-columns:1fr}}
 
 /* Tables */
 .data-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-md)}
@@ -258,8 +283,11 @@ tr:last-child td{border-bottom:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* Responsive */
-@media(max-width:860px){
-  .admin-main{padding:24px 16px 60px}
+@media(max-width:900px){
+  .admin-sidebar{position:fixed;left:0;top:0;bottom:0;z-index:50;transform:translateX(-100%);transition:transform .25s ease;box-shadow:var(--shadow-lg)}
+  .admin-sidebar.open{transform:translateX(0)}
+  .menu-btn{display:flex}
+  .admin-main{padding:18px 16px}
   .metrics-row{grid-template-columns:1fr 1fr}
   #a-course-breakdown{grid-template-columns:1fr 1fr !important}
 }
@@ -269,14 +297,12 @@ tr:last-child td{border-bottom:none}
   .metrics-row{grid-template-columns:1fr}
   .rep-metrics{grid-template-columns:1fr}
   .admin-topbar-inner{padding:12px 16px}
-  .admin-brand-text span{display:none}
-  .admin-tab{padding:11px 14px;font-size:13px}
-  .admin-tab-ic{font-size:15px}
-  .page-title{font-size:23px}
+  .page-title{font-size:22px}
   .metric-card{padding:18px 20px}
   .metric-card .val{font-size:29px}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -479,62 +505,72 @@ tr:last-child td{border-bottom:none}
   <!-- Admin Dashboard -->
   <div id="admin-dashboard-screen" style="display:none">
     <div class="admin-shell">
-      <header class="admin-topbar">
-        <div class="admin-topbar-inner">
-          <div class="admin-brand">
-            <div class="admin-brand-mark">GD</div>
-            <div class="admin-brand-text">
-              <strong>GhostDigitals</strong>
-              <span>Academy · Admin</span>
-            </div>
-          </div>
-          <button class="admin-logout-btn" onclick="adminLogout()">
-            <span>Sign out</span>
-          </button>
+      <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="admin-sb-brand">
+          <div class="mark">GD</div>
+          <div class="txt"><strong>GhostDigitals</strong><span>Academy · Admin</span></div>
         </div>
-        <nav class="admin-tabs" id="admin-tabs">
+        <nav class="admin-nav" id="admin-tabs">
+          <div class="admin-sb-sec">Main</div>
           <button class="admin-tab active" data-tab="overview" onclick="switchAdminTab('overview',this)">
-            <span class="admin-tab-ic">📊</span><span>Overview</span>
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Overview</span>
           </button>
           <button class="admin-tab" data-tab="reps" onclick="switchAdminTab('reps',this)">
-            <span class="admin-tab-ic">👥</span><span>Sales reps</span>
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Sales reps</span>
           </button>
           <button class="admin-tab" data-tab="students" onclick="switchAdminTab('students',this)">
-            <span class="admin-tab-ic">🎓</span><span>Students</span>
+            <svg viewBox="0 0 24 24"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg><span>Students</span>
           </button>
+          <div class="admin-sb-sec">Administration</div>
           <button class="admin-tab" data-tab="settings" onclick="switchAdminTab('settings',this)">
-            <span class="admin-tab-ic">⚙️</span><span>Settings</span>
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span>
           </button>
         </nav>
-      </header>
+        <div class="admin-sb-foot">
+          <button class="admin-logout-btn" onclick="adminLogout()">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span>Sign out</span>
+          </button>
+        </div>
+      </aside>
+      <div class="sb-backdrop" id="sb-backdrop" onclick="closeAdminSidebar()"></div>
+
+      <div class="admin-main-col">
+        <header class="admin-topbar">
+          <div class="admin-topbar-inner">
+            <div style="display:flex;align-items:center;gap:12px">
+              <button class="menu-btn" onclick="toggleAdminSidebar()" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+              <div class="admin-topbar-title"><h2 id="admin-page-heading">Overview</h2><span id="admin-page-sub">Your course business at a glance</span></div>
+            </div>
+          </div>
+        </header>
 
       <div class="admin-main">
         <div class="main-area">
         <!-- Overview tab -->
         <div id="admin-overview" class="admin-content active">
-          <div class="page-title">Overview</div>
-          <div class="page-subtitle">Your course business at a glance</div>
           <div class="metrics-row">
             <div class="metric-card">
-              <div class="val" id="a-reps">—</div>
-              <div class="lbl">Sales reps</div>
+              <div><div class="val" id="a-reps">—</div><div class="lbl">Sales reps</div></div>
+              <div class="tile blue"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
             </div>
             <div class="metric-card">
-              <div class="val" id="a-students">—</div>
-              <div class="lbl">Total registrations</div>
+              <div><div class="val" id="a-students">—</div><div class="lbl">Total registrations</div></div>
+              <div class="tile"><svg viewBox="0 0 24 24"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg></div>
             </div>
             <div class="metric-card accent">
-              <div class="val" id="a-revenue">—</div>
-              <div class="lbl">Est. revenue (ETB)</div>
+              <div><div class="val" id="a-revenue">—</div><div class="lbl">Est. revenue (ETB)</div></div>
+              <div class="tile"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg></div>
             </div>
+          </div>
+          <div class="charts-row">
+            <div class="chart-card"><div class="chart-card-h"><h3>Registrations by course</h3><span>Enrollment breakdown</span></div><div class="chart-card-body"><canvas id="chart-courses" height="150"></canvas></div></div>
+            <div class="chart-card"><div class="chart-card-h"><h3>Payment status</h3></div><div class="chart-card-body" style="display:flex;flex-direction:column;align-items:center"><canvas id="chart-payments" height="150"></canvas><div id="payments-legend" style="margin-top:14px;display:flex;gap:16px;flex-wrap:wrap;justify-content:center"></div></div></div>
           </div>
           <div class="metrics-row" id="a-course-breakdown" style="grid-template-columns:repeat(4,1fr)"></div>
         </div>
 
         <!-- Reps tab -->
         <div id="admin-reps" class="admin-content">
-          <div class="page-title">Sales reps</div>
-          <div class="page-subtitle">Manage your team and their referral links</div>
           <div class="data-card">
             <div class="data-card-header">
               <h3 id="reps-count-label">All reps</h3>
@@ -548,8 +584,6 @@ tr:last-child td{border-bottom:none}
 
         <!-- Students tab -->
         <div id="admin-students" class="admin-content">
-          <div class="page-title">Registered students</div>
-          <div class="page-subtitle">All course registrations</div>
           <div class="data-card">
             <div class="data-card-header">
               <h3 id="students-count-label">All students</h3>
@@ -601,8 +635,6 @@ tr:last-child td{border-bottom:none}
 
         <!-- Settings tab -->
         <div id="admin-settings" class="admin-content">
-          <div class="page-title">Payment settings</div>
-          <div class="page-subtitle">These account details are shown to students on the registration page</div>
 
           <div id="settings-alert" class="alert alert-danger" style="max-width:480px"></div>
           <div id="settings-success" class="alert alert-success" style="max-width:480px"></div>
@@ -669,6 +701,7 @@ tr:last-child td{border-bottom:none}
           <div id="teacher-logins-success" class="alert alert-success" style="max-width:720px"></div>
           <div id="teacher-logins-list" style="max-width:720px"></div>
         </div>
+      </div>
       </div>
       </div>
     </div>
@@ -1318,14 +1351,25 @@ function adminLogout(){
   document.getElementById('admin-dashboard-screen').style.display='none';
 }
 
+const ADMIN_TAB_META={overview:['Overview','Your course business at a glance'],reps:['Sales reps','Manage your team and referral links'],students:['Students','All course registrations'],settings:['Settings','Payment, courses & teacher logins']};
 function switchAdminTab(name,el){
   document.querySelectorAll('.admin-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.admin-tab').forEach(i=>i.classList.remove('active'));
   document.getElementById('admin-'+name).classList.add('active');
   if(el) el.classList.add('active');
-  // Keep the active tab visible on mobile horizontal scroll
-  if(el && el.scrollIntoView) el.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+  else { const btn=document.querySelector('.admin-tab[data-tab="'+name+'"]'); if(btn)btn.classList.add('active'); }
+  const meta=ADMIN_TAB_META[name];
+  if(meta){ const h=document.getElementById('admin-page-heading'),s=document.getElementById('admin-page-sub'); if(h)h.textContent=meta[0]; if(s)s.textContent=meta[1]; }
+  closeAdminSidebar();
   window.scrollTo({top:0,behavior:'smooth'});
+}
+function toggleAdminSidebar(){
+  document.getElementById('admin-sidebar').classList.toggle('open');
+  document.getElementById('sb-backdrop').classList.toggle('show');
+}
+function closeAdminSidebar(){
+  var sb=document.getElementById('admin-sidebar'); if(sb)sb.classList.remove('open');
+  var bd=document.getElementById('sb-backdrop'); if(bd)bd.classList.remove('show');
 }
 
 function renderAdminDashboard(){
@@ -1358,9 +1402,36 @@ function renderAdminDashboard(){
   }
   document.getElementById('reps-count-label').textContent = `All reps (${reps.length})`;
   document.getElementById('students-count-label').textContent = `All students (${students.length})`;
+  renderAdminCharts(counts, students);
   renderRepsTable(reps);
   renderStudentsTable(students,reps);
   if(adminData.settings) populateSettingsForm(adminData.settings);
+}
+
+let _chartCourses=null, _chartPayments=null;
+function renderAdminCharts(counts, students){
+  if(!window.Chart) return;
+  // Courses bar
+  const cc=document.getElementById('chart-courses');
+  if(cc){
+    if(_chartCourses)_chartCourses.destroy();
+    const labels=COURSES.map(c=>c.name), data=COURSES.map(c=>counts[c.id]||0);
+    _chartCourses=new Chart(cc,{type:'bar',data:{labels,datasets:[{data,backgroundColor:'#2d5a27',borderRadius:8,barThickness:38,maxBarThickness:52}]},
+      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0},grid:{color:'#e4e8df'}},x:{grid:{display:false}}}}});
+  }
+  // Payments donut
+  const cp=document.getElementById('chart-payments');
+  if(cp){
+    if(_chartPayments)_chartPayments.destroy();
+    let verified=0,pending=0,rejected=0,none=0;
+    students.forEach(s=>{const st=(s.paymentStatus||s.payment_status||'').toLowerCase();
+      if(st==='verified')verified++;else if(st==='pending')pending++;else if(st==='rejected')rejected++;else none++;});
+    _chartPayments=new Chart(cp,{type:'doughnut',data:{labels:['Verified','Pending','Rejected','No proof'],
+      datasets:[{data:[verified,pending,rejected,none],backgroundColor:['#2d5a27','#c4860a','#c0392b','#c9d2c2'],borderWidth:0}]},
+      options:{cutout:'66%',plugins:{legend:{display:false}}}});
+    document.getElementById('payments-legend').innerHTML=[['Verified',verified,'#2d5a27'],['Pending',pending,'#c4860a'],['Rejected',rejected,'#c0392b'],['No proof',none,'#c9d2c2']]
+      .map(x=>`<span style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600"><span style="width:10px;height:10px;border-radius:50%;background:${x[2]}"></span>${x[0]} (${x[1]})</span>`).join('');
+  }
 }
 
 function populateSettingsForm(settings){
