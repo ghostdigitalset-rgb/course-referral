@@ -64,7 +64,7 @@ export default async function handler(req, res) {
       const student = data.students.find(s => s.id === body.studentId);
       if (!student) return res.status(404).json({ error: 'Student not found' });
       const f = body.fields;
-      const allowed = ['name','phone','email','notes','course','courseLabel','classType','fee','paymentStatus','paymentMethod','paymentMethodLabel','batchId'];
+      const allowed = ['name','photoUrl','phone','email','age','gender','guardian','guardianPhone','address','notes','course','courseLabel','classType','fee','paymentStatus','paymentMethod','paymentMethodLabel','batchId'];
       for (const k of allowed) {
         if (f[k] !== undefined) student[k] = f[k];
       }
