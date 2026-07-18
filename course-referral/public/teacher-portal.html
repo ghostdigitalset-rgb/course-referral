@@ -11,6 +11,49 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
 .header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+/* ===== Premium sidebar shell ===== */
+.t-shell{min-height:100vh;display:flex}
+.t-sidebar{width:246px;background:var(--surface);border-right:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.t-sb-brand{padding:22px 20px 18px;display:flex;align-items:center;gap:11px}
+.t-sb-brand .mark{width:42px;height:42px;border-radius:12px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:17px;flex-shrink:0}
+.t-sb-brand .txt strong{display:block;font-family:'DM Serif Display',serif;font-size:16px;line-height:1.15}
+.t-sb-brand .txt span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.t-sb-sec{padding:6px 14px;font-size:10.5px;font-weight:700;color:var(--muted);opacity:.65;text-transform:uppercase;letter-spacing:.07em;margin-top:12px}
+.t-nav{padding:6px 12px;flex:1;overflow-y:auto}
+.t-nav .tab{display:flex;align-items:center;gap:12px;width:100%;padding:11px 13px;border-radius:11px;color:var(--muted);font-family:inherit;font-size:14px;font-weight:600;margin-bottom:2px;transition:all .13s;cursor:pointer;border:none;background:none;text-align:left;position:relative}
+.t-nav .tab svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.t-nav .tab:hover{background:var(--bg);color:var(--text)}
+.t-nav .tab.active{background:var(--accent-light);color:var(--accent-text)}
+.t-nav .tab.active::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3.5px;border-radius:0 4px 4px 0;background:var(--accent)}
+.t-sb-foot{padding:12px;border-top:1px solid var(--border)}
+.t-sb-foot .badge-line{font-size:11.5px;color:var(--muted);padding:6px 13px;margin-bottom:4px}
+.t-logout{display:flex;align-items:center;gap:12px;width:100%;border:none;background:none;color:var(--muted);padding:11px 13px;border-radius:11px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:.13s}
+.t-logout svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.t-logout:hover{color:var(--danger);background:var(--danger-light)}
+.t-main-col{flex:1;min-width:0;display:flex;flex-direction:column}
+.t-topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--border);padding:13px 26px;display:flex;align-items:center;gap:12px;justify-content:space-between}
+.t-topbar h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400}
+.t-topbar .sub{font-size:12px;color:var(--muted)}
+.t-menu-btn{display:none;width:40px;height:40px;border-radius:11px;background:var(--bg);border:1px solid var(--border);align-items:center;justify-content:center;cursor:pointer}
+.t-menu-btn svg{width:22px;height:22px;stroke:var(--text);stroke-width:2;fill:none}
+.t-sb-backdrop{display:none;position:fixed;inset:0;background:rgba(20,25,15,.4);z-index:45}
+.t-sb-backdrop.show{display:block}
+/* premium stat cards */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 1px 3px rgba(20,40,15,.05)}
+.stat-num{font-family:'DM Serif Display',serif;font-size:28px;font-weight:400;color:var(--text)}
+.stat-lbl{font-size:12.5px;color:var(--muted);margin-top:2px}
+.stat .tile{width:48px;height:48px;border-radius:14px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat .tile svg{width:24px;height:24px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.tile.gold{background:var(--gold-light);color:var(--gold)}
+.tile.blue{background:#e8f1fb;color:#1f6fd4}
+.ico{width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px}
+@media(max-width:900px){
+  .t-sidebar{position:fixed;left:0;top:0;bottom:0;z-index:50;transform:translateX(-100%);transition:transform .25s}
+  .t-sidebar.open{transform:translateX(0)}
+  .t-menu-btn{display:flex}
+  .stats-row{grid-template-columns:1fr}
+}
 .logo{font-family:'DM Serif Display',serif;font-size:18px;color:var(--accent)}
 .header-right{display:flex;align-items:center;gap:12px}
 .teacher-badge{background:var(--accent-light);color:var(--accent-text);padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600}
@@ -105,33 +148,55 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 <div id="app-screen" style="display:none">
-  <div class="header">
-    <div class="logo">GhostDigitals Academy</div>
-    <div class="header-right">
-      <div class="teacher-badge" id="teacher-badge">👨‍🏫 Teacher</div>
-      <button class="logout-btn" onclick="logout()">Sign out</button>
-    </div>
-  </div>
+  <div class="t-shell">
+    <aside class="t-sidebar" id="t-sidebar">
+      <div class="t-sb-brand">
+        <div class="mark">GD</div>
+        <div class="txt"><strong>GhostDigitals</strong><span>Teacher Portal</span></div>
+      </div>
+      <nav class="t-nav">
+        <div class="t-sb-sec">Teaching</div>
+        <button class="tab active" onclick="switchTab('sessions',this)">
+          <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>Sessions</span>
+        </button>
+        <button class="tab" onclick="switchTab('codes',this)">
+          <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg><span>Class Codes</span>
+        </button>
+        <button class="tab" onclick="switchTab('attendance',this)">
+          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Attendance</span>
+        </button>
+        <button class="tab" onclick="switchTab('quizzes',this)">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg><span>Quiz Results</span>
+        </button>
+      </nav>
+      <div class="t-sb-foot">
+        <div class="badge-line" id="teacher-badge">Teacher</div>
+        <button class="t-logout" onclick="logout()">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span>Sign out</span>
+        </button>
+      </div>
+    </aside>
+    <div class="t-sb-backdrop" id="t-sb-backdrop" onclick="closeTeacherSidebar()"></div>
+
+    <div class="t-main-col">
+      <header class="t-topbar">
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="t-menu-btn" onclick="toggleTeacherSidebar()"><svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+          <div><h2 id="page-title">Teacher Dashboard</h2><span class="sub" id="page-sub">Manage your sessions and generate class codes</span></div>
+        </div>
+      </header>
   <div class="main">
-    <div class="page-title" id="page-title">Teacher Dashboard</div>
-    <div class="page-sub">Manage your sessions and generate class codes</div>
     <div class="stats-row">
-      <div class="stat"><div class="stat-num" id="stat-sessions">0</div><div class="stat-lbl">Total Sessions</div></div>
-      <div class="stat"><div class="stat-num" id="stat-codes">0</div><div class="stat-lbl">Codes Generated</div></div>
-      <div class="stat"><div class="stat-num" id="stat-used">0</div><div class="stat-lbl">Codes Used</div></div>
-    </div>
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('sessions',this)">📚 Sessions</button>
-      <button class="tab" onclick="switchTab('codes',this)">🔑 Class Codes</button>
-      <button class="tab" onclick="switchTab('attendance',this)">✅ Attendance</button>
-      <button class="tab" onclick="switchTab('quizzes',this)">📝 Quiz Results</button>
+      <div class="stat"><div><div class="stat-num" id="stat-sessions">0</div><div class="stat-lbl">Total Sessions</div></div><div class="tile"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div></div>
+      <div class="stat"><div><div class="stat-num" id="stat-codes">0</div><div class="stat-lbl">Codes Generated</div></div><div class="tile gold"><svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></div></div>
+      <div class="stat"><div><div class="stat-num" id="stat-used">0</div><div class="stat-lbl">Codes Used</div></div><div class="tile blue"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div></div>
     </div>
     <div class="tab-content active" id="tab-sessions">
       <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:16px">
-        <button class="btn btn-outline" onclick="openUploadModal()">📄 Upload Course PDF</button>
+        <button class="btn btn-outline" onclick="openUploadModal()"><svg viewBox="0 0 24 24" class="ico"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> Upload Course PDF</button>
         <button class="btn btn-primary" onclick="openNewSessionModal()">+ New Session</button>
       </div>
-      <div id="sessions-list"><div class="empty"><div class="empty-icon">📚</div>No sessions yet. Create one or upload a course PDF!</div></div>
+      <div id="sessions-list"><div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" style="width:38px;height:38px;stroke:#c9d2c2;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>No sessions yet. Create one or upload a course PDF!</div></div>
     </div>
     <div class="tab-content" id="tab-codes">
       <div class="card">
@@ -139,8 +204,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="field"><label>Select Session</label><select id="code-session-select" onchange="onCodeSessionChange()"><option value="">— Choose a session —</option></select></div>
         <div class="field"><label>Number of Codes</label><input type="number" id="code-count" value="20" min="1" max="100"></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="generateCodes()">🔑 Generate Codes</button>
-          <button class="btn btn-danger" onclick="deactivateSessionCodes()">🚫 Deactivate All</button>
+          <button class="btn btn-primary" onclick="generateCodes()"><svg viewBox="0 0 24 24" class="ico"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Generate Codes</button>
+          <button class="btn btn-danger" onclick="deactivateSessionCodes()">Deactivate All</button>
         </div>
       </div>
       <div id="codes-display"></div>
@@ -169,7 +234,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="card">
           <div class="card-header">
             <div class="card-title">Live Attendance <span id="att-count" style="color:var(--accent)"></span></div>
-            <button class="btn btn-outline" style="font-size:13px;padding:6px 14px" onclick="loadAttendance()">↻ Refresh</button>
+            <button class="btn btn-outline" style="font-size:13px;padding:6px 14px" onclick="loadAttendance()">Refresh</button>
           </div>
           <div id="att-list"></div>
         </div>
@@ -188,12 +253,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div id="quiz-results-wrap"></div>
     </div>
   </div>
+    </div>
+  </div>
 </div>
 
 <!-- Upload Course PDF Modal -->
 <div class="modal-overlay" id="upload-modal" onclick="closeModalIf(event,'upload-modal')">
   <div class="modal" style="max-width:520px;max-height:90vh;overflow-y:auto">
-    <h3>📄 Upload Course PDF</h3>
+    <h3><svg viewBox="0 0 24 24" class="ico"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> Upload Course PDF</h3>
     <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Upload your PDF and enter the module titles. Sessions will be created automatically.</p>
     <div class="alert alert-danger" id="upload-alert"></div>
 
@@ -341,8 +408,8 @@ function logout(){
 function showApp(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app-screen').style.display='';
-  document.getElementById('teacher-badge').textContent=`👨‍🏫 ${teacherData.label} Teacher`;
-  document.getElementById('page-title').textContent=`${teacherData.label} — Teacher Portal`;
+  document.getElementById('teacher-badge').textContent=`${teacherData.label} Teacher`;
+  document.getElementById('page-title').textContent='Sessions';
   loadData();
 }
 
@@ -386,10 +453,10 @@ function renderQuizResultsTab(){
 function renderQuizResults(){
   const sessionId = document.getElementById('quiz-results-session-select').value;
   const wrap = document.getElementById('quiz-results-wrap');
-  if(!sessionId){ wrap.innerHTML = '<div class="empty"><div class="empty-icon">📝</div>Select a session to view quiz results.</div>'; return; }
+  if(!sessionId){ wrap.innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" style="width:38px;height:38px;stroke:#c9d2c2;stroke-width:1.5;fill:none"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg></div>Select a session to view quiz results.</div>'; return; }
   const session = sessions.find(s=>s.id===sessionId);
   const results = quizResults.filter(r=>r.sessionId===sessionId).sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt));
-  if(!results.length){ wrap.innerHTML = '<div class="empty"><div class="empty-icon">📝</div>No quiz submissions yet for this session.</div>'; return; }
+  if(!results.length){ wrap.innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" style="width:38px;height:38px;stroke:#c9d2c2;stroke-width:1.5;fill:none"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg></div>No quiz submissions yet for this session.</div>'; return; }
 
   const avg = Math.round(results.reduce((s,r)=>s+r.percent,0)/results.length);
   const completed = results.filter(r=>!r.quit).length;
@@ -523,7 +590,7 @@ function updateTimerDisplay(sessionId){
 
 function renderSessions(){
   const el = document.getElementById('sessions-list');
-  if(!sessions.length){ el.innerHTML='<div class="empty"><div class="empty-icon">📚</div>No sessions yet. Create your first session!</div>'; return; }
+  if(!sessions.length){ el.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" style="width:38px;height:38px;stroke:#c9d2c2;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>No sessions yet. Create your first session!</div>'; return; }
 
   // Bulk action toolbar
   const toolbar = `
@@ -667,11 +734,24 @@ function showCodesForSession(sessionId){
   el.innerHTML=`<div class="card"><div style="font-size:13px;color:var(--muted);margin-bottom:12px">${sessionCodes.length} codes · <span style="color:var(--accent)">${active.length} available</span> · ${used.length} used · ${dead.length} deactivated</div><div class="codes-grid">${sessionCodes.map(c=>`<div class="code-chip ${c.usedBy||!c.active?'used':''}"><div class="code-val">${c.code}</div><div class="code-status">${!c.active?'Dead':c.usedBy?'Used':'Available'}</div></div>`).join('')}</div></div>`;
 }
 
+const T_TAB_META={sessions:['Sessions','Create and manage your course sessions'],codes:['Class Codes','Generate access codes for students'],attendance:['Attendance','Live QR attendance tracking'],quizzes:['Quiz Results','Student quiz performance']};
 function switchTab(tab,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
+  if(el) el.classList.add('active');
+  else { const b=document.querySelector('.t-nav .tab[onclick*="\''+tab+'\'"]'); if(b)b.classList.add('active'); }
   document.getElementById('tab-'+tab).classList.add('active');
+  const meta=T_TAB_META[tab];
+  if(meta){ const h=document.getElementById('page-title'),s=document.getElementById('page-sub'); if(h&&teacherData)h.textContent=meta[0]; if(s)s.textContent=meta[1]; }
+  closeTeacherSidebar();
+}
+function toggleTeacherSidebar(){
+  document.getElementById('t-sidebar').classList.toggle('open');
+  document.getElementById('t-sb-backdrop').classList.toggle('show');
+}
+function closeTeacherSidebar(){
+  var sb=document.getElementById('t-sidebar'); if(sb)sb.classList.remove('open');
+  var bd=document.getElementById('t-sb-backdrop'); if(bd)bd.classList.remove('show');
 }
 
 function openNewSessionModal(){ document.getElementById('session-modal').classList.add('open'); document.getElementById('s-title').focus(); }
