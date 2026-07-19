@@ -221,6 +221,237 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   }
 
+  // ── Announcements (teacher) ───────────────────────────────
+  if (action === 'announcements' && req.method === 'GET') {
+    let course = null;
+    if (teacherKeyValid(teacherKey, data)) { const t = resolveTeacher(teacherKey, data); course = t ? t.course : null; }
+    else if (studentId) { const st = (data.students || []).find(s => s.portalId === studentId); if (st) course = st.course; else return res.status(401).json({ error: 'Unauthorized' }); }
+    else if (adminKey !== process.env.ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+    const matchCourse = (a) => { if (!course) return true; if (course === 'all' || course === 'all3') return true; return course.split('+').includes(a.course) || course.includes(a.course); };
+    const list = (data.announcements || []).filter(matchCourse)
+      .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    return res.status(200).json({ ok: true, announcements: list });
+  }
+  if (action === 'announcement' && req.method === 'POST') {
+    if (!teacherKeyValid(teacherKey, data)) return res.status(401).json({ error: 'Unauthorized' });
+    const t = resolveTeacher(teacherKey, data);
+    const body = await parseJSON(req);
+    if (!body.text || !body.text.trim()) return res.status(400).json({ error: 'Message is required' });
+    if (!data.announcements) data.announcements = [];
+    const ann = { id: 'ann_' + Date.now(), course: t.course, courseLabel: t.label, text: body.text.trim(), createdAt: new Date().toISOString() };
+    data.announcements.push(ann);
+    await setData(data);
+    return res.status(201).json({ ok: true, announcement: ann });
+  }
+  if (action === 'announcement' && req.method === 'DELETE') {
+    if (!teacherKeyValid(teacherKey, data)) return res.status(401).json({ error: 'Unauthorized' });
+    const id = req.query.id;
+    data.announcements = (data.announcements || []).filter(a => a.id !== id);
+    await setData(data);
+    return res.status(200).json({ ok: true });
+  }
+
+  // ── Teacher roster: students in this teacher's course ──────
+  if (action === 'roster' && req.method === 'GET') {
+    if (!teacherKeyValid(teacherKey, data)) return res.status(401).json({ error: 'Unauthorized' });
+    const t = resolveTeacher(teacherKey, data);
+    const tid = String(t.course);
+    const tlabel = (t.label || '').toLowerCase().trim();
+    const inCourse = (s) => {
+      const c = String(s.course || '');
+      if (!c) return false;
+      if (c === 'all' || c === 'all3') return true;          // bundle = every course
+      if (c === 'both') return tid === 'digital' || tid === 'event';
+      const segs = c.split('+').map(x => x.trim());
+      if (segs.includes(tid)) return true;                    // exact course id
+      // fallbacks for label-based or mismatched stored values
+      const clabel = (s.courseLabel || '').toLowerCase().trim();
+      if (tlabel && clabel && (clabel === tlabel || clabel.includes(tlabel))) return true;
+      if (tlabel && segs.some(x => x.toLowerCase() === tlabel)) return true;
+      return false;
+    };
+    const roster = (data.students || []).filter(inCourse).map(s => ({
+      id: s.id, name: s.name, phone: s.phone, photoUrl: s.photoUrl || '', age: s.age || null, gender: s.gender || '',
+      portalId: s.portalId || '', batchId: s.batchId || null, batchName: s.batchName || null,
+      status: s.status || 'ongoing', classType: s.classType || 'in-person',
+    }));
+    const _debug = {
+      teacherCourse: tid, teacherLabel: t.label,
+      totalStudents: (data.students || []).length,
+      distinctStudentCourses: [...new Set((data.students || []).map(s => s.course))].slice(0, 20),
+    };
+    return res.status(200).json({ ok: true, roster, batches: (data.batches || []).filter(b => b.status !== 'archived'), _debug });
+  }
+
+  // ── Exams ─────────────────────────────────────────────────
+  if (action === 'exams' && req.method === 'GET') {
+    if (!teacherKeyValid(teacherKey, data)) return res.status(401).json({ error: 'Unauthorized' });
+    const t = resolveTeacher(teacherKey, data);
+    const exams = (data.exams || []).filter(e => e.course === t.course);
+    const results = (data.examResults || []).filter(r => exams.some(e => e.id === r.examId));
+    return res.status(200).json({ ok: true, exams, results });
+  }
+  if (action === 'exam' && req.method === 'POST') {
+    if (!teacherKeyValid(teacherKey, data)) return res.status(401).json({ error: 'Unauthorized' });
+    const t = resolveTeacher(teacherKey, data);
+    const body = await parseJSON(req);
+    if (!body.title || !body.title.trim()) return res.status(400).json({ error: 'Exam title is required' });
+    if (!Array.isArray(body.questions) || !body.questions.length) return res.status(400).json({ error: 'Add at least one question' });
+    if (!data.exams) data.exams = [];
+    const now = new Date().toISOString();
+    if (body.id) {
+      const ex = data.exams.find(e => e.id === body.id && e.course === t.course);
+      if (!ex) return res.status(404).json({ error: 'Exam not found' });
+      Object.assign(ex, {
+        title: body.title.trim(), description: body.description || '',
+        timeLimit: parseInt(body.timeLimit) || 0, passMark: parseInt(body.passMark) || 50,
+        questions: body.questions, assignType: body.assignType || 'batch',
+        batchId: body.batchId || null, studentIds: Array.isArray(body.studentIds) ? body.studentIds : [],
+        published: !!body.published, updatedAt: now,
+      });
+      await setData(data);
+      return res.status(200).json({ ok: true, exam: ex });
+    }
+    const exam = {
+      id: 'exam_' + Date.now(), course: t.course, courseLabel: t.label,
+      title: body.title.trim(), description: body.description || '',
+      timeLimit: parseInt(body.timeLimit) || 0, passMark: parseInt(body.passMark) || 50,
+      questions: body.questions, assignType: body.assignType || 'batch',
+      batchId: body.batchId || null, studentIds: Array.isArray(body.studentIds) ? body.studentIds : [],
+      published: !!body.published, createdAt: now,
+    };
+    data.exams.push(exam);
+    await setData(data);
+    return res.status(201).json({ ok: true, exam });
+  }
+  if (action === 'exam' && req.method === 'DELETE') {
+    if (!teacherKeyValid(teacherKey, data)) return res.status(401).json({ error: 'Unauthorized' });
+    const id = req.query.id;
+    data.exams = (data.exams || []).filter(e => e.id !== id);
+    data.examResults = (data.examResults || []).filter(r => r.examId !== id);
+    await setData(data);
+    return res.status(200).json({ ok: true });
+  }
+  // Teacher adjusts a result's score (for written answers)
+  if (action === 'grade-result' && req.method === 'POST') {
+    if (!teacherKeyValid(teacherKey, data)) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    const r = (data.examResults || []).find(x => x.id === body.resultId);
+    if (!r) return res.status(404).json({ error: 'Result not found' });
+    if (body.score !== undefined) r.score = Math.max(0, parseInt(body.score) || 0);
+    const exam = (data.exams || []).find(e => e.id === r.examId);
+    if (exam) r.passed = r.total ? (r.score / r.total * 100) >= (exam.passMark || 50) : false;
+    r.gradedBy = resolveTeacher(teacherKey, data)?.label || 'teacher';
+    await setData(data);
+    return res.status(200).json({ ok: true, result: r });
+  }
+
+  // ── Modules & Sessions (new system) ───────────────────────
+  // Teacher: list modules + sessions for their course
+  if (action === 'modules' && req.method === 'GET') {
+    if (!teacherKeyValid(teacherKey, data)) return res.status(401).json({ error: 'Unauthorized' });
+    const t = resolveTeacher(teacherKey, data);
+    const modules = (data.modules || []).filter(m => m.course === t.course)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+    const msessions = (data.moduleSessions || []).filter(s => s.course === t.course);
+    const att = (data.moduleAttendance || []).filter(a => msessions.some(s => s.id === a.sessionId));
+    return res.status(200).json({ ok: true, modules, sessions: msessions, attendance: att });
+  }
+  // Teacher: create/update module
+  if (action === 'module' && req.method === 'POST') {
+    if (!teacherKeyValid(teacherKey, data)) return res.status(401).json({ error: 'Unauthorized' });
+    const t = resolveTeacher(teacherKey, data);
+    const body = await parseJSON(req);
+    if (!body.title || !body.title.trim()) return res.status(400).json({ error: 'Module title is required' });
+    if (!data.modules) data.modules = [];
+    if (body.id) {
+      const m = data.modules.find(x => x.id === body.id && x.course === t.course);
+      if (!m) return res.status(404).json({ error: 'Module not found' });
+      m.title = body.title.trim(); m.description = body.description || '';
+      await setData(data); return res.status(200).json({ ok: true, module: m });
+    }
+    const mod = { id: 'mod_' + Date.now(), course: t.course, courseLabel: t.label, title: body.title.trim(), description: body.description || '', order: (data.modules.filter(m => m.course === t.course).length + 1), createdAt: new Date().toISOString() };
+    data.modules.push(mod);
+    await setData(data); return res.status(201).json({ ok: true, module: mod });
+  }
+  if (action === 'module' && req.method === 'DELETE') {
+    if (!teacherKeyValid(teacherKey, data)) return res.status(401).json({ error: 'Unauthorized' });
+    const id = req.query.id;
+    data.modules = (data.modules || []).filter(m => m.id !== id);
+    const removed = (data.moduleSessions || []).filter(s => s.moduleId === id).map(s => s.id);
+    data.moduleSessions = (data.moduleSessions || []).filter(s => s.moduleId !== id);
+    data.moduleAttendance = (data.moduleAttendance || []).filter(a => !removed.includes(a.sessionId));
+    await setData(data); return res.status(200).json({ ok: true });
+  }
+  // Teacher: create/update session
+  if (action === 'msession' && req.method === 'POST') {
+    if (!teacherKeyValid(teacherKey, data)) return res.status(401).json({ error: 'Unauthorized' });
+    const t = resolveTeacher(teacherKey, data);
+    const body = await parseJSON(req);
+    if (!body.title || !body.title.trim()) return res.status(400).json({ error: 'Session title is required' });
+    if (!body.moduleId) return res.status(400).json({ error: 'Module is required' });
+    if (!data.moduleSessions) data.moduleSessions = [];
+    const fields = {
+      moduleId: body.moduleId, title: body.title.trim(), content: body.content || '',
+      pdfUrl: body.pdfUrl || '', pageLimit: parseInt(body.pageLimit) || 0,
+      locked: !!body.locked,
+    };
+    if (body.id) {
+      const s = data.moduleSessions.find(x => x.id === body.id && x.course === t.course);
+      if (!s) return res.status(404).json({ error: 'Session not found' });
+      Object.assign(s, fields);
+      await setData(data); return res.status(200).json({ ok: true, session: s });
+    }
+    const sess = { id: 'msess_' + Date.now(), course: t.course, order: (data.moduleSessions.filter(s => s.moduleId === body.moduleId).length + 1), ...fields, createdAt: new Date().toISOString() };
+    data.moduleSessions.push(sess);
+    await setData(data); return res.status(201).json({ ok: true, session: sess });
+  }
+  if (action === 'msession' && req.method === 'DELETE') {
+    if (!teacherKeyValid(teacherKey, data)) return res.status(401).json({ error: 'Unauthorized' });
+    const id = req.query.id;
+    data.moduleSessions = (data.moduleSessions || []).filter(s => s.id !== id);
+    data.moduleAttendance = (data.moduleAttendance || []).filter(a => a.sessionId !== id);
+    await setData(data); return res.status(200).json({ ok: true });
+  }
+
+  // Student: list modules+sessions for their course
+  if (action === 'student-modules' && req.method === 'GET' && studentId) {
+    const student = (data.students || []).find(s => s.portalId === studentId);
+    if (!student) return res.status(401).json({ error: 'Unauthorized' });
+    const c = String(student.course || '');
+    const segs = c.split('+').map(x => x.trim());
+    const clabel = (student.courseLabel || '').toLowerCase().trim();
+    const inCourse = (x) => {
+      if (c === 'all' || c === 'all3') return true;
+      if (c === 'both') return x.course === 'digital' || x.course === 'event';
+      if (segs.includes(x.course)) return true;
+      const xlabel = (x.courseLabel || '').toLowerCase().trim();
+      if (clabel && xlabel && (clabel === xlabel || xlabel.includes(clabel) || clabel.includes(xlabel))) return true;
+      return false;
+    };
+    const modules = (data.modules || []).filter(inCourse).sort((a, b) => (a.order || 0) - (b.order || 0));
+    const sessions = (data.moduleSessions || []).filter(s => modules.some(m => m.id === s.moduleId))
+      .map(s => ({ id: s.id, moduleId: s.moduleId, title: s.title, locked: !!s.locked, hasPdf: !!s.pdfUrl, hasContent: !!s.content, order: s.order }));
+    return res.status(200).json({ ok: true, modules, sessions });
+  }
+  // Student: open a session -> returns content + auto-marks attendance
+  if (action === 'open-session' && req.method === 'POST' && studentId) {
+    const student = (data.students || []).find(s => s.portalId === studentId);
+    if (!student) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    const sess = (data.moduleSessions || []).find(s => s.id === body.sessionId);
+    if (!sess) return res.status(404).json({ error: 'Session not found' });
+    if (sess.locked) return res.status(403).json({ error: 'This session is locked.' });
+    // auto-mark attendance (once per student per session)
+    if (!data.moduleAttendance) data.moduleAttendance = [];
+    const already = data.moduleAttendance.find(a => a.sessionId === sess.id && a.studentId === student.id);
+    if (!already) {
+      data.moduleAttendance.push({ id: 'matt_' + Date.now(), sessionId: sess.id, studentId: student.id, studentName: student.name, studentPhone: student.phone || '', markedAt: new Date().toISOString() });
+      await setData(data);
+    }
+    return res.status(200).json({ ok: true, session: { id: sess.id, title: sess.title, content: sess.content || '', pdfUrl: sess.pdfUrl || '', pageLimit: sess.pageLimit || 0 } });
+  }
+
   // ── Student auth (replaces student-auth.js) ────────────────
   if (req.method === 'POST' && action === 'student-login') {
     const body = await parseJSON(req);
