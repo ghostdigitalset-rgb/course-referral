@@ -5,7 +5,7 @@ export const config = {
 };
 
 const MAX_BYTES = 4 * 1024 * 1024; // 4MB (Vercel server functions cap request bodies at 4.5MB)
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf'];
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
 
   const contentType = (req.headers['content-type'] || '').split(';')[0].trim();
   if (!ALLOWED_TYPES.includes(contentType)) {
-    return res.status(400).json({ error: 'Please upload a JPG, PNG, WEBP, or HEIC image (got: ' + (contentType || 'unknown') + ')' });
+    return res.status(400).json({ error: 'Please upload a JPG, PNG, WEBP, HEIC image or PDF (got: ' + (contentType || 'unknown') + ')' });
   }
 
   let buffer;
@@ -55,7 +55,8 @@ export default async function handler(req, res) {
 
   try {
     const ext = contentType.split('/')[1] || 'jpg';
-    const filename = `payment-proof/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const folder = contentType === 'application/pdf' ? 'course-pdf' : 'payment-proof';
+    const filename = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
     const blob = await put(filename, buffer, {
       access: 'public',
@@ -69,4 +70,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Upload failed: ' + (e && e.message ? e.message : 'unknown error') });
   }
 }
-
