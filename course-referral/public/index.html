@@ -1604,7 +1604,7 @@ function renderAdminDashboard(){
   renderAdminCharts(counts, students);
   renderRepsTable(reps);
   renderStudentsTable(students,reps);
-  renderCourseCards();
+  renderStudentCourseCards();
   if(_activeCourse){ /* refresh count label if inside a course */ const c=COURSES.find(x=>x.id===_activeCourse); const lbl=_activeCourse==='__other__'?'Other':(c?c.name:'Course'); const cnt=students.filter(s=>studentInCourse(s,_activeCourse)).length; const el=document.getElementById('students-count-label'); if(el)el.textContent=lbl+' — '+cnt+' student'+(cnt!==1?'s':''); }
   if(adminData.settings) populateSettingsForm(adminData.settings);
 }
@@ -1972,7 +1972,7 @@ function studentInCourse(s, courseId){
   return c.split('+').includes(courseId);
 }
 
-function renderCourseCards(){
+function renderStudentCourseCards(){
   const grid = document.getElementById('course-cards-grid');
   if(!grid) return;
   const students = (adminData&&adminData.students)||[];
@@ -2013,7 +2013,7 @@ function backToCourses(){
   _activeCourse = null;
   document.getElementById('students-list-view').style.display='none';
   document.getElementById('students-course-view').style.display='block';
-  renderCourseCards();
+  renderStudentCourseCards();
 }
 
 function filterStudents(){
