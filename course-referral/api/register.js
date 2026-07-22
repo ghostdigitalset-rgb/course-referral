@@ -15,7 +15,7 @@ function generatePortalId(existingIds = new Set()) {
   return id;
 }
 
-function resolveCourse(course, courseLabel, fee) {
+function resolveCourse(course, courseLabel, fee, dynamicCourses = []) {
   // All 3 bundle shortcut
   if (course === 'all3' || course === 'both') {
     return {
@@ -25,7 +25,7 @@ function resolveCourse(course, courseLabel, fee) {
     };
   }
 
-  // Single known course
+  // Single known base course
   if (BASE_FEES[course] != null) {
     return {
       courseKey: course,
@@ -34,13 +34,31 @@ function resolveCourse(course, courseLabel, fee) {
     };
   }
 
+  // Dynamic course created in admin Settings
+  const dynCourse = dynamicCourses.find(c => String(c.id) === String(course));
+  if (dynCourse) {
+    return {
+      courseKey: String(dynCourse.id),
+      courseLabel: courseLabel || dynCourse.name || String(dynCourse.id),
+      fee: fee != null ? fee : (dynCourse.fee || dynCourse.price || 0)
+    };
+  }
+
   // Combo like "digital+event" or "digital+ai" etc.
   if (course && course.includes('+')) {
-    const parts = course.split('+').filter(p => BASE_FEES[p] != null);
+    const parts = course.split('+').filter(p => BASE_FEES[p] != null || dynamicCourses.some(c => String(c.id) === p));
     if (parts.length < 2) return null;
     const all3 = ['digital', 'event', 'ai'].every(k => parts.includes(k));
-    const computedFee = all3 ? BUNDLE_PRICE : parts.reduce((s, k) => s + BASE_FEES[k], 0);
-    const computedLabel = all3 ? 'All 3 courses' : parts.map(k => BASE_LABELS[k]).join(' + ');
+    const computedFee = all3 ? BUNDLE_PRICE : parts.reduce((s, k) => {
+      if (BASE_FEES[k] != null) return s + BASE_FEES[k];
+      const dc = dynamicCourses.find(c => String(c.id) === k);
+      return s + (dc ? (dc.fee || dc.price || 0) : 0);
+    }, 0);
+    const computedLabel = all3 ? 'All 3 courses' : parts.map(k => {
+      if (BASE_LABELS[k]) return BASE_LABELS[k];
+      const dc = dynamicCourses.find(c => String(c.id) === k);
+      return dc ? dc.name : k;
+    }).join(' + ');
     return {
       courseKey: all3 ? 'all3' : course,
       courseLabel: courseLabel || computedLabel,
@@ -69,7 +87,10 @@ export default async function handler(req, res) {
   if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
   if (!phone || !phone.trim()) return res.status(400).json({ error: 'Phone is required' });
 
-  const resolved = resolveCourse(course, courseLabel, fee);
+  const data = await getData();
+  const dynamicCourses = (data?.settings?.courses) || [];
+
+  const resolved = resolveCourse(course, courseLabel, fee, dynamicCourses);
   if (!resolved) return res.status(400).json({ error: 'Invalid course selection' });
 
   if (!paymentMethod || !PAYMENT_METHODS[paymentMethod]) {
@@ -80,8 +101,6 @@ export default async function handler(req, res) {
   if (!manualEntry && (!proofPathname || !proofPathname.trim())) {
     return res.status(400).json({ error: 'Please attach your proof of payment' });
   }
-
-  const data = await getData();
 
   // Generate unique portal ID for student
   const existingPortalIds = new Set(data.students.map(s => s.portalId).filter(Boolean));
