@@ -342,10 +342,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <!-- Exam Taking Overlay -->
 <div class="exam-overlay" id="exam-overlay">
   <div class="exam-hd">
-    <button class="btn-nav" id="exam-back-btn" onclick="confirmExitExam()">
+    <button class="btn-nav" id="exam-back-btn" onclick="confirmExitExam()" style="display:none">
       <svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg> Exit
     </button>
     <h2 id="exam-title">Exam</h2>
+    <div id="exam-lock-warning" style="display:none;background:#fdf3f3;border:1px solid #f5c6c6;color:#c0392b;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;white-space:nowrap">
+      ⚠ Exiting will give you a 0
+    </div>
     <div class="exam-timer" id="exam-timer">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
       <span id="exam-timer-text">30:00</span>
@@ -838,9 +841,15 @@ async function startExam(examId){
     document.getElementById('exam-title').textContent=activeExam.title;
     document.getElementById('exam-q-total').textContent=activeExam.questions.length;
     document.getElementById('exam-overlay').classList.add('open');
+    document.getElementById('exam-lock-warning').style.display='block';
+    document.getElementById('exam-back-btn').style.display='none';
     renderExamQuestion();
     buildQDots();
     startExamTimer();
+    // Lock student in — block page leave and back button
+    window.addEventListener('beforeunload', blockPageLeave);
+    history.pushState(null,'',window.location.href);
+    window.addEventListener('popstate', blockBackButton);
   }catch(e){ alert(e.message); }
 }
 
@@ -939,13 +948,45 @@ function updateQDots(){
 function jumpToQ(i){ examCurrentQ=i; renderExamQuestion(); }
 
 function confirmExitExam(){
-  if(confirm('Are you sure you want to exit? Your progress will be lost.')) closeExamOverlay();
+  // Only called from result screen after submission — safe to close
+  closeExamOverlay();
+}
+
+async function forceSubmitZero(){
+  // Student tried to leave mid-exam — submit with 0
+  const examId = activeExam ? activeExam.id : null;
+  clearInterval(examTimerInterval);
+  activeExam=null; examAnswers={}; examCurrentQ=0;
+  if(examId){
+    try{
+      await fetch('/api/sessions?action=submit-exam',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-student-id':student.portalId},
+        body:JSON.stringify({examId, answers:{}, forceZero:true})
+      });
+    }catch(e){}
+  }
 }
 
 function closeExamOverlay(){
   clearInterval(examTimerInterval);
+  window.removeEventListener('beforeunload', blockPageLeave);
+  window.removeEventListener('popstate', blockBackButton);
   document.getElementById('exam-overlay').classList.remove('open');
+  document.getElementById('exam-lock-warning').style.display='none';
   activeExam=null; examAnswers={}; examCurrentQ=0;
+}
+
+function blockPageLeave(e){
+  if(!activeExam) return;
+  e.preventDefault();
+  e.returnValue='You are in the middle of an exam. Leaving will result in an automatic score of 0.';
+  return e.returnValue;
+}
+
+function blockBackButton(){
+  if(!activeExam) return;
+  history.pushState(null,'',window.location.href);
 }
 
 async function submitExam(auto=false){
