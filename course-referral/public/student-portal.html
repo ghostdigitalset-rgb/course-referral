@@ -713,10 +713,8 @@ async function loadViewerSession(id){
     if(s.content){
       const c=document.getElementById('v-content');
       // Render line breaks as paragraphs
-      c.innerHTML=s.content.split(/
+      const nl='\n'; c.innerHTML=s.content.split(nl+nl).map(p=>`<p>${escapeHtml(p.trim()).split(nl).join('<br>')}</p>`).filter(p=>p!=='<p></p>').join('');
 
-+/).map(p=>`<p>${escapeHtml(p.trim()).replace(/
-/g,'<br>')}</p>`).join('');
       c.style.display='block';
     }
     if(s.pdfUrl){
