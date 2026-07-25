@@ -829,9 +829,10 @@ function viewResults(examId){
       rs.map(r=>{
         const pct=r.total?Math.round(r.score/r.total*100):0;
         const nm=(roster.find(s=>s.id===r.studentId)||{}).name||r.studentName||'Student';
-        return `<tr><td>${escapeHtml(nm)}</td><td><strong>${r.score}/${r.total}</strong> (${pct}%)</td>
+        const pendingBadge=r.pendingGrade?'<span class="pill pill-hold" style="font-size:10px;margin-left:4px">Needs grading</span>':'';
+        return `<tr><td>${escapeHtml(nm)}${pendingBadge}</td><td><strong>${r.score}/${r.total}</strong> (${pct}%)</td>
           <td>${r.passed?'<span class="pill pill-completed">Pass</span>':'<span class="pill pill-dropped">Fail</span>'}</td>
-          <td><button class="btn btn-outline btn-sm" onclick="viewAnswers('${r.id}')">View / adjust</button></td></tr>`;
+          <td><button class="btn btn-outline btn-sm" onclick="viewAnswers('${r.id}')">View / grade</button></td></tr>`;
       }).join('')
     }</tbody></table>`;
   }
@@ -844,25 +845,49 @@ function viewAnswers(resultId){
   const nm=(roster.find(s=>s.id===r.studentId)||{}).name||r.studentName||'Student';
   document.getElementById('answers-modal-title').textContent=nm+' — Answers';
   const ans=r.answers||{};
+  const qResults={}; (r.questionResults||[]).forEach(qr=>{ qResults[qr.questionId]=qr; });
   const body=document.getElementById('answers-body');
-  body.innerHTML=(ex.questions||[]).map((q,i)=>{
-    const a=ans[q.id];
-    let display='', correct=false;
-    if(q.type==='mc'){ display=q.options[a]!==undefined?q.options[a]:'—'; correct=(a===q.correct); }
-    else if(q.type==='tf'){ display=a||'—'; correct=(a===q.correct); }
-    else { display=a||'—'; }
-    const tag=q.type==='written'?'<span class="pill pill-hold">Manual</span>':(correct?'<span class="pill pill-completed">Correct</span>':'<span class="pill pill-dropped">Wrong</span>');
-    return `<div class="card" style="padding:14px;margin-bottom:10px">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Q${i+1} ${tag}</div>
-      <div style="font-weight:600;margin-bottom:6px">${escapeHtml(q.text)}</div>
-      <div style="font-size:13.5px">Answer: <strong>${escapeHtml(display)}</strong></div>
-    </div>`;
-  }).join('')+`
-    <div class="card" style="padding:14px;background:var(--bg)">
-      <label style="font-size:13px;font-weight:600">Adjust final score (out of ${r.total})</label>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <input type="number" id="adjust-score" value="${r.score}" min="0" max="${r.total}" style="width:100px;padding:8px 12px;border:1px solid var(--border);border-radius:8px">
-        <button class="btn btn-primary btn-sm" onclick="saveGrade('${r.id}')">Save score</button>
+  const pct=r.total?Math.round(r.score/r.total*100):0;
+  const hasWritten=r.hasWritten||(ex.questions||[]).some(q=>q.type==='written'||q.type==='essay'||q.type==='short'||q.type==='text'||(!q.options?.length&&q.type!=='tf'&&q.type!=='truefalse'));
+  body.innerHTML=`
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;gap:20px;flex-wrap:wrap">
+      <div><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase">Score</div><div style="font-size:20px;font-weight:800">${r.score}/${r.total}</div></div>
+      <div><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase">Percent</div><div style="font-size:20px;font-weight:800;color:${r.passed?'var(--accent)':'var(--danger)'}">${pct}%</div></div>
+      <div><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase">Result</div><div style="font-size:14px;font-weight:700;margin-top:4px">${r.passed?'<span class="pill pill-completed">Pass</span>':'<span class="pill pill-dropped">Fail</span>'}</div></div>
+      ${hasWritten&&r.pendingGrade!==false?'<div style="background:#fdf6e3;border:1px solid #f0c040;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;color:#c4860a;align-self:center">✎ Written answers — award bonus points below</div>':''}
+    </div>
+    ${(ex.questions||[]).map((q,i)=>{
+      const qr=qResults[q.id]||{};
+      const isWritten=q.type==='written'||q.type==='essay'||q.type==='short'||q.type==='text'||(!q.options?.length&&q.type!=='tf'&&q.type!=='truefalse'&&q.type!=='boolean');
+      const givenRaw=ans[q.id]??qr.given??null;
+      let display='—', correct=qr.correct;
+      if(isWritten){
+        display=givenRaw||'(no answer written)';
+      } else if(q.options&&q.options.length){
+        display=q.options[parseInt(givenRaw)]??givenRaw??'—';
+      } else {
+        display=givenRaw??'—';
+      }
+      const tag=isWritten
+        ?'<span class="pill pill-hold">Written — grade manually</span>'
+        :(correct===true?'<span class="pill pill-completed">Correct</span>':correct===false?'<span class="pill pill-dropped">Wrong</span>':'<span class="pill pill-hold">—</span>');
+      return `<div class="card" style="padding:14px;margin-bottom:10px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:8px">
+          <span style="font-weight:700">Q${i+1}</span> ${tag}
+        </div>
+        <div style="font-weight:600;margin-bottom:8px;font-size:14px">${escapeHtml(q.text)}</div>
+        <div style="font-size:13.5px;background:var(--bg);padding:10px 14px;border-radius:8px;border:1px solid var(--border);${isWritten?'white-space:pre-wrap;line-height:1.6':''}">
+          ${isWritten?escapeHtml(String(display)):`Answer: <strong>${escapeHtml(String(display))}</strong>${!isWritten&&q.correctAnswer?` · Correct: <strong>${escapeHtml(q.correctAnswer)}</strong>`:''}` }
+        </div>
+      </div>`;
+    }).join('')}
+    <div class="card" style="padding:16px;background:var(--bg);border:2px solid var(--accent-light)">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Adjust final score (out of ${r.total})</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">MCQ &amp; True/False are auto-graded. Written answers are <strong>bonus</strong> — increase the score here to award extra points.</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="number" id="adjust-score" value="${r.score}" min="0" max="${r.total}" style="width:90px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:15px;font-weight:700;text-align:center">
+        <span style="font-size:13px;color:var(--muted)">/ ${r.total}</span>
+        <button class="btn btn-primary btn-sm" onclick="saveGrade('${r.id}')">Save & recalculate</button>
       </div>
     </div>`;
   document.getElementById('answers-modal').classList.add('open');
