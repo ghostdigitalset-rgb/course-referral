@@ -435,6 +435,22 @@ export default async function handler(req, res) {
     const already = data.examResults.find(r => r.examId === ex.id && r.studentId === student.id);
     if (already) return res.status(400).json({ error: 'Already submitted.' });
     const answers = body.answers || {};
+    // forceZero: student abandoned exam — record 0 immediately
+    if (body.forceZero) {
+      const total = (ex.questions || []).length;
+      const result = {
+        id: 'er_' + Date.now(),
+        examId: ex.id, examTitle: ex.title,
+        studentId: student.id, studentName: student.name,
+        score: 0, total, percent: 0, passed: false,
+        passMark: ex.passMark || 50,
+        questionResults: [], abandoned: true,
+        submittedAt: new Date().toISOString(),
+      };
+      data.examResults.push(result);
+      await setData(data);
+      return res.status(200).json({ ok: true, score: 0, total, percent: 0, passed: false, passMark: ex.passMark || 50 });
+    }
     let score = 0;
     const questionResults = (ex.questions || []).map(q => {
       const given = answers[q.id];
