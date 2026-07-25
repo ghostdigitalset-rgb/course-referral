@@ -346,12 +346,26 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, result: r });
   }
 
+  // ── Teacher: lock / unlock exam ──────────────────────────
+  if (action === 'lock-exam' && req.method === 'POST') {
+    if (!teacherKeyValid(teacherKey, data)) return res.status(401).json({ error: 'Unauthorized' });
+    const t = resolveTeacher(teacherKey, data);
+    const body = await parseJSON(req);
+    const ex = (data.exams || []).find(e => e.id === body.examId && e.course === t.course);
+    if (!ex) return res.status(404).json({ error: 'Exam not found' });
+    ex.locked = !!body.locked;
+    ex.updatedAt = new Date().toISOString();
+    await setData(data);
+    return res.status(200).json({ ok: true, locked: ex.locked });
+  }
+
   // ── Student: list assigned exams ─────────────────────────
   if (action === 'student-exams' && req.method === 'GET' && studentId) {
     const student = (data.students || []).find(s => s.portalId === studentId);
     if (!student) return res.status(401).json({ error: 'Unauthorized' });
     const allExams = (data.exams || []).filter(ex => {
       if (!ex.published) return false;
+      if (ex.locked) return false;
       if (!matchesCourse(ex.course, student.course)) return false;
       if (ex.assignType === 'student') return (ex.studentIds || []).includes(student.id);
       if (ex.assignType === 'batch') return !ex.batchId || ex.batchId === student.batchId;
@@ -432,9 +446,13 @@ export default async function handler(req, res) {
         const idx = correctText.charCodeAt(0) - 65;
         if (opts[idx] !== undefined) correctText = opts[idx];
       }
-      // True/False: inject options if missing
+      // True/False: inject options and normalise correct answer
       const isTF = q.type === 'tf' || q.type === 'truefalse' || q.type === 'true-false' || q.type === 'boolean';
       if (isTF && opts.length === 0) opts.push('True', 'False');
+      // TF correct stored as 'true'/'false' string — capitalise to match option text
+      if (isTF && typeof correctText === 'string' && (correctText === 'true' || correctText === 'false')) {
+        correctText = correctText === 'true' ? 'True' : 'False';
+      }
       const isMcq = q.type === 'mcq' || isTF || (opts.length > 0);
       let correct = false;
       if (isMcq && given !== undefined && given !== null && given !== '') {
