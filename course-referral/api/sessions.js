@@ -413,34 +413,52 @@ export default async function handler(req, res) {
     // Check already submitted
     const already = (data.examResults || []).find(r => r.examId === ex.id && r.studentId === student.id);
     if (already) return res.status(400).json({ error: 'You have already submitted this exam.' });
-    // Strip correct answers from questions before sending to student
-    // True/False questions store no options array — inject them here
+    // Build questions — resolve correct answer to its TEXT now, before stripping
     const questions = (ex.questions || []).map(q => {
       const isTF = q.type === 'tf' || q.type === 'truefalse' || q.type === 'true-false' || q.type === 'boolean';
       const isWritten = q.type === 'written' || q.type === 'essay' || q.type === 'short' || q.type === 'text' || (!isTF && (!q.options || q.options.length === 0));
-      return {
-        id: q.id,
-        text: q.text || q.question || '',
-        type: isWritten ? 'written' : 'mcq',
-        options: isTF ? ['True', 'False'] : (isWritten ? [] : (q.options || [])),
-      };
+      const baseOpts = isTF ? ['True', 'False'] : (isWritten ? [] : (q.options || []));
+      // Resolve correct answer to text BEFORE shuffling
+      let correctText = q.correctAnswer;
+      if (typeof correctText === 'number') correctText = baseOpts[correctText];
+      else if (typeof correctText === 'string' && /^[A-Z]$/.test(correctText) && !baseOpts.includes(correctText)) {
+        const idx = correctText.charCodeAt(0) - 65;
+        if (baseOpts[idx] !== undefined) correctText = baseOpts[idx];
+      }
+      if (isTF && (correctText === 'true' || correctText === 'false')) {
+        correctText = correctText === 'true' ? 'True' : 'False';
+      }
+      return { id: q.id, text: q.text || q.question || '', type: isWritten ? 'written' : 'mcq', options: baseOpts, _correctText: correctText };
     });
-    // Shuffle questions so order is different every attempt
+    // Shuffle question order
     const shuffled = [...questions].sort(() => Math.random() - 0.5);
-    // Also shuffle MCQ options within each question (keep correct answer tracked by text not index)
+    // Shuffle MCQ options — store shuffled order in _shuffledOptions for grading
     const finalQuestions = shuffled.map(q => {
-      if (q.type === 'mcq' && q.options && q.options.length > 2) {
+      if (q.type === 'mcq' && q.options && q.options.length > 1) {
         const shuffledOpts = [...q.options].sort(() => Math.random() - 0.5);
-        return { ...q, options: shuffledOpts };
+        return { ...q, options: shuffledOpts, _shuffledOptions: shuffledOpts };
       }
       return q;
     });
+    // Store the shuffled option order server-side in a session map so grading is accurate
+    if (!data.examSessions) data.examSessions = {};
+    const sessionKey = ex.id + '_' + student.id;
+    data.examSessions[sessionKey] = {
+      questionOrder: finalQuestions.map(q => q.id),
+      optionOrders: {},
+    };
+    finalQuestions.forEach(q => {
+      if (q._shuffledOptions) data.examSessions[sessionKey].optionOrders[q.id] = q._shuffledOptions;
+    });
+    await setData(data);
+    // Send to student — strip internal fields
+    const studentQuestions = finalQuestions.map(({ _correctText, _shuffledOptions, ...q }) => q);
     return res.status(200).json({ ok: true, exam: {
       id: ex.id,
       title: ex.title,
       duration: ex.timeLimit || 30,
       passMark: ex.passMark || 50,
-      questions: finalQuestions,
+      questions: studentQuestions,
     }});
   }
 
@@ -469,6 +487,9 @@ export default async function handler(req, res) {
     const already = data.examResults.find(r => r.examId === ex.id && r.studentId === student.id);
     if (already) return res.status(400).json({ error: 'Already submitted.' });
     const answers = body.answers || {};
+    // Load the server-side session to get the shuffled option order used by this student
+    const sessionKey = ex.id + '_' + student.id;
+    const examSession = (data.examSessions || {})[sessionKey] || null;
     // forceZero: student abandoned exam — record 0 immediately
     if (body.forceZero) {
       const total = (ex.questions || []).length;
@@ -503,15 +524,22 @@ export default async function handler(req, res) {
       if (isTF && typeof correctText === 'string' && (correctText === 'true' || correctText === 'false')) {
         correctText = correctText === 'true' ? 'True' : 'False';
       }
+      // Resolve correct answer text from original options
+      if (typeof correctText === 'number') correctText = opts[correctText];
+      else if (typeof correctText === 'string' && /^[A-Z]$/.test(correctText) && !opts.includes(correctText)) {
+        const idx = correctText.charCodeAt(0) - 65;
+        if (opts[idx] !== undefined) correctText = opts[idx];
+      }
       const isMcq = q.type === 'mcq' || isTF || (opts.length > 0);
       let correct = false;
       if (isMcq && given !== undefined && given !== null && given !== '') {
-        // given is the index as string; match against option text
-        const givenText = opts[parseInt(given)];
+        // Use shuffled option order from session if available, otherwise fall back to original
+        const shuffledOpts = (examSession?.optionOrders?.[q.id]) || opts;
+        const givenText = shuffledOpts[parseInt(given)];
         correct = givenText !== undefined && givenText === correctText;
         if (correct) score++;
       }
-      // Written answers count as 0 auto-score (teacher grades manually)
+      // Written answers — not auto-graded, stored for teacher bonus grading
       return { questionId: q.id, correct: isMcq ? correct : null, given: given || null, correctAnswer: isMcq ? correctText : null };
     });
     // Total = only MCQ + TF (auto-gradeable). Written answers are bonus — added by teacher later.
@@ -543,6 +571,10 @@ export default async function handler(req, res) {
       submittedAt: new Date().toISOString(),
     };
     data.examResults.push(result);
+    // Clean up the exam session — no longer needed
+    if (data.examSessions && data.examSessions[sessionKey]) {
+      delete data.examSessions[sessionKey];
+    }
     await setData(data);
     return res.status(200).json({ ok: true, score, total, percent, passed, passMark: ex.passMark || 50 });
   }
