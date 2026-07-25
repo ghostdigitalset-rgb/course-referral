@@ -827,7 +827,7 @@ async function loadExams(){
 }
 
 // ── Exam taking engine ─────────────────────────────────────
-let activeExam=null, examAnswers={}, examCurrentQ=0, examTimerInterval=null, examSecondsLeft=0;
+let activeExam=null, examAnswers={}, examCurrentQ=0, examTimerInterval=null, examSecondsLeft=0, examLocked=false;
 
 async function startExam(examId){
   try{
@@ -847,6 +847,7 @@ async function startExam(examId){
     buildQDots();
     startExamTimer();
     // Lock student in — block page leave, back button, and tab switch
+    examLocked=true;
     window.addEventListener('beforeunload', blockPageLeave);
     history.pushState(null,'',window.location.href);
     window.addEventListener('popstate', blockBackButton);
@@ -974,8 +975,9 @@ function closeExamOverlay(){
   window.removeEventListener('beforeunload', blockPageLeave);
   window.removeEventListener('popstate', blockBackButton);
   document.removeEventListener('visibilitychange', blockTabSwitch);
+  examLocked=false;
   document.getElementById('exam-overlay').classList.remove('open');
-  document.getElementById('exam-lock-warning').style.display='none';
+  const lw=document.getElementById('exam-lock-warning'); if(lw) lw.style.display='none';
   activeExam=null; examAnswers={}; examCurrentQ=0;
 }
 
@@ -992,7 +994,7 @@ function blockBackButton(){
 }
 
 async function blockTabSwitch(){
-  if(!activeExam) return;
+  if(!activeExam || !examLocked) return;
   if(document.visibilityState === 'hidden'){
     // Student left the tab — auto-fail immediately
     clearInterval(examTimerInterval);
@@ -1002,6 +1004,7 @@ async function blockTabSwitch(){
     document.removeEventListener('visibilitychange', blockTabSwitch);
     window.removeEventListener('beforeunload', blockPageLeave);
     window.removeEventListener('popstate', blockBackButton);
+    examLocked=false;
     activeExam = null; examAnswers = {}; examCurrentQ = 0;
     try{
       await fetch('/api/sessions?action=submit-exam',{
@@ -1059,11 +1062,13 @@ async function submitExam(auto=false){
 }
 
 function showExamResult(data){
+  examLocked=false;
   const pass=data.passed;
   const body=document.getElementById('exam-body');
-  document.getElementById('exam-timer').style.display='none';
-  document.getElementById('exam-back-btn').style.display='none';
-  document.querySelector('.exam-nav').style.display='none';
+  const _et=document.getElementById('exam-timer'); if(_et) _et.style.display='none';
+  const _eb=document.getElementById('exam-back-btn'); if(_eb) _eb.style.display='none';
+  const _en=document.querySelector('.exam-nav'); if(_en) _en.style.display='none';
+  const _lw=document.getElementById('exam-lock-warning'); if(_lw) _lw.style.display='none';
   body.innerHTML=`<div class="result-screen">
     <div class="result-circle ${pass?'pass':'fail'}">${data.percent}%</div>
     <div class="result-title">${pass?'Congratulations!':'Keep Going!'}</div>
