@@ -138,6 +138,60 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .pdf-canvas-wrap{display:flex;justify-content:center;padding:18px;min-height:300px}
 .pdf-canvas-wrap canvas{max-width:100%;box-shadow:0 4px 20px rgba(0,0,0,.4);height:auto}
 .limit-note{text-align:center;color:var(--gold);font-size:12.5px;padding:10px;background:rgba(196,134,10,.08)}
+/* Exam styles */
+.exam-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
+.exam-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.exam-card-head h3{font-size:16px;font-weight:700}
+.exam-meta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.exam-meta span{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);font-weight:500}
+.exam-meta span svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none}
+.btn-exam-start{background:var(--accent);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.btn-exam-start:disabled{opacity:.5;cursor:not-allowed}
+.btn-exam-start svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none}
+.exam-result-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:20px;font-size:12px;font-weight:700}
+.badge-pass{background:#e8f5e4;color:#2d5a27}
+.badge-fail{background:var(--danger-light);color:var(--danger)}
+/* Exam taking overlay */
+.exam-overlay{position:fixed;inset:0;background:#f8f9f7;z-index:200;display:none;flex-direction:column}
+.exam-overlay.open{display:flex}
+.exam-hd{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+.exam-hd h2{font-family:'DM Serif Display',serif;font-size:18px;flex:1}
+.exam-timer{display:flex;align-items:center;gap:6px;background:var(--accent-light);color:var(--accent-text);padding:8px 16px;border-radius:10px;font-size:15px;font-weight:700;font-family:monospace}
+.exam-timer svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none}
+.exam-timer.warning{background:#fdf6e3;color:#c4860a}
+.exam-timer.danger{background:var(--danger-light);color:var(--danger)}
+.exam-body{flex:1;overflow-y:auto;padding:28px 24px;max-width:780px;margin:0 auto;width:100%}
+.exam-progress{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:22px;display:flex;align-items:center;gap:14px}
+.exam-progress-bar{flex:1;height:7px;background:var(--bg);border-radius:6px;overflow:hidden}
+.exam-progress-fill{height:100%;background:var(--accent);border-radius:6px;transition:width .3s}
+.exam-q-count{font-size:12.5px;color:var(--muted);font-weight:600;white-space:nowrap}
+.q-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
+.q-num{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);margin-bottom:8px}
+.q-text{font-size:15.5px;font-weight:600;line-height:1.5;margin-bottom:18px}
+.q-options{display:flex;flex-direction:column;gap:9px}
+.q-opt{display:flex;align-items:center;gap:12px;padding:13px 16px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:.13s;font-size:14px;font-weight:500}
+.q-opt:hover{border-color:var(--accent);background:var(--accent-light)}
+.q-opt.selected{border-color:var(--accent);background:var(--accent-light);color:var(--accent-text)}
+.q-opt input[type=radio]{accent-color:var(--accent);width:16px;height:16px;flex-shrink:0}
+.q-textarea{width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;line-height:1.5;resize:vertical;min-height:110px;outline:none;transition:.13s}
+.q-textarea:focus{border-color:var(--accent)}
+.exam-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 24px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
+.btn-nav{background:var(--surface);border:1.5px solid var(--border);color:var(--text);padding:10px 20px;border-radius:10px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.btn-nav:disabled{opacity:.4;cursor:not-allowed}
+.btn-nav.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-nav svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none}
+.q-dots{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
+.q-dot{width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.13s;color:var(--muted)}
+.q-dot.answered{background:var(--accent-light);border-color:var(--accent);color:var(--accent-text)}
+.q-dot.current{background:var(--accent);border-color:var(--accent);color:#fff}
+/* Result screen */
+.result-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:32px}
+.result-circle{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-family:'DM Serif Display',serif;font-size:36px;font-weight:700}
+.result-circle.pass{background:#e8f5e4;color:var(--accent)}
+.result-circle.fail{background:var(--danger-light);color:var(--danger)}
+.result-title{font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:6px}
+.result-sub{color:var(--muted);font-size:14px;margin-bottom:24px}
+.result-details{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;width:100%;max-width:400px;margin:0 auto 24px;text-align:left}
 </style>
 </head>
 <body>
@@ -163,6 +217,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="s-sb-sec">Learning</div>
         <button class="snav-btn active" onclick="showStudentTab('learn',this)"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>Learn</span></button>
         <button class="snav-btn" onclick="showStudentTab('marks',this)"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg><span>Marks</span></button>
+        <button class="snav-btn" id="exams-nav-btn" onclick="showStudentTab('exams',this)"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg><span>Exams</span></button>
         <button class="snav-btn" onclick="showStudentTab('attendance',this)"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Attendance</span></button>
         <div class="s-sb-sec">Communication</div>
         <button class="snav-btn" onclick="showStudentTab('messages',this)"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Messages</span></button>
@@ -195,6 +250,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div id="marks-body"><div class="empty">Loading…</div></div>
     </div>
 
+    <!-- EXAMS -->
+    <div class="s-tab" id="s-exams">
+      <div id="exams-body"><div class="empty">Loading…</div></div>
+    </div>
+
     <!-- ATTENDANCE -->
     <div class="s-tab" id="s-attendance">
       <div id="attendance-body"><div class="empty">Loading…</div></div>
@@ -219,6 +279,40 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Exam Taking Overlay -->
+<div class="exam-overlay" id="exam-overlay">
+  <div class="exam-hd">
+    <button class="btn-nav" id="exam-back-btn" onclick="confirmExitExam()">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg> Exit
+    </button>
+    <h2 id="exam-title">Exam</h2>
+    <div class="exam-timer" id="exam-timer">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <span id="exam-timer-text">30:00</span>
+    </div>
+  </div>
+  <div class="exam-body" id="exam-body">
+    <div class="exam-progress">
+      <div class="exam-progress-bar"><div class="exam-progress-fill" id="exam-progress-fill" style="width:0%"></div></div>
+      <div class="exam-q-count"><span id="exam-q-current">1</span> / <span id="exam-q-total">10</span></div>
+    </div>
+    <div class="q-dots" id="q-dots"></div>
+    <div style="margin-top:18px" id="q-container"></div>
+  </div>
+  <div class="exam-nav">
+    <button class="btn-nav" id="btn-prev-q" onclick="examNavQ(-1)">
+      <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg> Previous
+    </button>
+    <button class="btn-nav" id="btn-skip-q" onclick="examNavQ(1)" style="border-style:dashed">Skip</button>
+    <button class="btn-nav primary" id="btn-next-q" onclick="examNavQ(1)">
+      Next <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+    <button class="btn-nav primary" id="btn-submit-exam" style="display:none" onclick="submitExam()">
+      Submit Exam <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+    </button>
   </div>
 </div>
 
@@ -323,7 +417,7 @@ async function loadAnnouncements(){
 }
 
 // ── Student tabs ───────────────────────────────────────────
-const S_TAB_META={learn:['Learn','Your modules and sessions'],marks:['Marks','Your exam results & grade'],attendance:['Attendance','Your session attendance'],messages:['Messages','Chat with your teacher'],profile:['Profile','Your account details']};
+const S_TAB_META={learn:['Learn','Your modules and sessions'],marks:['Marks','Your exam results & grade'],exams:['Exams','Take your assigned exams'],attendance:['Attendance','Your session attendance'],messages:['Messages','Chat with your teacher'],profile:['Profile','Your account details']};
 function showStudentTab(tab,el){
   document.querySelectorAll('.snav-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.s-tab').forEach(t=>t.classList.remove('active'));
@@ -331,6 +425,7 @@ function showStudentTab(tab,el){
   document.getElementById('s-'+tab).classList.add('active');
   const m=S_TAB_META[tab]; if(m){document.getElementById('page-title').textContent=m[0];document.getElementById('page-sub').textContent=m[1];}
   if(tab==='marks') loadMarks();
+  if(tab==='exams') loadExams();
   if(tab==='attendance') loadAttendance();
   if(tab==='messages') loadStudentMessages();
   if(tab==='profile') renderProfile();
@@ -477,6 +572,226 @@ async function renderPdfPage(){
 }
 function pdfPrev(){ if(pdfPage>1){ pdfPage--; renderPdfPage(); } }
 function pdfNext(){ if(pdfPage<pdfMaxPage){ pdfPage++; renderPdfPage(); } }
+
+// ── Exams list ─────────────────────────────────────────────
+async function loadExams(){
+  const body=document.getElementById('exams-body');
+  body.innerHTML='<div class="empty">Loading…</div>';
+  try{
+    const res=await fetch('/api/sessions?action=student-exams',{headers:{'x-student-id':student.portalId}});
+    const data=await res.json();
+    const exams=data.exams||[];
+    if(!exams.length){
+      body.innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg><div>No exams assigned to you yet.</div></div>';
+      return;
+    }
+    body.innerHTML=exams.map(ex=>{
+      const submitted=ex.mySubmission;
+      const statusBadge=ex.status==='published'
+        ?'<span class="pill pill-open">Open</span>'
+        :'<span class="pill pill-locked">Not available</span>';
+      let resultHtml='';
+      if(submitted){
+        const pass=submitted.passed;
+        resultHtml=`<div class="exam-result-badge ${pass?'badge-pass':'badge-fail'}">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2.5;fill:none">${pass?'<path d="M20 6L9 17l-5-5"/>':'<path d="M18 6L6 18M6 6l12 12"/>'}</svg>
+          ${pass?'Passed':'Did not pass'} · ${submitted.score}/${submitted.total} (${submitted.percent}%)
+        </div>`;
+      }
+      const canStart=ex.status==='published'&&!submitted;
+      return `<div class="exam-card">
+        <div class="exam-card-head">
+          <h3>${escapeHtml(ex.title)}</h3>
+          ${submitted?resultHtml:statusBadge}
+        </div>
+        <div class="exam-meta">
+          <span><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>${ex.questions} question${ex.questions!==1?'s':''}</span>
+          <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>${ex.duration} min</span>
+          <span><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>Pass: ${ex.passMark}%</span>
+        </div>
+        ${!submitted?`<button class="btn-exam-start" ${canStart?'':`disabled title="Exam not yet available"`} onclick="startExam('${ex.id}')">
+          <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          ${canStart?'Start Exam':'Not Available'}
+        </button>`:`<div style="font-size:12.5px;color:var(--muted);margin-top:4px">Submitted · exam completed</div>`}
+      </div>`;
+    }).join('');
+  }catch(e){
+    body.innerHTML='<div class="empty">Could not load exams.</div>';
+  }
+}
+
+// ── Exam taking engine ─────────────────────────────────────
+let activeExam=null, examAnswers={}, examCurrentQ=0, examTimerInterval=null, examSecondsLeft=0;
+
+async function startExam(examId){
+  try{
+    const res=await fetch('/api/sessions?action=get-exam',{method:'POST',headers:{'Content-Type':'application/json','x-student-id':student.portalId},body:JSON.stringify({examId})});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Could not load exam');
+    activeExam=data.exam;
+    examAnswers={};
+    examCurrentQ=0;
+    examSecondsLeft=(activeExam.duration||30)*60;
+    document.getElementById('exam-title').textContent=activeExam.title;
+    document.getElementById('exam-q-total').textContent=activeExam.questions.length;
+    document.getElementById('exam-overlay').classList.add('open');
+    renderExamQuestion();
+    buildQDots();
+    startExamTimer();
+  }catch(e){ alert(e.message); }
+}
+
+function startExamTimer(){
+  clearInterval(examTimerInterval);
+  updateTimerDisplay();
+  examTimerInterval=setInterval(()=>{
+    examSecondsLeft--;
+    updateTimerDisplay();
+    if(examSecondsLeft<=0){ clearInterval(examTimerInterval); submitExam(true); }
+  },1000);
+}
+
+function updateTimerDisplay(){
+  const m=Math.floor(examSecondsLeft/60), s=examSecondsLeft%60;
+  document.getElementById('exam-timer-text').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const timer=document.getElementById('exam-timer');
+  timer.className='exam-timer';
+  if(examSecondsLeft<=60) timer.classList.add('danger');
+  else if(examSecondsLeft<=300) timer.classList.add('warning');
+}
+
+function renderExamQuestion(){
+  const q=activeExam.questions[examCurrentQ];
+  const total=activeExam.questions.length;
+  document.getElementById('exam-q-current').textContent=examCurrentQ+1;
+  document.getElementById('exam-progress-fill').style.width=((examCurrentQ+1)/total*100)+'%';
+  // show/hide nav buttons
+  document.getElementById('btn-prev-q').disabled=examCurrentQ===0;
+  const isLast=examCurrentQ===total-1;
+  document.getElementById('btn-next-q').style.display=isLast?'none':'';
+  document.getElementById('btn-skip-q').style.display=isLast?'none':'';
+  document.getElementById('btn-submit-exam').style.display=isLast?'':'none';
+  // render question
+  const container=document.getElementById('q-container');
+  const isMultiChoice=q.type==='mcq'||(q.options&&q.options.length);
+  if(isMultiChoice){
+    const saved=examAnswers[q.id]||null;
+    container.innerHTML=`<div class="q-card">
+      <div class="q-num">Question ${examCurrentQ+1}</div>
+      <div class="q-text">${escapeHtml(q.text)}</div>
+      <div class="q-options">
+        ${q.options.map((opt,i)=>{
+          const sel=saved===String(i);
+          return `<label class="q-opt ${sel?'selected':''}">
+            <input type="radio" name="q_${q.id}" value="${i}" ${sel?'checked':''} onchange="selectOption('${q.id}',this.value,this.closest('.q-card'))">
+            ${escapeHtml(opt)}
+          </label>`;
+        }).join('')}
+      </div>
+    </div>`;
+  } else {
+    const saved=examAnswers[q.id]||'';
+    container.innerHTML=`<div class="q-card">
+      <div class="q-num">Question ${examCurrentQ+1}</div>
+      <div class="q-text">${escapeHtml(q.text)}</div>
+      <textarea class="q-textarea" placeholder="Write your answer here…" oninput="saveTextAnswer('${q.id}',this.value)">${escapeHtml(saved)}</textarea>
+    </div>`;
+  }
+  updateQDots();
+}
+
+function selectOption(qId, val, card){
+  examAnswers[qId]=val;
+  card.querySelectorAll('.q-opt').forEach(o=>o.classList.remove('selected'));
+  card.querySelectorAll('.q-opt').forEach((o,i)=>{ if(String(i)===val) o.classList.add('selected'); });
+  updateQDots();
+}
+
+function saveTextAnswer(qId, val){
+  examAnswers[qId]=val.trim();
+  updateQDots();
+}
+
+function examNavQ(dir){
+  const total=activeExam.questions.length;
+  examCurrentQ=Math.max(0,Math.min(total-1,examCurrentQ+dir));
+  renderExamQuestion();
+}
+
+function buildQDots(){
+  const dots=document.getElementById('q-dots');
+  dots.innerHTML=activeExam.questions.map((_,i)=>`<div class="q-dot" id="qdot-${i}" onclick="jumpToQ(${i})">${i+1}</div>`).join('');
+}
+
+function updateQDots(){
+  activeExam.questions.forEach((q,i)=>{
+    const dot=document.getElementById('qdot-'+i);
+    if(!dot) return;
+    dot.className='q-dot';
+    if(i===examCurrentQ) dot.classList.add('current');
+    else if(examAnswers[q.id]!==undefined&&examAnswers[q.id]!=='') dot.classList.add('answered');
+  });
+}
+
+function jumpToQ(i){ examCurrentQ=i; renderExamQuestion(); }
+
+function confirmExitExam(){
+  if(confirm('Are you sure you want to exit? Your progress will be lost.')) closeExamOverlay();
+}
+
+function closeExamOverlay(){
+  clearInterval(examTimerInterval);
+  document.getElementById('exam-overlay').classList.remove('open');
+  activeExam=null; examAnswers={}; examCurrentQ=0;
+}
+
+async function submitExam(auto=false){
+  if(!auto){
+    const total=activeExam.questions.length;
+    const answered=Object.keys(examAnswers).filter(k=>examAnswers[k]!=='').length;
+    if(answered<total){
+      if(!confirm(`You have answered ${answered} of ${total} questions. Submit anyway?`)) return;
+    }
+  }
+  clearInterval(examTimerInterval);
+  const submitBtn=document.getElementById('btn-submit-exam');
+  if(submitBtn){ submitBtn.disabled=true; submitBtn.textContent='Submitting…'; }
+  try{
+    const res=await fetch('/api/sessions?action=submit-exam',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-student-id':student.portalId},
+      body:JSON.stringify({examId:activeExam.id, answers:examAnswers})
+    });
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Submission failed');
+    showExamResult(data);
+  }catch(e){
+    alert('Could not submit exam: '+e.message);
+    if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent='Submit Exam'; }
+  }
+}
+
+function showExamResult(data){
+  const pass=data.passed;
+  const body=document.getElementById('exam-body');
+  document.getElementById('exam-timer').style.display='none';
+  document.getElementById('exam-back-btn').style.display='none';
+  document.querySelector('.exam-nav').style.display='none';
+  body.innerHTML=`<div class="result-screen">
+    <div class="result-circle ${pass?'pass':'fail'}">${data.percent}%</div>
+    <div class="result-title">${pass?'Congratulations!':'Keep Going!'}</div>
+    <div class="result-sub">${pass?'You passed this exam.':'You did not reach the pass mark this time.'}</div>
+    <div class="result-details">
+      <div class="prof-row"><span class="k">Score</span><span class="v">${data.score} / ${data.total}</span></div>
+      <div class="prof-row"><span class="k">Percentage</span><span class="v" style="color:${pass?'var(--accent)':'var(--danger)'}">${data.percent}%</span></div>
+      <div class="prof-row"><span class="k">Pass mark</span><span class="v">${data.passMark}%</span></div>
+      <div class="prof-row"><span class="k">Result</span><span class="v" style="color:${pass?'var(--accent)':'var(--danger)'}">${pass?'PASSED':'DID NOT PASS'}</span></div>
+    </div>
+    <button class="btn-exam-start" onclick="closeExamOverlay();loadExams();">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg> Back to Exams
+    </button>
+  </div>`;
+}
 
 // restore session
 const saved=localStorage.getItem('studentPortalSession');
