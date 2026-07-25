@@ -720,7 +720,7 @@ async function loadViewerSession(id){
     if(s.pdfUrl){
       document.getElementById('v-pdf').style.display='block';
       document.getElementById('pdf-filename').textContent='Course Material';
-      loadPdf(s.pdfUrl, s.pageLimit||0);
+      loadPdf(s.pdfUrl, s.pageStart||0, s.pageEnd||0);
     }
     if(!s.content&&!s.pdfUrl) document.getElementById('v-empty').style.display='block';
     updateViewerProgress();
@@ -738,15 +738,21 @@ function closeViewer(){
   pdfDoc=null; viewerSessions=[]; viewerCurrentIdx=0;
 }
 
-async function loadPdf(url, limit){
+let pdfPageStart=1;
+async function loadPdf(url, pageStart, pageEnd){
   const noteEl=document.getElementById('pdf-limit-note');
   try{
     pdfDoc=await pdfjsLib.getDocument(url).promise;
     const total=pdfDoc.numPages;
-    pdfMaxPage=limit>0?Math.min(limit,total):total;
-    pdfPage=1;
-    if(limit>0&&limit<total){ noteEl.style.display='block'; noteEl.textContent=`Preview: ${pdfMaxPage} of ${total} pages`; }
-    else noteEl.style.display='none';
+    // pageStart/pageEnd define the slice of the PDF this session covers
+    pdfPageStart = (pageStart>0 && pageStart<=total) ? pageStart : 1;
+    const end = (pageEnd>0 && pageEnd<=total && pageEnd>=pdfPageStart) ? pageEnd : total;
+    pdfMaxPage=end;
+    pdfPage=pdfPageStart;
+    if(pdfPageStart>1||pdfMaxPage<total){
+      noteEl.style.display='block';
+      noteEl.textContent=`Showing pages ${pdfPageStart}–${pdfMaxPage} of ${total}`;
+    } else noteEl.style.display='none';
     renderPdfPage();
   }catch(e){ document.getElementById('pdf-info').textContent='Could not load PDF'; }
 }
@@ -761,11 +767,13 @@ async function renderPdfPage(){
   const vp=page.getViewport({scale});
   canvas.width=vp.width; canvas.height=vp.height;
   await page.render({canvasContext:ctx,viewport:vp}).promise;
-  document.getElementById('pdf-info').textContent=`${pdfPage} / ${pdfMaxPage}`;
-  document.getElementById('pdf-prev').disabled=pdfPage<=1;
+  const relPage=pdfPage-pdfPageStart+1;
+  const relTotal=pdfMaxPage-pdfPageStart+1;
+  document.getElementById('pdf-info').textContent=`${relPage} / ${relTotal}`;
+  document.getElementById('pdf-prev').disabled=pdfPage<=pdfPageStart;
   document.getElementById('pdf-next').disabled=pdfPage>=pdfMaxPage;
 }
-function pdfPrev(){ if(pdfPage>1){ pdfPage--; renderPdfPage(); } }
+function pdfPrev(){ if(pdfPage>pdfPageStart){ pdfPage--; renderPdfPage(); } }
 function pdfNext(){ if(pdfPage<pdfMaxPage){ pdfPage++; renderPdfPage(); } }
 
 // ── Exams list ─────────────────────────────────────────────
