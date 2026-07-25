@@ -347,7 +347,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </button>
     <h2 id="exam-title">Exam</h2>
     <div id="exam-lock-warning" style="display:none;background:#fdf3f3;border:1px solid #f5c6c6;color:#c0392b;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;white-space:nowrap">
-      ⚠ Exiting will give you a 0
+      ⚠ Do not leave this tab — auto fail
     </div>
     <div class="exam-timer" id="exam-timer">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
@@ -846,10 +846,11 @@ async function startExam(examId){
     renderExamQuestion();
     buildQDots();
     startExamTimer();
-    // Lock student in — block page leave and back button
+    // Lock student in — block page leave, back button, and tab switch
     window.addEventListener('beforeunload', blockPageLeave);
     history.pushState(null,'',window.location.href);
     window.addEventListener('popstate', blockBackButton);
+    document.addEventListener('visibilitychange', blockTabSwitch);
   }catch(e){ alert(e.message); }
 }
 
@@ -972,6 +973,7 @@ function closeExamOverlay(){
   clearInterval(examTimerInterval);
   window.removeEventListener('beforeunload', blockPageLeave);
   window.removeEventListener('popstate', blockBackButton);
+  document.removeEventListener('visibilitychange', blockTabSwitch);
   document.getElementById('exam-overlay').classList.remove('open');
   document.getElementById('exam-lock-warning').style.display='none';
   activeExam=null; examAnswers={}; examCurrentQ=0;
@@ -987,6 +989,47 @@ function blockPageLeave(e){
 function blockBackButton(){
   if(!activeExam) return;
   history.pushState(null,'',window.location.href);
+}
+
+async function blockTabSwitch(){
+  if(!activeExam) return;
+  if(document.visibilityState === 'hidden'){
+    // Student left the tab — auto-fail immediately
+    clearInterval(examTimerInterval);
+    const examId = activeExam.id;
+    const examTitle = activeExam.title;
+    // Remove all locks first so submission goes through cleanly
+    document.removeEventListener('visibilitychange', blockTabSwitch);
+    window.removeEventListener('beforeunload', blockPageLeave);
+    window.removeEventListener('popstate', blockBackButton);
+    activeExam = null; examAnswers = {}; examCurrentQ = 0;
+    try{
+      await fetch('/api/sessions?action=submit-exam',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-student-id':student.portalId},
+        body:JSON.stringify({examId, answers:{}, forceZero:true})
+      });
+    }catch(e){}
+    // Show fail message when they come back
+    const overlay = document.getElementById('exam-overlay');
+    const body = document.getElementById('exam-body');
+    document.querySelector('.exam-nav').style.display='none';
+    document.getElementById('exam-timer').style.display='none';
+    document.getElementById('exam-lock-warning').style.display='none';
+    body.innerHTML=`<div class="result-screen">
+      <div class="result-circle fail">0%</div>
+      <div class="result-title">Exam Terminated</div>
+      <div class="result-sub">You left the exam tab. Your exam has been automatically submitted with a score of 0.</div>
+      <div class="result-details">
+        <div class="prof-row"><span class="k">Reason</span><span class="v" style="color:var(--danger)">Tab switched during exam</span></div>
+        <div class="prof-row"><span class="k">Score</span><span class="v">0%</span></div>
+        <div class="prof-row"><span class="k">Result</span><span class="v" style="color:var(--danger)">FAILED</span></div>
+      </div>
+      <button class="btn-exam-start" onclick="closeExamOverlay();loadExams();">
+        <svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg> Back to Exams
+      </button>
+    </div>`;
+  }
 }
 
 async function submitExam(auto=false){
