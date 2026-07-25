@@ -583,7 +583,9 @@ export default async function handler(req, res) {
     if (!data.moduleSessions) data.moduleSessions = [];
     const fields = {
       moduleId: body.moduleId, title: body.title.trim(), content: body.content || '',
-      pdfUrl: body.pdfUrl || '', pageLimit: parseInt(body.pageLimit) || 0,
+      pdfUrl: body.pdfUrl || '',
+      pageStart: parseInt(body.pageStart) || 1,
+      pageEnd: parseInt(body.pageEnd) || 0,
       locked: !!body.locked,
     };
     if (body.id) {
@@ -621,7 +623,7 @@ export default async function handler(req, res) {
     };
     const modules = (data.modules || []).filter(inCourse).sort((a, b) => (a.order || 0) - (b.order || 0));
     const sessions = (data.moduleSessions || []).filter(s => modules.some(m => m.id === s.moduleId))
-      .map(s => ({ id: s.id, moduleId: s.moduleId, title: s.title, locked: !!s.locked, hasPdf: !!s.pdfUrl, hasContent: !!s.content, order: s.order }));
+      .map(s => ({ id: s.id, moduleId: s.moduleId, title: s.title, locked: !!s.locked, hasPdf: !!s.pdfUrl, hasContent: !!s.content, order: s.order, pageStart: s.pageStart || 1, pageEnd: s.pageEnd || 0 }));
     return res.status(200).json({ ok: true, modules, sessions });
   }
   // Student: open a session -> returns content + auto-marks attendance
@@ -639,7 +641,7 @@ export default async function handler(req, res) {
       data.moduleAttendance.push({ id: 'matt_' + Date.now(), sessionId: sess.id, studentId: student.id, studentName: student.name, studentPhone: student.phone || '', markedAt: new Date().toISOString() });
       await setData(data);
     }
-    return res.status(200).json({ ok: true, session: { id: sess.id, title: sess.title, content: sess.content || '', pdfUrl: sess.pdfUrl || '', pageLimit: sess.pageLimit || 0 } });
+    return res.status(200).json({ ok: true, session: { id: sess.id, title: sess.title, content: sess.content || '', pdfUrl: sess.pdfUrl || '', pageStart: sess.pageStart || 1, pageEnd: sess.pageEnd || 0 } });
   }
 
   // ── Student auth (replaces student-auth.js) ────────────────
