@@ -346,6 +346,171 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, result: r });
   }
 
+  // ── Student: list assigned exams ─────────────────────────
+  if (action === 'student-exams' && req.method === 'GET' && studentId) {
+    const student = (data.students || []).find(s => s.portalId === studentId);
+    if (!student) return res.status(401).json({ error: 'Unauthorized' });
+    const allExams = (data.exams || []).filter(ex => {
+      if (!ex.published) return false;
+      if (!matchesCourse(ex.course, student.course)) return false;
+      if (ex.assignType === 'student') return (ex.studentIds || []).includes(student.id);
+      if (ex.assignType === 'batch') return !ex.batchId || ex.batchId === student.batchId;
+      return true;
+    });
+    const results = (data.examResults || []);
+    const exams = allExams.map(ex => {
+      const myResult = results.find(r => r.examId === ex.id && r.studentId === student.id);
+      return {
+        id: ex.id,
+        title: ex.title,
+        description: ex.description || '',
+        questions: (ex.questions || []).length,
+        duration: ex.timeLimit || 30,
+        passMark: ex.passMark || 50,
+        status: ex.published ? 'published' : 'draft',
+        mySubmission: myResult ? {
+          score: myResult.score,
+          total: myResult.total,
+          percent: myResult.percent,
+          passed: myResult.passed,
+          submittedAt: myResult.submittedAt,
+        } : null,
+      };
+    });
+    return res.status(200).json({ ok: true, exams });
+  }
+
+  // ── Student: get exam questions ───────────────────────────
+  if (action === 'get-exam' && req.method === 'POST' && studentId) {
+    const student = (data.students || []).find(s => s.portalId === studentId);
+    if (!student) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    const ex = (data.exams || []).find(e => e.id === body.examId && e.published);
+    if (!ex) return res.status(404).json({ error: 'Exam not found or not available' });
+    // Check already submitted
+    const already = (data.examResults || []).find(r => r.examId === ex.id && r.studentId === student.id);
+    if (already) return res.status(400).json({ error: 'You have already submitted this exam.' });
+    // Strip correct answers from questions before sending to student
+    const questions = (ex.questions || []).map(q => ({
+      id: q.id,
+      text: q.text || q.question || '',
+      type: q.type || 'mcq',
+      options: q.options || [],
+    }));
+    return res.status(200).json({ ok: true, exam: {
+      id: ex.id,
+      title: ex.title,
+      duration: ex.timeLimit || 30,
+      passMark: ex.passMark || 50,
+      questions,
+    }});
+  }
+
+  // ── Student: submit exam ──────────────────────────────────
+  if (action === 'submit-exam' && req.method === 'POST' && studentId) {
+    const student = (data.students || []).find(s => s.portalId === studentId);
+    if (!student) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    const ex = (data.exams || []).find(e => e.id === body.examId);
+    if (!ex) return res.status(404).json({ error: 'Exam not found' });
+    if (!data.examResults) data.examResults = [];
+    const already = data.examResults.find(r => r.examId === ex.id && r.studentId === student.id);
+    if (already) return res.status(400).json({ error: 'Already submitted.' });
+    const answers = body.answers || {};
+    let score = 0;
+    const questionResults = (ex.questions || []).map(q => {
+      const given = answers[q.id];
+      // Resolve correct answer (same logic as submit-quiz)
+      const opts = q.options || [];
+      let correctText = q.correctAnswer;
+      if (typeof correctText === 'number') correctText = opts[correctText];
+      else if (typeof correctText === 'string' && /^[A-Z]$/.test(correctText) && !opts.includes(correctText)) {
+        const idx = correctText.charCodeAt(0) - 65;
+        if (opts[idx] !== undefined) correctText = opts[idx];
+      }
+      const isMcq = q.type === 'mcq' || (opts.length > 0);
+      let correct = false;
+      if (isMcq && given !== undefined && given !== null && given !== '') {
+        // given is the index as string; match against option text
+        const givenText = opts[parseInt(given)];
+        correct = givenText !== undefined && givenText === correctText;
+        if (correct) score++;
+      }
+      // Written answers count as 0 auto-score (teacher grades manually)
+      return { questionId: q.id, correct: isMcq ? correct : null, given: given || null, correctAnswer: isMcq ? correctText : null };
+    });
+    const total = (ex.questions || []).filter(q => q.type === 'mcq' || (q.options && q.options.length)).length || (ex.questions || []).length;
+    const percent = total > 0 ? Math.round((score / total) * 100) : 0;
+    const passed = percent >= (ex.passMark || 50);
+    const result = {
+      id: 'er_' + Date.now(),
+      examId: ex.id,
+      examTitle: ex.title,
+      studentId: student.id,
+      studentName: student.name,
+      score, total, percent, passed,
+      passMark: ex.passMark || 50,
+      questionResults,
+      submittedAt: new Date().toISOString(),
+    };
+    data.examResults.push(result);
+    await setData(data);
+    return res.status(200).json({ ok: true, score, total, percent, passed, passMark: ex.passMark || 50 });
+  }
+
+  // ── Student: my progress (marks + attendance) ─────────────
+  if (action === 'my-progress' && req.method === 'GET' && studentId) {
+    const student = (data.students || []).find(s => s.portalId === studentId);
+    if (!student) return res.status(401).json({ error: 'Unauthorized' });
+    // Exam results
+    const examResults = (data.examResults || []).filter(r => r.studentId === student.id);
+    const scoreSum = examResults.reduce((s, r) => s + (r.percent || 0), 0);
+    const overall = examResults.length ? Math.round(scoreSum / examResults.length) : null;
+    const results = examResults.map(r => ({
+      examTitle: r.examTitle, score: r.score, total: r.total,
+      percent: r.percent, passed: r.passed, passMark: r.passMark || 50,
+    }));
+    // Module attendance
+    const c = String(student.course || '');
+    const segs = c.split('+').map(x => x.trim());
+    const inCourse = (x) => {
+      if (c === 'all' || c === 'all3') return true;
+      if (c === 'both') return x.course === 'digital' || x.course === 'event';
+      return segs.includes(x.course);
+    };
+    const modules = (data.modules || []).filter(inCourse);
+    const allSessions = (data.moduleSessions || []).filter(s => modules.some(m => m.id === s.moduleId));
+    const myAtt = (data.moduleAttendance || []).filter(a => a.studentId === student.id);
+    const attendance = allSessions.map(s => ({
+      title: s.title,
+      present: myAtt.some(a => a.sessionId === s.id),
+    }));
+    const attendedCount = attendance.filter(a => a.present).length;
+    const totalSessions = attendance.length;
+    const attRate = totalSessions > 0 ? Math.round((attendedCount / totalSessions) * 100) : null;
+    return res.status(200).json({ ok: true, results, overall, attendance, attendedCount, totalSessions, attRate });
+  }
+
+  // ── Student: messages ─────────────────────────────────────
+  if (action === 'messages' && req.method === 'GET' && studentId) {
+    const student = (data.students || []).find(s => s.portalId === studentId);
+    if (!student) return res.status(401).json({ error: 'Unauthorized' });
+    if (!data.studentMessages) data.studentMessages = {};
+    const msgs = data.studentMessages[student.id] || [];
+    return res.status(200).json({ ok: true, messages: msgs });
+  }
+  if (action === 'message' && req.method === 'POST' && studentId) {
+    const student = (data.students || []).find(s => s.portalId === studentId);
+    if (!student) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    if (!body.text?.trim()) return res.status(400).json({ error: 'Message required' });
+    if (!data.studentMessages) data.studentMessages = {};
+    if (!data.studentMessages[student.id]) data.studentMessages[student.id] = [];
+    data.studentMessages[student.id].push({ from: 'student', text: body.text.trim(), at: new Date().toISOString() });
+    await setData(data);
+    return res.status(200).json({ ok: true });
+  }
+
   // ── Modules & Sessions (new system) ───────────────────────
   // Teacher: list modules + sessions for their course
   if (action === 'modules' && req.method === 'GET') {
