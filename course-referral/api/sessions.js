@@ -391,12 +391,16 @@ export default async function handler(req, res) {
     const already = (data.examResults || []).find(r => r.examId === ex.id && r.studentId === student.id);
     if (already) return res.status(400).json({ error: 'You have already submitted this exam.' });
     // Strip correct answers from questions before sending to student
-    const questions = (ex.questions || []).map(q => ({
-      id: q.id,
-      text: q.text || q.question || '',
-      type: q.type || 'mcq',
-      options: q.options || [],
-    }));
+    // True/False questions store no options array — inject them here
+    const questions = (ex.questions || []).map(q => {
+      const isTF = q.type === 'tf' || q.type === 'truefalse' || q.type === 'true-false' || q.type === 'boolean';
+      return {
+        id: q.id,
+        text: q.text || q.question || '',
+        type: 'mcq',
+        options: isTF ? ['True', 'False'] : (q.options || []),
+      };
+    });
     return res.status(200).json({ ok: true, exam: {
       id: ex.id,
       title: ex.title,
@@ -428,7 +432,10 @@ export default async function handler(req, res) {
         const idx = correctText.charCodeAt(0) - 65;
         if (opts[idx] !== undefined) correctText = opts[idx];
       }
-      const isMcq = q.type === 'mcq' || (opts.length > 0);
+      // True/False: inject options if missing
+      const isTF = q.type === 'tf' || q.type === 'truefalse' || q.type === 'true-false' || q.type === 'boolean';
+      if (isTF && opts.length === 0) opts.push('True', 'False');
+      const isMcq = q.type === 'mcq' || isTF || (opts.length > 0);
       let correct = false;
       if (isMcq && given !== undefined && given !== null && given !== '') {
         // given is the index as string; match against option text
@@ -439,7 +446,7 @@ export default async function handler(req, res) {
       // Written answers count as 0 auto-score (teacher grades manually)
       return { questionId: q.id, correct: isMcq ? correct : null, given: given || null, correctAnswer: isMcq ? correctText : null };
     });
-    const total = (ex.questions || []).filter(q => q.type === 'mcq' || (q.options && q.options.length)).length || (ex.questions || []).length;
+    const total = (ex.questions || []).filter(q => q.type === 'mcq' || q.type === 'tf' || q.type === 'truefalse' || q.type === 'true-false' || q.type === 'boolean' || (q.options && q.options.length)).length || (ex.questions || []).length;
     const percent = total > 0 ? Math.round((score / total) * 100) : 0;
     const passed = percent >= (ex.passMark || 50);
     const result = {
