@@ -340,10 +340,16 @@ export default async function handler(req, res) {
     const body = await parseJSON(req);
     const r = (data.examResults || []).find(x => x.id === body.resultId);
     if (!r) return res.status(404).json({ error: 'Result not found' });
-    if (body.score !== undefined) r.score = Math.max(0, parseInt(body.score) || 0);
     const exam = (data.exams || []).find(e => e.id === r.examId);
-    if (exam) r.passed = r.total ? (r.score / r.total * 100) >= (exam.passMark || 50) : false;
+    if (body.score !== undefined) {
+      // bonus points from written answers can push score above base total
+      r.score = Math.max(0, parseInt(body.score) || 0);
+      r.percent = r.total > 0 ? Math.min(100, Math.round((r.score / r.total) * 100)) : 0;
+      if (exam) r.passed = r.percent >= (exam.passMark || 50);
+    }
+    r.pendingGrade = false;
     r.gradedBy = resolveTeacher(teacherKey, data)?.label || 'teacher';
+    r.gradedAt = new Date().toISOString();
     await setData(data);
     return res.status(200).json({ ok: true, result: r });
   }
@@ -419,12 +425,22 @@ export default async function handler(req, res) {
         options: isTF ? ['True', 'False'] : (isWritten ? [] : (q.options || [])),
       };
     });
+    // Shuffle questions so order is different every attempt
+    const shuffled = [...questions].sort(() => Math.random() - 0.5);
+    // Also shuffle MCQ options within each question (keep correct answer tracked by text not index)
+    const finalQuestions = shuffled.map(q => {
+      if (q.type === 'mcq' && q.options && q.options.length > 2) {
+        const shuffledOpts = [...q.options].sort(() => Math.random() - 0.5);
+        return { ...q, options: shuffledOpts };
+      }
+      return q;
+    });
     return res.status(200).json({ ok: true, exam: {
       id: ex.id,
       title: ex.title,
       duration: ex.timeLimit || 30,
       passMark: ex.passMark || 50,
-      questions,
+      questions: finalQuestions,
     }});
   }
 
@@ -498,9 +514,20 @@ export default async function handler(req, res) {
       // Written answers count as 0 auto-score (teacher grades manually)
       return { questionId: q.id, correct: isMcq ? correct : null, given: given || null, correctAnswer: isMcq ? correctText : null };
     });
-    const total = (ex.questions || []).filter(q => q.type === 'mcq' || q.type === 'tf' || q.type === 'truefalse' || q.type === 'true-false' || q.type === 'boolean' || (q.options && q.options.length)).length || (ex.questions || []).length;
+    // Total = only MCQ + TF (auto-gradeable). Written answers are bonus — added by teacher later.
+    const total = (ex.questions || []).filter(q =>
+      q.type === 'mcq' || q.type === 'tf' || q.type === 'truefalse' ||
+      q.type === 'true-false' || q.type === 'boolean' || (q.options && q.options.length)
+    ).length || (ex.questions || []).length;
     const percent = total > 0 ? Math.round((score / total) * 100) : 0;
     const passed = percent >= (ex.passMark || 50);
+    // Store written answers so teacher can read them and add bonus points later
+    const answersMap = {};
+    (ex.questions || []).forEach(q => { answersMap[q.id] = answers[q.id] || null; });
+    const writtenCount = (ex.questions || []).filter(q =>
+      q.type === 'written' || q.type === 'essay' || q.type === 'short' || q.type === 'text' ||
+      (!q.options?.length && q.type !== 'tf' && q.type !== 'truefalse' && q.type !== 'true-false' && q.type !== 'boolean' && q.type !== 'mcq')
+    ).length;
     const result = {
       id: 'er_' + Date.now(),
       examId: ex.id,
@@ -510,6 +537,9 @@ export default async function handler(req, res) {
       score, total, percent, passed,
       passMark: ex.passMark || 50,
       questionResults,
+      answers: answersMap,
+      hasWritten: writtenCount > 0,
+      pendingGrade: writtenCount > 0,
       submittedAt: new Date().toISOString(),
     };
     data.examResults.push(result);
