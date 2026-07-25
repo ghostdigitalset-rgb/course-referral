@@ -330,6 +330,7 @@ tr:last-child td{border-bottom:none}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="field"><label>Time limit (minutes, 0 = none)</label><input type="number" id="exam-time" value="30" min="0"></div>
       <div class="field"><label>Pass mark (%)</label><input type="number" id="exam-pass" value="50" min="0" max="100"></div>
+      <div class="field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="exam-allow-retake" style="width:16px;height:16px;accent-color:var(--accent)"> Allow students to retake this exam</label></div>
     </div>
     <div class="field"><label>Assign to</label>
       <select id="exam-assign-type" onchange="onAssignTypeChange()">
@@ -686,6 +687,7 @@ function renderExams(){
         <span class="m-chip"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Pass ${ex.passMark}%</span>
         <span class="m-chip"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${assignLabel}</span>
         <span class="m-chip">${exResults.length} submitted · avg ${avg}%</span>
+        ${ex.allowRetake?'<span class="m-chip" style="color:var(--accent)">↺ Retakes allowed</span>':''}
       </div>
       <div class="exam-actions">
         <button class="btn btn-primary btn-sm" onclick="viewResults('${ex.id}')"><svg viewBox="0 0 24 24" class="ico"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg> Results (${exResults.length})</button>
@@ -703,7 +705,7 @@ function openExamBuilder(){
   qDraft=[]; document.getElementById('exam-id').value='';
   document.getElementById('exam-modal-title').textContent='New Exam';
   document.getElementById('exam-title').value=''; document.getElementById('exam-desc').value='';
-  document.getElementById('exam-time').value='30'; document.getElementById('exam-pass').value='50';
+  document.getElementById('exam-time').value='30'; document.getElementById('exam-pass').value='50'; document.getElementById('exam-allow-retake').checked=false;
   document.getElementById('exam-assign-type').value='batch'; onAssignTypeChange();
   renderStudentPicker(); renderQuestions();
   document.getElementById('exam-modal').classList.add('open');
@@ -717,6 +719,7 @@ function editExam(id){
   document.getElementById('exam-desc').value=ex.description||'';
   document.getElementById('exam-time').value=ex.timeLimit||0;
   document.getElementById('exam-pass').value=ex.passMark||50;
+  document.getElementById('exam-allow-retake').checked=!!ex.allowRetake;
   document.getElementById('exam-assign-type').value=ex.assignType||'batch'; onAssignTypeChange();
   document.getElementById('exam-batch').value=ex.batchId||'';
   renderStudentPicker(ex.studentIds||[]);
@@ -785,6 +788,7 @@ async function saveExam(publish){
     title, description:document.getElementById('exam-desc').value.trim(),
     timeLimit:parseInt(document.getElementById('exam-time').value)||0,
     passMark:parseInt(document.getElementById('exam-pass').value)||50,
+    allowRetake:document.getElementById('exam-allow-retake').checked,
     questions:qDraft, assignType,
     batchId:assignType==='batch'?(document.getElementById('exam-batch').value||null):null,
     studentIds, published:publish
