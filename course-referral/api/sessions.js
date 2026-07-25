@@ -305,6 +305,7 @@ export default async function handler(req, res) {
       Object.assign(ex, {
         title: body.title.trim(), description: body.description || '',
         timeLimit: parseInt(body.timeLimit) || 0, passMark: parseInt(body.passMark) || 50,
+        allowRetake: !!body.allowRetake,
         questions: body.questions, assignType: body.assignType || 'batch',
         batchId: body.batchId || null, studentIds: Array.isArray(body.studentIds) ? body.studentIds : [],
         published: !!body.published, updatedAt: now,
@@ -316,6 +317,7 @@ export default async function handler(req, res) {
       id: 'exam_' + Date.now(), course: t.course, courseLabel: t.label,
       title: body.title.trim(), description: body.description || '',
       timeLimit: parseInt(body.timeLimit) || 0, passMark: parseInt(body.passMark) || 50,
+      allowRetake: !!body.allowRetake,
       questions: body.questions, assignType: body.assignType || 'batch',
       batchId: body.batchId || null, studentIds: Array.isArray(body.studentIds) ? body.studentIds : [],
       published: !!body.published, createdAt: now,
@@ -381,6 +383,7 @@ export default async function handler(req, res) {
         questions: (ex.questions || []).length,
         duration: ex.timeLimit || 30,
         passMark: ex.passMark || 50,
+        allowRetake: !!ex.allowRetake,
         status: ex.published ? 'published' : 'draft',
         mySubmission: myResult ? {
           score: myResult.score,
@@ -408,11 +411,12 @@ export default async function handler(req, res) {
     // True/False questions store no options array — inject them here
     const questions = (ex.questions || []).map(q => {
       const isTF = q.type === 'tf' || q.type === 'truefalse' || q.type === 'true-false' || q.type === 'boolean';
+      const isWritten = q.type === 'written' || q.type === 'essay' || q.type === 'short' || q.type === 'text' || (!isTF && (!q.options || q.options.length === 0));
       return {
         id: q.id,
         text: q.text || q.question || '',
-        type: 'mcq',
-        options: isTF ? ['True', 'False'] : (q.options || []),
+        type: isWritten ? 'written' : 'mcq',
+        options: isTF ? ['True', 'False'] : (isWritten ? [] : (q.options || [])),
       };
     });
     return res.status(200).json({ ok: true, exam: {
@@ -422,6 +426,20 @@ export default async function handler(req, res) {
       passMark: ex.passMark || 50,
       questions,
     }});
+  }
+
+  // ── Student: re-take exam (clear previous result) ───────────
+  if (action === 'retake-exam' && req.method === 'POST' && studentId) {
+    const student = (data.students || []).find(s => s.portalId === studentId);
+    if (!student) return res.status(401).json({ error: 'Unauthorized' });
+    const body = await parseJSON(req);
+    const ex = (data.exams || []).find(e => e.id === body.examId);
+    if (!ex) return res.status(404).json({ error: 'Exam not found' });
+    if (!ex.allowRetake) return res.status(403).json({ error: 'Retakes are not allowed for this exam.' });
+    // Remove previous result for this student
+    data.examResults = (data.examResults || []).filter(r => !(r.examId === ex.id && r.studentId === student.id));
+    await setData(data);
+    return res.status(200).json({ ok: true });
   }
 
   // ── Student: submit exam ──────────────────────────────────
