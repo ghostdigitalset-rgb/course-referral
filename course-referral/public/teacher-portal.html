@@ -279,7 +279,38 @@ tr:last-child td{border-bottom:none}
       </div>
       <input type="hidden" id="session-pdf-url">
     </div>
-    <div class="field"><label>PDF page limit (how many pages students can view · 0 = all)</label><input type="number" id="session-pagelimit" value="0" min="0"></div>
+    <div id="pdf-range-wrap" style="display:none">
+      <div class="field" style="margin-bottom:8px">
+        <label>Page range students will see</label>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+          <div style="display:flex;align-items:center;gap:6px;flex:1">
+            <span style="font-size:13px;color:var(--muted);white-space:nowrap">From page</span>
+            <input type="number" id="session-page-start" value="1" min="1" style="width:70px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;text-align:center" oninput="onPageRangeChange()">
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex:1">
+            <span style="font-size:13px;color:var(--muted);white-space:nowrap">To page</span>
+            <input type="number" id="session-page-end" value="1" min="1" style="width:70px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;text-align:center" oninput="onPageRangeChange()">
+          </div>
+          <span id="pdf-total-pages" style="font-size:12px;color:var(--muted);white-space:nowrap"></span>
+        </div>
+      </div>
+      <!-- Mini PDF preview -->
+      <div style="background:#2a2a2a;border-radius:10px;overflow:hidden;margin-bottom:4px">
+        <div style="background:#1e1e1e;padding:8px 14px;display:flex;align-items:center;gap:8px">
+          <span style="color:rgba(255,255,255,.5);font-size:12px;flex:1" id="pdf-preview-label">Preview</span>
+          <button onclick="previewNav(-1)" style="background:rgba(255,255,255,.1);color:#fff;border:none;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button onclick="previewNav(1)" style="background:rgba(255,255,255,.1);color:#fff;border:none;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+        <div style="display:flex;justify-content:center;padding:12px;background:#333;min-height:160px;align-items:center">
+          <canvas id="pdf-preview-canvas" style="max-width:100%;max-height:340px;box-shadow:0 4px 16px rgba(0,0,0,.5);border-radius:3px"></canvas>
+          <div id="pdf-preview-loading" style="color:rgba(255,255,255,.4);font-size:13px">Upload a PDF to preview</div>
+        </div>
+      </div>
+    </div>
     <div class="field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="session-locked" style="width:16px;height:16px;accent-color:var(--accent)"> Lock this session (students can't open it yet)</label></div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeSessionModal()">Cancel</button>
@@ -346,6 +377,7 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 function escapeHtml(s){s=String(s==null?'':s);return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function showAlert(el,msg){ el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),4000); }
@@ -457,7 +489,7 @@ function renderModules(){
           <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:var(--muted);stroke-width:2;fill:none;flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
           <span style="font-weight:600">${escapeHtml(s.title)}</span>
           ${s.locked?'<span class="pill pill-dropped">Locked</span>':'<span class="pill pill-completed">Open</span>'}
-          ${s.pdfUrl?`<span class="m-chip">PDF${s.pageLimit?' · '+s.pageLimit+'p':''}</span>`:''}
+          ${s.pdfUrl?`<span class="m-chip">PDF${(s.pageStart&&s.pageEnd)?' · p'+s.pageStart+'–'+s.pageEnd:''}</span>`:''}
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:12px;color:var(--muted)">${present} attended</span>
@@ -510,7 +542,10 @@ function openSessionModal(moduleId){
   document.getElementById('session-content').value='';
   document.getElementById('session-pdf-url').value='';
   document.getElementById('session-pdf-status').textContent='No PDF uploaded';
-  document.getElementById('session-pagelimit').value='0';
+  document.getElementById('session-page-start').value='1';
+  document.getElementById('session-page-end').value='1';
+  document.getElementById('pdf-range-wrap').style.display='none';
+  previewPdfDoc=null;
   document.getElementById('session-locked').checked=false;
   fillSessionModules(typeof moduleId==='string'?moduleId:null);
   document.getElementById('session-modal').classList.add('open');
@@ -523,7 +558,10 @@ function editSession(id){
   document.getElementById('session-content').value=s.content||'';
   document.getElementById('session-pdf-url').value=s.pdfUrl||'';
   document.getElementById('session-pdf-status').textContent=s.pdfUrl?'PDF uploaded ✓':'No PDF uploaded';
-  document.getElementById('session-pagelimit').value=s.pageLimit||0;
+  document.getElementById('session-page-start').value=s.pageStart||1;
+  document.getElementById('session-page-end').value=s.pageEnd||1;
+  if(s.pdfUrl){ loadPreviewPdf(s.pdfUrl, s.pageStart||1); }
+  else { document.getElementById('pdf-range-wrap').style.display='none'; previewPdfDoc=null; }
   document.getElementById('session-locked').checked=!!s.locked;
   fillSessionModules(s.moduleId);
   document.getElementById('session-modal').classList.add('open');
@@ -538,6 +576,7 @@ async function handleSessionPdf(event){
     if(!res.ok) throw new Error(data.error||'Upload failed');
     document.getElementById('session-pdf-url').value=data.url;
     st.textContent='PDF uploaded ✓';
+    await loadPreviewPdf(data.url, 1);
   }catch(e){ st.textContent=e.message; }
   event.target.value='';
 }
@@ -552,7 +591,8 @@ async function saveSession(){
     moduleId, title,
     content:document.getElementById('session-content').value.trim(),
     pdfUrl:document.getElementById('session-pdf-url').value||'',
-    pageLimit:parseInt(document.getElementById('session-pagelimit').value)||0,
+    pageStart:parseInt(document.getElementById('session-page-start').value)||1,
+    pageEnd:parseInt(document.getElementById('session-page-end').value)||1,
     locked:document.getElementById('session-locked').checked
   };
   try{
@@ -564,6 +604,59 @@ async function saveSession(){
 async function deleteSession(id){
   if(!confirm('Delete this session?')) return;
   try{ await fetch('/api/sessions?action=msession&id='+id,{method:'DELETE',headers:{'x-teacher-key':teacherData.username}}); await loadModules(); renderModules(); }catch(e){}
+}
+
+// ── PDF Page Range Preview ─────────────────────────────────
+let previewPdfDoc=null, previewCurrentPage=1;
+async function loadPreviewPdf(url, startPage){
+  document.getElementById('pdf-range-wrap').style.display='block';
+  document.getElementById('pdf-preview-loading').style.display='block';
+  document.getElementById('pdf-preview-canvas').style.display='none';
+  try{
+    if(typeof pdfjsLib === 'undefined'){ document.getElementById('pdf-preview-loading').textContent='PDF preview not available'; return; }
+    previewPdfDoc = await pdfjsLib.getDocument(url).promise;
+    const total = previewPdfDoc.numPages;
+    document.getElementById('pdf-total-pages').textContent = `of ${total} pages`;
+    document.getElementById('session-page-start').max = total;
+    document.getElementById('session-page-end').max = total;
+    // If end page not set yet, set it to total
+    const curEnd = parseInt(document.getElementById('session-page-end').value)||1;
+    if(curEnd <= 1) document.getElementById('session-page-end').value = total;
+    previewCurrentPage = startPage || parseInt(document.getElementById('session-page-start').value) || 1;
+    await renderPreviewPage(previewCurrentPage);
+  }catch(e){
+    document.getElementById('pdf-preview-loading').textContent = 'Could not load PDF preview';
+  }
+}
+async function renderPreviewPage(pageNum){
+  if(!previewPdfDoc) return;
+  const total = previewPdfDoc.numPages;
+  pageNum = Math.max(1, Math.min(total, pageNum));
+  previewCurrentPage = pageNum;
+  const start = parseInt(document.getElementById('session-page-start').value)||1;
+  const end = parseInt(document.getElementById('session-page-end').value)||total;
+  document.getElementById('pdf-preview-label').textContent = `Page ${pageNum} of ${total} · Range: ${start}–${end}`;
+  try{
+    const page = await previewPdfDoc.getPage(pageNum);
+    const canvas = document.getElementById('pdf-preview-canvas');
+    const ctx = canvas.getContext('2d');
+    const vp = page.getViewport({scale: 0.7});
+    canvas.width = vp.width; canvas.height = vp.height;
+    await page.render({canvasContext:ctx, viewport:vp}).promise;
+    document.getElementById('pdf-preview-loading').style.display='none';
+    canvas.style.display='block';
+    // Highlight if current page is outside selected range
+    canvas.style.outline = (pageNum < start || pageNum > end) ? '3px solid #c0392b' : '3px solid #2d5a27';
+  }catch(e){}
+}
+function previewNav(dir){
+  if(!previewPdfDoc) return;
+  renderPreviewPage(previewCurrentPage + dir);
+}
+function onPageRangeChange(){
+  const start = parseInt(document.getElementById('session-page-start').value)||1;
+  // Auto-jump preview to the start page when teacher changes it
+  renderPreviewPage(start);
 }
 
 // ── Exams ──────────────────────────────────────────────────
@@ -585,7 +678,7 @@ function renderExams(){
     return `<div class="exam-card">
       <div class="exam-head">
         <div><div class="exam-title">${escapeHtml(ex.title)}</div>${ex.description?`<div style="font-size:13px;color:var(--muted);margin-top:3px">${escapeHtml(ex.description)}</div>`:''}</div>
-        <span class="badge ${ex.locked?'badge-gray':(ex.published?'badge-green':'badge-gray')}">${ex.locked?'🔒 Locked':(ex.published?'● Published':'○ Draft')}</span>
+        <span class="badge ${ex.published?'badge-green':'badge-gray'}">${ex.published?'● Published':'○ Draft'}</span>
       </div>
       <div class="exam-meta">
         <span class="m-chip"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>${ex.questions.length} questions</span>
@@ -597,10 +690,6 @@ function renderExams(){
       <div class="exam-actions">
         <button class="btn btn-primary btn-sm" onclick="viewResults('${ex.id}')"><svg viewBox="0 0 24 24" class="ico"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg> Results (${exResults.length})</button>
         <button class="btn btn-outline btn-sm" onclick="editExam('${ex.id}')"><svg viewBox="0 0 24 24" class="ico"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg> Edit</button>
-        <button class="btn btn-outline btn-sm" onclick="toggleExamLock('${ex.id}')" title="${ex.locked?'Unlock exam for students':'Lock exam from students'}">
-          <svg viewBox="0 0 24 24" class="ico">${ex.locked?'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>':'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>'}</svg>
-          ${ex.locked?'Unlock':'Lock'}
-        </button>
         <button class="btn btn-danger btn-sm" onclick="deleteExam('${ex.id}')">Delete</button>
       </div>
     </div>`;
@@ -709,20 +798,6 @@ async function saveExam(publish){
 async function deleteExam(id){
   if(!confirm('Delete this exam and its results? This cannot be undone.')) return;
   try{ await fetch('/api/sessions?action=exam&id='+id,{method:'DELETE',headers:{'x-teacher-key':teacherData.username}}); await loadExams(); renderExams(); }catch(e){}
-}
-async function toggleExamLock(id){
-  const ex=exams.find(e=>e.id===id); if(!ex) return;
-  const willLock=!ex.locked;
-  const msg=willLock
-    ?'Lock this exam? Students will not be able to take it until you unlock it.'
-    :'Unlock this exam? Students will be able to take it.';
-  if(!confirm(msg)) return;
-  try{
-    const res=await fetch('/api/sessions?action=lock-exam',{method:'POST',headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},body:JSON.stringify({examId:id,locked:willLock})});
-    const data=await res.json();
-    if(!res.ok) throw new Error(data.error||'Failed');
-    await loadExams(); renderExams();
-  }catch(e){ alert(e.message); }
 }
 
 // ── Results ────────────────────────────────────────────────
