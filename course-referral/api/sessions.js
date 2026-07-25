@@ -419,7 +419,8 @@ export default async function handler(req, res) {
       const isWritten = q.type === 'written' || q.type === 'essay' || q.type === 'short' || q.type === 'text' || (!isTF && (!q.options || q.options.length === 0));
       const baseOpts = isTF ? ['True', 'False'] : (isWritten ? [] : (q.options || []));
       // Resolve correct answer to text BEFORE shuffling
-      let correctText = q.correctAnswer;
+      // Teacher stores correct answer as q.correct (number index for MCQ, 'true'/'false' for TF)
+      let correctText = q.correct !== undefined ? q.correct : q.correctAnswer;
       if (typeof correctText === 'number') correctText = baseOpts[correctText];
       else if (typeof correctText === 'string' && /^[A-Z]$/.test(correctText) && !baseOpts.includes(correctText)) {
         const idx = correctText.charCodeAt(0) - 65;
@@ -509,26 +510,19 @@ export default async function handler(req, res) {
     let score = 0;
     const questionResults = (ex.questions || []).map(q => {
       const given = answers[q.id];
-      // Resolve correct answer (same logic as submit-quiz)
       const opts = q.options || [];
-      let correctText = q.correctAnswer;
-      if (typeof correctText === 'number') correctText = opts[correctText];
-      else if (typeof correctText === 'string' && /^[A-Z]$/.test(correctText) && !opts.includes(correctText)) {
-        const idx = correctText.charCodeAt(0) - 65;
-        if (opts[idx] !== undefined) correctText = opts[idx];
-      }
-      // True/False: inject options and normalise correct answer
       const isTF = q.type === 'tf' || q.type === 'truefalse' || q.type === 'true-false' || q.type === 'boolean';
       if (isTF && opts.length === 0) opts.push('True', 'False');
-      // TF correct stored as 'true'/'false' string — capitalise to match option text
-      if (isTF && typeof correctText === 'string' && (correctText === 'true' || correctText === 'false')) {
-        correctText = correctText === 'true' ? 'True' : 'False';
-      }
-      // Resolve correct answer text from original options
+      // Resolve correct answer — teacher stores as q.correct (number index for MCQ, 'true'/'false' for TF)
+      let correctText = q.correct !== undefined ? q.correct : q.correctAnswer;
       if (typeof correctText === 'number') correctText = opts[correctText];
       else if (typeof correctText === 'string' && /^[A-Z]$/.test(correctText) && !opts.includes(correctText)) {
         const idx = correctText.charCodeAt(0) - 65;
         if (opts[idx] !== undefined) correctText = opts[idx];
+      }
+      // Normalise TF correct answer to match 'True'/'False' option text
+      if (isTF && typeof correctText === 'string' && (correctText === 'true' || correctText === 'false')) {
+        correctText = correctText === 'true' ? 'True' : 'False';
       }
       const isMcq = q.type === 'mcq' || isTF || (opts.length > 0);
       let correct = false;
