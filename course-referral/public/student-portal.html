@@ -119,25 +119,82 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .empty{text-align:center;padding:48px 20px;color:var(--muted)}
 .empty svg{width:42px;height:42px;stroke:#c9d2c2;stroke-width:1.5;fill:none;margin-bottom:10px}
 /* Session viewer overlay */
-.overlay{position:fixed;inset:0;background:rgba(15,20,12,.6);z-index:100;display:none;align-items:stretch;justify-content:center}
+/* ── Session viewer (modern) ─────────────────────────────── */
+.overlay{position:fixed;inset:0;z-index:100;display:none;align-items:stretch}
 .overlay.open{display:flex}
-.viewer{background:var(--bg);width:100%;max-width:1000px;display:flex;flex-direction:column;height:100vh}
-.viewer-head{background:var(--surface);border-bottom:1px solid var(--border);padding:13px 20px;display:flex;align-items:center;gap:14px;flex-shrink:0}
-.viewer-head .back{background:none;border:1px solid var(--border);padding:8px 13px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600}
-.viewer-head h3{font-size:16px;font-weight:700;flex:1}
-.att-badge{background:var(--accent-light);color:var(--accent-text);padding:5px 11px;border-radius:20px;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:5px}
+.viewer{background:var(--bg);width:100%;display:flex;flex-direction:column;height:100vh}
+
+/* Top bar */
+.viewer-head{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:12px;flex-shrink:0;height:58px}
+.viewer-back{display:inline-flex;align-items:center;gap:6px;border:none;background:none;color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:8px 0;transition:.13s}
+.viewer-back:hover{color:var(--text)}
+.viewer-back svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none}
+.viewer-head-mid{flex:1;min-width:0;padding:0 12px}
+.viewer-head-mid h3{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.viewer-head-mid p{font-size:11.5px;color:var(--muted);margin-top:1px}
+.att-badge{background:var(--accent-light);color:var(--accent-text);padding:5px 11px;border-radius:20px;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:5px;flex-shrink:0}
 .att-badge svg{width:13px;height:13px;stroke:currentColor;stroke-width:2.5;fill:none}
-.viewer-body{flex:1;overflow-y:auto;padding:22px}
-.content-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;margin-bottom:18px;line-height:1.65;font-size:14.5px;white-space:pre-wrap}
-.pdf-wrap{background:#525659;border-radius:var(--radius-lg);overflow:hidden}
-.pdf-bar{background:#323639;padding:9px 16px;display:flex;align-items:center;gap:10px}
-.pdf-bar span{color:rgba(255,255,255,.75);font-size:12.5px}
-.pdf-bar button{background:rgba(255,255,255,.12);color:#fff;border:none;padding:6px 13px;border-radius:7px;font-size:12.5px;cursor:pointer;font-family:inherit}
-.pdf-bar button:hover{background:rgba(255,255,255,.22)}
-.pdf-bar button:disabled{opacity:.4;cursor:not-allowed}
-.pdf-canvas-wrap{display:flex;justify-content:center;padding:18px;min-height:300px}
-.pdf-canvas-wrap canvas{max-width:100%;box-shadow:0 4px 20px rgba(0,0,0,.4);height:auto}
-.limit-note{text-align:center;color:var(--gold);font-size:12.5px;padding:10px;background:rgba(196,134,10,.08)}
+
+/* Progress strip */
+.viewer-prog{height:3px;background:var(--border);flex-shrink:0}
+.viewer-prog-fill{height:100%;background:var(--accent);transition:width .4s}
+
+/* Two-column layout: sidebar + content */
+.viewer-layout{flex:1;display:flex;overflow:hidden}
+
+/* Session list sidebar */
+.viewer-sidebar{width:260px;border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.viewer-sidebar-head{padding:14px 16px 10px;font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--border)}
+.vs-item{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;position:relative}
+.vs-item:hover{background:var(--bg)}
+.vs-item.active{background:var(--accent-light)}
+.vs-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);border-radius:0 3px 3px 0}
+.vs-item.locked{opacity:.45;cursor:not-allowed}
+.vs-ic{width:32px;height:32px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.vs-item.active .vs-ic{background:rgba(45,90,39,.12)}
+.vs-ic svg{width:15px;height:15px;stroke:var(--muted);stroke-width:2;fill:none}
+.vs-item.active .vs-ic svg{stroke:var(--accent)}
+.vs-info{flex:1;min-width:0}
+.vs-info span{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.vs-info small{font-size:11px;color:var(--muted)}
+.vs-done{width:18px;height:18px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.vs-done svg{width:10px;height:10px;stroke:#fff;stroke-width:3;fill:none}
+
+/* Main content area */
+.viewer-content{flex:1;overflow-y:auto;padding:28px 32px;max-width:860px;margin:0 auto;width:100%}
+.viewer-module-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:6px}
+.viewer-session-title{font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:20px;line-height:1.25}
+.content-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px 28px;margin-bottom:22px;line-height:1.75;font-size:15px;color:var(--text)}
+.content-box p{margin-bottom:12px}.content-box p:last-child{margin-bottom:0}
+
+/* PDF viewer */
+.pdf-wrap{background:#1e1e1e;border-radius:var(--radius-lg);overflow:hidden;margin-bottom:22px}
+.pdf-toolbar{background:#2a2a2a;padding:10px 16px;display:flex;align-items:center;gap:10px}
+.pdf-toolbar-title{color:rgba(255,255,255,.6);font-size:12.5px;flex:1}
+.pdf-page-info{color:rgba(255,255,255,.8);font-size:13px;font-weight:600;font-family:monospace}
+.pdf-btn{background:rgba(255,255,255,.1);color:#fff;border:none;width:34px;height:34px;border-radius:8px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.13s}
+.pdf-btn:hover{background:rgba(255,255,255,.2)}
+.pdf-btn:disabled{opacity:.3;cursor:not-allowed}
+.pdf-btn svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none}
+.pdf-canvas-wrap{display:flex;justify-content:center;padding:20px;background:#333}
+.pdf-canvas-wrap canvas{max-width:100%;box-shadow:0 4px 24px rgba(0,0,0,.5);border-radius:4px;height:auto}
+.limit-note{text-align:center;color:#f0c040;font-size:12px;padding:10px 16px;background:rgba(240,192,64,.08)}
+
+/* Bottom nav */
+.viewer-nav{background:var(--surface);border-top:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+.vnav-btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:10px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text);transition:.13s}
+.vnav-btn:hover:not(:disabled){background:var(--bg)}
+.vnav-btn:disabled{opacity:.35;cursor:not-allowed}
+.vnav-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.vnav-btn.primary:hover{background:#245020}
+.vnav-btn svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none}
+.viewer-nav-label{font-size:12px;color:var(--muted);text-align:center}
+
+@media(max-width:768px){
+  .viewer-sidebar{display:none}
+  .viewer-content{padding:20px 18px}
+  .viewer-session-title{font-size:20px}
+}
 /* Exam styles */
 .exam-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
 .exam-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
@@ -319,24 +376,70 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <!-- Session viewer -->
 <div class="overlay" id="viewer-overlay">
   <div class="viewer">
+
+    <!-- Top bar -->
     <div class="viewer-head">
-      <button class="back" onclick="closeViewer()">← Back</button>
-      <h3 id="v-title">Session</h3>
-      <span class="att-badge" id="v-att" style="display:none"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg> Attendance marked</span>
+      <button class="viewer-back" onclick="closeViewer()">
+        <svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg> Back
+      </button>
+      <div class="viewer-head-mid">
+        <h3 id="v-title">Session</h3>
+        <p id="v-module-label"></p>
+      </div>
+      <span class="att-badge" id="v-att" style="display:none">
+        <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg> Attended
+      </span>
     </div>
-    <div class="viewer-body">
-      <div id="v-content" class="content-box" style="display:none"></div>
-      <div id="v-pdf" class="pdf-wrap" style="display:none">
-        <div class="pdf-bar">
-          <span id="pdf-info">Page 1</span>
-          <span style="flex:1"></span>
-          <button id="pdf-prev" onclick="pdfPrev()">◀ Prev</button>
-          <button id="pdf-next" onclick="pdfNext()">Next ▶</button>
+
+    <!-- Progress strip -->
+    <div class="viewer-prog"><div class="viewer-prog-fill" id="v-prog-fill" style="width:0%"></div></div>
+
+    <!-- Body: sidebar + content -->
+    <div class="viewer-layout">
+
+      <!-- Session list sidebar -->
+      <div class="viewer-sidebar" id="v-sidebar">
+        <div class="viewer-sidebar-head">Sessions</div>
+        <div id="v-sess-list"></div>
+      </div>
+
+      <!-- Main content -->
+      <div class="viewer-content" id="v-main-content">
+        <div class="viewer-module-label" id="v-mod-label"></div>
+        <div class="viewer-session-title" id="v-sess-title"></div>
+        <div id="v-content" class="content-box" style="display:none"></div>
+        <div id="v-pdf" class="pdf-wrap" style="display:none">
+          <div class="pdf-toolbar">
+            <span class="pdf-toolbar-title" id="pdf-filename">Document</span>
+            <span class="pdf-page-info" id="pdf-info">1 / 1</span>
+            <button class="pdf-btn" id="pdf-prev" onclick="pdfPrev()" title="Previous page">
+              <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <button class="pdf-btn" id="pdf-next" onclick="pdfNext()" title="Next page">
+              <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+          <div class="pdf-canvas-wrap"><canvas id="pdf-canvas"></canvas></div>
+          <div class="limit-note" id="pdf-limit-note" style="display:none"></div>
         </div>
-        <div class="pdf-canvas-wrap"><canvas id="pdf-canvas"></canvas></div>
-        <div class="limit-note" id="pdf-limit-note" style="display:none"></div>
+        <div id="v-empty" style="display:none;text-align:center;padding:48px 20px;color:var(--muted)">
+          <svg viewBox="0 0 24 24" style="width:40px;height:40px;stroke:#c9d2c2;stroke-width:1.5;fill:none;margin-bottom:10px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          <div>No content for this session yet.</div>
+        </div>
       </div>
     </div>
+
+    <!-- Bottom navigation -->
+    <div class="viewer-nav">
+      <button class="vnav-btn" id="v-btn-prev" onclick="viewerNavSession(-1)" disabled>
+        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg> Previous
+      </button>
+      <div class="viewer-nav-label" id="v-nav-label"></div>
+      <button class="vnav-btn primary" id="v-btn-next" onclick="viewerNavSession(1)">
+        Next <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+
   </div>
 </div>
 
@@ -526,47 +629,141 @@ async function sendStudentMessage(){
   }catch(e){ alert('Could not send message'); }
 }
 
-// ── Session viewer with page-limited PDF ───────────────────
+// ── Session viewer (modern) ────────────────────────────────
 let pdfDoc=null, pdfPage=1, pdfMaxPage=1;
+let viewerSessions=[], viewerCurrentIdx=0;
+
+function buildViewerSidebar(currentId){
+  // Flatten all sessions in order across modules
+  viewerSessions=[];
+  modules.forEach(m=>{
+    sessions.filter(s=>s.moduleId===m.id)
+      .sort((a,b)=>(a.order||0)-(b.order||0))
+      .forEach(s=>viewerSessions.push({...s, moduleTitle:m.title}));
+  });
+  viewerCurrentIdx=viewerSessions.findIndex(s=>s.id===currentId);
+  const list=document.getElementById('v-sess-list');
+  list.innerHTML=viewerSessions.map((s,i)=>{
+    const lk=s.locked;
+    return `<div class="vs-item ${lk?'locked':''} ${i===viewerCurrentIdx?'active':''}" ${lk?'':`onclick="jumpViewerTo(${i})"`}>
+      <div class="vs-ic"><svg viewBox="0 0 24 24">${lk?'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>':'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>'}</svg></div>
+      <div class="vs-info"><span>${escapeHtml(s.title)}</span><small>${escapeHtml(s.moduleTitle)}</small></div>
+    </div>`;
+  }).join('');
+  updateViewerProgress();
+}
+
+function updateViewerProgress(){
+  const total=viewerSessions.length;
+  const idx=viewerCurrentIdx;
+  const pct=total>1?Math.round(((idx+1)/total)*100):100;
+  document.getElementById('v-prog-fill').style.width=pct+'%';
+  document.getElementById('v-nav-label').textContent=`${idx+1} of ${total} sessions`;
+  document.getElementById('v-btn-prev').disabled=idx<=0;
+  const next=viewerSessions[idx+1];
+  const nextBtn=document.getElementById('v-btn-next');
+  if(!next){ nextBtn.textContent='Done'; nextBtn.onclick=closeViewer; }
+  else if(next.locked){ nextBtn.disabled=true; nextBtn.innerHTML='Locked <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;display:inline"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'; }
+  else{ nextBtn.disabled=false; nextBtn.innerHTML='Next <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none"><path d="M9 18l6-6-6-6"/></svg>'; nextBtn.onclick=()=>viewerNavSession(1); }
+  // update sidebar active state
+  document.querySelectorAll('.vs-item').forEach((el,i)=>el.classList.toggle('active',i===idx));
+}
+
+async function jumpViewerTo(i){
+  if(i<0||i>=viewerSessions.length) return;
+  const s=viewerSessions[i];
+  if(s.locked) return;
+  viewerCurrentIdx=i;
+  await loadViewerSession(s.id);
+}
+
+function viewerNavSession(dir){
+  const next=viewerSessions[viewerCurrentIdx+dir];
+  if(!next||next.locked) return;
+  jumpViewerTo(viewerCurrentIdx+dir);
+}
+
 async function openSession(id){
-  const overlay=document.getElementById('viewer-overlay');
+  document.getElementById('viewer-overlay').classList.add('open');
+  buildViewerSidebar(id);
+  await loadViewerSession(id);
+}
+
+async function loadViewerSession(id){
+  // Reset content areas
   document.getElementById('v-content').style.display='none';
   document.getElementById('v-pdf').style.display='none';
+  document.getElementById('v-empty').style.display='none';
   document.getElementById('v-att').style.display='none';
   document.getElementById('v-title').textContent='Loading…';
-  overlay.classList.add('open');
+  document.getElementById('v-sess-title').textContent='Loading…';
+  document.getElementById('v-mod-label').textContent='';
+  pdfDoc=null;
   try{
     const res=await fetch('/api/sessions?action=open-session',{method:'POST',headers:{'Content-Type':'application/json','x-student-id':student.portalId},body:JSON.stringify({sessionId:id})});
     const data=await res.json();
     if(!res.ok) throw new Error(data.error||'Could not open session');
     const s=data.session;
+    const sv=viewerSessions.find(x=>x.id===id);
+    const modTitle=sv?.moduleTitle||'';
     document.getElementById('v-title').textContent=s.title;
-    if(s.content){ const c=document.getElementById('v-content'); c.textContent=s.content; c.style.display='block'; }
-    if(s.pdfUrl){ document.getElementById('v-pdf').style.display='block'; loadPdf(s.pdfUrl, s.pageLimit||0); }
-  }catch(e){ document.getElementById('v-title').textContent='Error'; document.getElementById('v-content').style.display='block'; document.getElementById('v-content').textContent=e.message; }
+    document.getElementById('v-sess-title').textContent=s.title;
+    document.getElementById('v-mod-label').textContent=modTitle;
+    document.getElementById('v-att').style.display='inline-flex';
+    if(s.content){
+      const c=document.getElementById('v-content');
+      // Render line breaks as paragraphs
+      c.innerHTML=s.content.split(/
+
++/).map(p=>`<p>${escapeHtml(p.trim()).replace(/
+/g,'<br>')}</p>`).join('');
+      c.style.display='block';
+    }
+    if(s.pdfUrl){
+      document.getElementById('v-pdf').style.display='block';
+      document.getElementById('pdf-filename').textContent='Course Material';
+      loadPdf(s.pdfUrl, s.pageLimit||0);
+    }
+    if(!s.content&&!s.pdfUrl) document.getElementById('v-empty').style.display='block';
+    updateViewerProgress();
+    // Scroll content to top
+    document.getElementById('v-main-content').scrollTop=0;
+  }catch(e){
+    document.getElementById('v-sess-title').textContent='Could not load session';
+    document.getElementById('v-content').innerHTML=`<p style="color:var(--danger)">${escapeHtml(e.message)}</p>`;
+    document.getElementById('v-content').style.display='block';
+  }
 }
-function closeViewer(){ document.getElementById('viewer-overlay').classList.remove('open'); pdfDoc=null; }
+
+function closeViewer(){
+  document.getElementById('viewer-overlay').classList.remove('open');
+  pdfDoc=null; viewerSessions=[]; viewerCurrentIdx=0;
+}
+
 async function loadPdf(url, limit){
   const noteEl=document.getElementById('pdf-limit-note');
   try{
     pdfDoc=await pdfjsLib.getDocument(url).promise;
     const total=pdfDoc.numPages;
-    pdfMaxPage = limit>0 ? Math.min(limit, total) : total;
+    pdfMaxPage=limit>0?Math.min(limit,total):total;
     pdfPage=1;
-    if(limit>0 && limit<total){ noteEl.style.display='block'; noteEl.textContent=`Preview limited to ${pdfMaxPage} of ${total} pages by your teacher.`; }
+    if(limit>0&&limit<total){ noteEl.style.display='block'; noteEl.textContent=`Preview: ${pdfMaxPage} of ${total} pages`; }
     else noteEl.style.display='none';
     renderPdfPage();
   }catch(e){ document.getElementById('pdf-info').textContent='Could not load PDF'; }
 }
+
 async function renderPdfPage(){
   if(!pdfDoc) return;
   const page=await pdfDoc.getPage(pdfPage);
   const canvas=document.getElementById('pdf-canvas');
   const ctx=canvas.getContext('2d');
-  const vp=page.getViewport({scale:1.4});
+  const wrap=canvas.parentElement;
+  const scale=Math.min(1.6,(wrap.clientWidth-40)/page.getViewport({scale:1}).width);
+  const vp=page.getViewport({scale});
   canvas.width=vp.width; canvas.height=vp.height;
   await page.render({canvasContext:ctx,viewport:vp}).promise;
-  document.getElementById('pdf-info').textContent=`Page ${pdfPage} of ${pdfMaxPage}`;
+  document.getElementById('pdf-info').textContent=`${pdfPage} / ${pdfMaxPage}`;
   document.getElementById('pdf-prev').disabled=pdfPage<=1;
   document.getElementById('pdf-next').disabled=pdfPage>=pdfMaxPage;
 }
