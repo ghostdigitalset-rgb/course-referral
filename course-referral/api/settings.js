@@ -11,6 +11,9 @@ function ensureDefaults(data) {
   if (!data.settings) data.settings = {};
   if (!Array.isArray(data.settings.courses)) data.settings.courses = DEFAULT_COURSES;
   if (typeof data.settings.bundleDiscount !== 'number') data.settings.bundleDiscount = 10; // percent off when ALL courses selected
+  if (typeof data.settings.discountPercent !== 'number') data.settings.discountPercent = 0; // sitewide discount, 0 = off
+  if (!('discountStart' in data.settings)) data.settings.discountStart = null; // 'YYYY-MM-DD'
+  if (!('discountEnd' in data.settings)) data.settings.discountEnd = null;     // 'YYYY-MM-DD'
   if (!data.settings.telebirr) data.settings.telebirr = { number: '', holder: 'Ghost Digitals Academy' };
   if (!data.settings.cbe) data.settings.cbe = { number: '', holder: 'Ghost Digitals Academy' };
   return data;
@@ -63,9 +66,9 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, settings: data.settings });
     }
 
-    // ── Save courses + bundle discount ────────────────────────
+    // ── Save courses + bundle discount + sitewide discount ────
     if (action === 'courses') {
-      const { courses, bundleDiscount } = req.body;
+      const { courses, bundleDiscount, discountPercent, discountStart, discountEnd } = req.body;
       if (!Array.isArray(courses)) {
         return res.status(400).json({ error: 'Courses must be a list' });
       }
@@ -87,8 +90,20 @@ export default async function handler(req, res) {
       let disc = Number(bundleDiscount);
       if (!Number.isFinite(disc) || disc < 0) disc = 0;
       if (disc > 90) disc = 90; // safety cap
+
+      let sitewideDisc = Number(discountPercent);
+      if (!Number.isFinite(sitewideDisc) || sitewideDisc < 0) sitewideDisc = 0;
+      if (sitewideDisc > 90) sitewideDisc = 90; // safety cap
+
+      const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+      const cleanStart = typeof discountStart === 'string' && dateRe.test(discountStart) ? discountStart : null;
+      const cleanEnd = typeof discountEnd === 'string' && dateRe.test(discountEnd) ? discountEnd : null;
+
       data.settings.courses = cleaned;
       data.settings.bundleDiscount = Math.round(disc);
+      data.settings.discountPercent = Math.round(sitewideDisc);
+      data.settings.discountStart = cleanStart;
+      data.settings.discountEnd = cleanEnd;
       await setData(data);
       return res.status(200).json({ ok: true, settings: data.settings });
     }
