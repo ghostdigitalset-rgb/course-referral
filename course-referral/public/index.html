@@ -157,16 +157,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 /* ===== Premium sidebar layout (Bensen-style) ===== */
 .admin-sidebar{width:248px;background:var(--surface);border-right:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
 .admin-sb-brand{padding:22px 20px 18px;display:flex;align-items:center;gap:11px}
-.admin-sb-brand .mark{width:42px;height:42px;border-radius:12px;background:var(--grad-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:17px;flex-shrink:0;box-shadow:var(--shadow-md)}
+.admin-sb-brand .mark{width:42px;height:42px;border-radius:12px;background:var(--grad-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:17px;flex-shrink:0;box-shadow:var(--shadow-md);position:relative}
+.admin-sb-brand .mark::after{content:"";position:absolute;inset:-3px;border-radius:15px;border:1.5px solid var(--accent);opacity:.3;animation:pulseRing 2.4s ease-out infinite}
+@keyframes pulseRing{0%{transform:scale(.9);opacity:.5}70%{transform:scale(1.18);opacity:0}100%{opacity:0}}
 .admin-sb-brand .txt strong{display:block;font-family:'DM Serif Display',serif;font-size:16px;color:var(--text);line-height:1.15;font-weight:400}
 .admin-sb-brand .txt span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
 .admin-sb-sec{padding:6px 14px;font-size:10.5px;font-weight:700;color:var(--muted);opacity:.65;text-transform:uppercase;letter-spacing:.07em;margin-top:12px}
 .admin-nav{padding:6px 12px;flex:1;overflow-y:auto}
-.admin-tab{display:flex;align-items:center;gap:12px;width:100%;padding:11px 13px;border-radius:11px;color:var(--muted);font-family:inherit;font-size:14px;font-weight:600;margin-bottom:2px;transition:all .13s;cursor:pointer;border:none;background:none;text-align:left;position:relative}
-.admin-tab svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.admin-tab{display:flex;align-items:center;gap:12px;width:100%;padding:11px 13px;border-radius:11px;color:var(--muted);font-family:inherit;font-size:14px;font-weight:600;margin-bottom:2px;transition:background .18s,color .18s,transform .18s;cursor:pointer;border:none;background:none;text-align:left;position:relative}
+.admin-tab svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;transition:transform .18s}
 .admin-tab:hover{background:var(--bg);color:var(--text)}
-.admin-tab.active{background:var(--accent-light);color:var(--accent-text)}
-.admin-tab.active::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3.5px;border-radius:0 4px 4px 0;background:var(--accent)}
+.admin-tab:hover svg{transform:translateX(1px)}
+.admin-tab.active{background:var(--grad-accent);color:#fff;box-shadow:var(--shadow-md);transform:translateX(2px)}
+.admin-tab.active svg{transform:scale(1.05)}
 .admin-tab-ic{display:none}
 .admin-sb-foot{padding:12px;border-top:1px solid var(--border)}
 .admin-logout-btn{display:flex;align-items:center;gap:12px;width:100%;border:none;background:none;color:var(--muted);padding:11px 13px;border-radius:11px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:.13s}
@@ -178,6 +181,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .admin-topbar-inner{padding:13px 26px;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .admin-topbar-title h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;letter-spacing:-.2px;color:var(--text)}
 .admin-topbar-title span{font-size:12px;color:var(--muted)}
+.live-pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--accent-text);background:var(--accent-light);padding:5px 11px;border-radius:20px}
+.live-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:dotPulse 1.6s ease-in-out infinite}
+@keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
 .menu-btn{display:none;width:40px;height:40px;border-radius:11px;background:var(--bg);border:1px solid var(--border);align-items:center;justify-content:center;cursor:pointer}
 .menu-btn svg{width:22px;height:22px;stroke:var(--text);stroke-width:2;fill:none}
 .sb-backdrop{display:none;position:fixed;inset:0;background:rgba(20,25,15,.4);z-index:45}
@@ -187,14 +193,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .page-title{font-family:'DM Serif Display',serif;font-size:26px;letter-spacing:-.4px;margin-bottom:6px;color:var(--text)}
 .page-subtitle{font-size:14px;color:var(--muted);margin-bottom:24px}
 /* ===== Premium stat cards ===== */
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.admin-content.active{animation:cardIn .35s ease both}
 .metrics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:22px}
-.metric-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px;box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:space-between;gap:12px;transition:transform .16s,box-shadow .16s;overflow:hidden}
-.metric-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.metric-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px;box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:space-between;gap:12px;transition:transform .16s,box-shadow .16s;overflow:hidden;animation:cardIn .4s ease both}
+.metrics-row .metric-card:nth-child(1){animation-delay:.02s}
+.metrics-row .metric-card:nth-child(2){animation-delay:.08s}
+.metrics-row .metric-card:nth-child(3){animation-delay:.14s}
+.metric-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);opacity:0;transition:opacity .16s}
+.metric-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.metric-card:hover::before{opacity:1}
 .metric-card .val{font-family:'DM Serif Display',serif;font-size:30px;font-weight:400;line-height:1;margin-bottom:5px;color:var(--text)}
 .metric-card .lbl{font-size:12.5px;color:var(--muted);font-weight:500}
-.metric-card .tile{width:52px;height:52px;border-radius:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--accent-light);color:var(--accent)}
+.metric-card .tile{width:52px;height:52px;border-radius:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--accent-light);color:var(--accent);transition:transform .18s}
+.metric-card:hover .tile{transform:scale(1.06) rotate(-3deg)}
 .metric-card .tile svg{width:25px;height:25px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .metric-card.accent{background:var(--grad-accent);border-color:transparent;box-shadow:var(--shadow-lg)}
+.metric-card.accent::before{background:rgba(255,255,255,.5)}
 .metric-card.accent .val,.metric-card.accent .lbl{color:#fff}
 .metric-card.accent .lbl{opacity:.85}
 .metric-card.accent .tile{background:rgba(255,255,255,.18);color:#fff}
@@ -203,7 +218,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .tile.danger{background:var(--danger-bg);color:var(--danger)}
 /* charts row */
 .charts-row{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:22px}
-.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow-sm);overflow:hidden}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow .16s}
+.chart-card:hover{box-shadow:var(--shadow-md)}
 .chart-card-h{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .chart-card-h h3{font-size:15px;font-weight:700}
 .chart-card-h span{font-size:11.5px;color:var(--muted)}
@@ -614,6 +630,7 @@ tr:last-child td{border-bottom:none}
               <button class="menu-btn" onclick="toggleAdminSidebar()" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
               <div class="admin-topbar-title"><h2 id="admin-page-heading">Overview</h2><span id="admin-page-sub">Your course business at a glance</span></div>
             </div>
+            <div class="live-pill"><span class="dot"></span>Live</div>
           </div>
         </header>
 
