@@ -71,6 +71,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* Discount strip */
 .discount-strip{display:inline-flex;align-items:center;gap:8px;background:var(--gold-bg);color:var(--gold);border:1px solid #e8c96f;font-size:12.5px;font-weight:600;padding:6px 14px;border-radius:20px;margin-bottom:16px}
+.discount-tag{display:inline-block;background:var(--gold-bg);color:var(--gold);border:1px solid #e8c96f;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:5px;margin-bottom:5px}
 
 /* Course cards */
 .course-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
@@ -382,19 +383,18 @@ tr:last-child td{border-bottom:none}
   </div>
 </header>
 
-<!-- TRUST BAR -->
-<div class="trust-bar">
-  <div class="inner">
-    <div class="trust-item"><span class="dot"></span>2nd round registration open</div>
-    <div class="trust-item"><span class="dot"></span>40% off · July 23 – Aug 2</div>
-    <div class="trust-item"><span class="dot"></span>Certified instructors</div>
-  </div>
-</div>
-
 <!-- ============================
      REGISTRATION PAGE
 ============================= -->
 <div id="register-page" class="page active">
+  <!-- TRUST BAR (registration page only) -->
+  <div class="trust-bar">
+    <div class="inner">
+      <div class="trust-item"><span class="dot"></span>2nd round registration open</div>
+      <div class="trust-item"><span class="dot"></span><span id="trust-discount-text">Discount active</span></div>
+      <div class="trust-item"><span class="dot"></span>Certified instructors</div>
+    </div>
+  </div>
   <div class="container">
     <div class="hero">
       <div class="discount-strip">🔥 Save 40% · offer ends Aug 2</div>
@@ -787,6 +787,27 @@ tr:last-child td{border-bottom:none}
             </div>
           </div>
 
+          <!-- ===== SITEWIDE DISCOUNT ===== -->
+          <div class="data-card" style="max-width:720px;padding:20px 24px;margin-bottom:20px">
+            <h3 style="font-size:15px;font-weight:600;margin-bottom:4px">🔥 Sitewide discount</h3>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Shows a discount banner and strikethrough pricing on every course during this window. Set percent to 0 to turn it off anytime.</div>
+            <div class="grid-2">
+              <div class="field">
+                <label>Discount (%)</label>
+                <input type="number" id="set-discount-percent" min="0" max="90" placeholder="40">
+              </div>
+              <div class="field"></div>
+              <div class="field">
+                <label>Starts</label>
+                <input type="date" id="set-discount-start">
+              </div>
+              <div class="field">
+                <label>Ends</label>
+                <input type="date" id="set-discount-end">
+              </div>
+            </div>
+          </div>
+
           <button class="submit-btn" style="max-width:720px" onclick="saveCourses()" id="courses-save-btn">
             <span id="courses-save-text">Save courses</span>
             <div class="spinner" id="courses-spinner"></div>
@@ -1163,6 +1184,34 @@ let currentRepId = '';
 let adminData = null;
 let paymentSettings = null;
 
+// ── Course discount config ──────────────────────────────────
+// Now controlled from Admin → Settings → Sitewide discount. These are fallbacks.
+let DISCOUNT_PERCENT = 0;
+let DISCOUNT_START = null;
+let DISCOUNT_END = null;
+
+function isDiscountActive(){
+  const now = new Date();
+  return DISCOUNT_PERCENT > 0 && DISCOUNT_START && DISCOUNT_END && now >= DISCOUNT_START && now <= DISCOUNT_END;
+}
+function effectivePrice(price){
+  price = Number(price)||0;
+  return isDiscountActive() ? Math.round(price*(1-DISCOUNT_PERCENT/100)) : price;
+}
+function applyDiscountBannerVisibility(){
+  const discEl = document.getElementById('trust-discount-text');
+  if(discEl){
+    if(isDiscountActive()){
+      discEl.textContent = DISCOUNT_PERCENT+'% off · through '+DISCOUNT_END.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      discEl.parentElement.style.display='';
+    } else {
+      discEl.parentElement.style.display='none';
+    }
+  }
+  const stripEl = document.querySelector('.discount-strip');
+  if(stripEl) stripEl.style.display = isDiscountActive() ? '' : 'none';
+}
+
 // ── Routing ──────────────────────────────────────────────
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1197,6 +1246,10 @@ async function loadPaymentSettings(){
     paymentSettings = await res.json();
     COURSES = Array.isArray(paymentSettings.courses) ? paymentSettings.courses : [];
     BUNDLE_DISCOUNT = Number(paymentSettings.bundleDiscount) || 0;
+    DISCOUNT_PERCENT = Number(paymentSettings.discountPercent) || 0;
+    DISCOUNT_START = paymentSettings.discountStart ? new Date(paymentSettings.discountStart+'T00:00:00') : null;
+    DISCOUNT_END = paymentSettings.discountEnd ? new Date(paymentSettings.discountEnd+'T23:59:59') : null;
+    applyDiscountBannerVisibility();
     renderPaymentSettings();
     renderCourseCards();
   }catch(e){
@@ -1217,13 +1270,18 @@ function renderCourseCards(){
   grid.innerHTML = COURSES.map((c,i)=>{
     const full = i === COURSES.length-1 && COURSES.length % 2 === 1; // last odd card spans full width
     const durationLine = c.duration ? `<div class="desc" style="margin-top:2px">⏱ ${escapeHtml(c.duration)}</div>` : '';
+    const disc = isDiscountActive();
+    const priceLine = disc
+      ? `<div class="fee">${effectivePrice(c.price).toLocaleString()} ETB <span style="font-size:12px;font-weight:500;color:var(--muted);text-decoration:line-through;margin-left:4px">${Number(c.price).toLocaleString()} ETB</span></div>`
+      : `<div class="fee">${Number(c.price).toLocaleString()} ETB</div>`;
     return `<div class="course-card" id="card-${c.id}" onclick="toggleCourse('${c.id}')" ${full?'style="grid-column:1/-1"':''}>
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
         <div class="icon">${c.icon||'📚'}</div>
         <div class="course-check" id="check-${c.id}">✓</div>
       </div>
       <h3>${escapeHtml(c.name)}</h3>
-      <div class="fee">${Number(c.price).toLocaleString()} ETB</div>
+      ${disc?`<div class="discount-tag">-${DISCOUNT_PERCENT}%</div>`:''}
+      ${priceLine}
       ${c.description?`<div class="desc">${escapeHtml(c.description)}</div>`:''}
       ${durationLine}
     </div>`;
@@ -1232,7 +1290,7 @@ function renderCourseCards(){
   // Bundle card only if a discount is configured and 2+ courses exist
   const bundleCard = document.getElementById('bundle-card');
   if(BUNDLE_DISCOUNT > 0 && COURSES.length >= 2){
-    const fullTotal = COURSES.reduce((s,c)=>s+Number(c.price||0),0);
+    const fullTotal = COURSES.reduce((s,c)=>s+effectivePrice(c.price),0);
     const bundleTotal = Math.round(fullTotal*(1-BUNDLE_DISCOUNT/100));
     document.getElementById('bundle-price').textContent = bundleTotal.toLocaleString()+' ETB';
     document.getElementById('bundle-save').textContent = 'Save '+(fullTotal-bundleTotal).toLocaleString()+' ETB';
@@ -1284,7 +1342,7 @@ function updateCourseUI(){
   if(bundleCard) bundleCard.classList.toggle('selected', allSelected && BUNDLE_DISCOUNT>0);
 
   // Compute total
-  const rawTotal = [...selectedCourses].reduce((s,k)=>s+Number(courseById(k)?.price||0),0);
+  const rawTotal = [...selectedCourses].reduce((s,k)=>s+effectivePrice(courseById(k)?.price),0);
   const isBundle = allSelected && BUNDLE_DISCOUNT>0 && COURSES.length>=2;
   const total = isBundle ? Math.round(rawTotal*(1-BUNDLE_DISCOUNT/100)) : rawTotal;
 
@@ -1296,7 +1354,7 @@ function updateCourseUI(){
   // Build line items
   const lines = [...selectedCourses].map(k=>{
     const c = courseById(k);
-    return `<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span>${escapeHtml(c?.name||k)}</span><span>${Number(c?.price||0).toLocaleString()} ETB</span></div>`;
+    return `<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span>${escapeHtml(c?.name||k)}</span><span>${effectivePrice(c?.price).toLocaleString()} ETB</span></div>`;
   }).join('');
   document.getElementById('course-total-lines').innerHTML = lines;
   document.getElementById('course-total-amount').textContent = total.toLocaleString()+' ETB';
@@ -1421,7 +1479,7 @@ async function submitReg(){
   const allIds = COURSES.map(c=>c.id);
   const coursesArr = [...selectedCourses];
   const isBundle = allIds.length>=2 && BUNDLE_DISCOUNT>0 && allIds.every(k=>selectedCourses.has(k));
-  const rawFee = coursesArr.reduce((s,k)=>s+Number(courseById(k)?.price||0),0);
+  const rawFee = coursesArr.reduce((s,k)=>s+effectivePrice(courseById(k)?.price),0);
   const fee = isBundle ? Math.round(rawFee*(1-BUNDLE_DISCOUNT/100)) : rawFee;
   const courseKey = isBundle ? 'all' : (coursesArr.length===1 ? coursesArr[0] : coursesArr.join('+'));
   const courseLabel = isBundle ? 'All courses' : coursesArr.map(k=>courseById(k)?.name||k).join(' + ');
@@ -1662,6 +1720,9 @@ function populateSettingsForm(settings){
   // Courses
   courseDraft = Array.isArray(settings.courses) ? JSON.parse(JSON.stringify(settings.courses)) : [];
   document.getElementById('set-bundle-discount').value = (settings.bundleDiscount ?? 0);
+  document.getElementById('set-discount-percent').value = (settings.discountPercent ?? 0);
+  document.getElementById('set-discount-start').value = settings.discountStart || '';
+  document.getElementById('set-discount-end').value = settings.discountEnd || '';
   renderCourseEditor();
   loadTeacherLogins();
 }
@@ -1812,7 +1873,10 @@ async function saveCourses(){
       body:JSON.stringify({
         action:'courses',
         courses: courseDraft,
-        bundleDiscount: Number(document.getElementById('set-bundle-discount').value)||0
+        bundleDiscount: Number(document.getElementById('set-bundle-discount').value)||0,
+        discountPercent: Number(document.getElementById('set-discount-percent').value)||0,
+        discountStart: document.getElementById('set-discount-start').value || null,
+        discountEnd: document.getElementById('set-discount-end').value || null
       })
     });
     const data = await res.json();
@@ -1821,6 +1885,10 @@ async function saveCourses(){
     // Refresh live state so registration + editor reflect new courses
     COURSES = data.settings.courses || [];
     BUNDLE_DISCOUNT = Number(data.settings.bundleDiscount)||0;
+    DISCOUNT_PERCENT = Number(data.settings.discountPercent) || 0;
+    DISCOUNT_START = data.settings.discountStart ? new Date(data.settings.discountStart+'T00:00:00') : null;
+    DISCOUNT_END = data.settings.discountEnd ? new Date(data.settings.discountEnd+'T23:59:59') : null;
+    applyDiscountBannerVisibility();
     courseDraft = JSON.parse(JSON.stringify(COURSES));
     renderCourseEditor();
     renderCourseCards();
