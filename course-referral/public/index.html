@@ -1206,10 +1206,15 @@ let adminData = null;
 let paymentSettings = null;
 
 // ── Course discount config ──────────────────────────────────
-// Now controlled from Admin → Settings → Sitewide discount. These are fallbacks.
-let DISCOUNT_PERCENT = 0;
-let DISCOUNT_START = null;
-let DISCOUNT_END = null;
+// Controlled from Admin → Courses → Sitewide discount (once backend supports it).
+// Until then, these fallback values apply automatically.
+const DISCOUNT_FALLBACK_PERCENT = 40;
+const DISCOUNT_FALLBACK_START = '2026-07-23';
+const DISCOUNT_FALLBACK_END = '2026-08-02';
+
+let DISCOUNT_PERCENT = DISCOUNT_FALLBACK_PERCENT;
+let DISCOUNT_START = new Date(DISCOUNT_FALLBACK_START+'T00:00:00');
+let DISCOUNT_END = new Date(DISCOUNT_FALLBACK_END+'T23:59:59');
 
 function isDiscountActive(){
   const now = new Date();
@@ -1267,6 +1272,7 @@ async function loadPaymentSettings(){
     paymentSettings = await res.json();
     COURSES = Array.isArray(paymentSettings.courses) ? paymentSettings.courses : [];
     BUNDLE_DISCOUNT = Number(paymentSettings.bundleDiscount) || 0;
+    // Backend now supports discount fields directly (see api/settings.js).
     DISCOUNT_PERCENT = Number(paymentSettings.discountPercent) || 0;
     DISCOUNT_START = paymentSettings.discountStart ? new Date(paymentSettings.discountStart+'T00:00:00') : null;
     DISCOUNT_END = paymentSettings.discountEnd ? new Date(paymentSettings.discountEnd+'T23:59:59') : null;
