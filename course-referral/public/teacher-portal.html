@@ -5,23 +5,24 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ghost Digitals Academy — Teacher Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--accent:#2d5a27;--accent-light:#edf5ec;--accent-text:#1e4019;--gold:#c4860a;--gold-light:#fdf6e3;--bg:#f8f9f7;--surface:#fff;--border:#e5e7e3;--text:#1a1a1a;--muted:#6b7280;--danger:#c0392b;--danger-light:#fdf0ee;--info:#1f6fd4;--info-light:#e8f1fb;--radius:10px;--radius-lg:16px;--shadow-sm:0 1px 3px rgba(20,40,15,.05);--shadow-md:0 6px 20px rgba(20,40,15,.08)}
+:root{--accent:#2d5a27;--accent-light:#e8f4e6;--accent-dark:#1e4019;--accent-text:#1e4019;--gold:#c4860a;--gold-light:#fdf6e3;--bg:#f6f8f5;--surface:#fff;--border:#eaeee7;--text:#111a15;--text-soft:#5b6660;--muted:#8a9a8e;--danger:#e5484d;--danger-light:#fdecec;--info:#1f7fd4;--info-light:#e8f2fc;--radius:12px;--radius-lg:18px;--shadow-xs:0 1px 2px rgba(20,40,15,.04);--shadow-sm:0 1px 3px rgba(20,40,15,.05),0 1px 2px rgba(20,40,15,.03);--shadow-md:0 4px 16px rgba(20,40,15,.07);--shadow-lg:0 20px 48px rgba(20,40,15,.14);--grad:linear-gradient(135deg,#3d7536,#2d5a27 55%,#1e4019)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
-.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-.login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px;width:100%;max-width:400px;box-shadow:var(--shadow-md)}
-.login-card h1{font-family:'DM Serif Display',serif;font-size:24px;margin-bottom:6px}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;-webkit-font-smoothing:antialiased}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(900px 500px at 100% -10%,var(--accent-light),transparent),var(--bg)}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:42px 36px;width:100%;max-width:400px;box-shadow:var(--shadow-lg);text-align:center}
+.login-logo{max-width:230px;margin:0 auto 22px}
+.login-logo img{width:100%;height:auto;display:block}
 .login-card p{color:var(--muted);font-size:14px;margin-bottom:28px}
 .field{margin-bottom:16px}
 .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
 .field input,.field select,.field textarea{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);outline:none;transition:.15s}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
 .field textarea{resize:vertical;min-height:70px;line-height:1.5}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:var(--radius);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:.15s}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border-radius:var(--radius);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .14s}
 .btn svg{width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{filter:brightness(1.08)}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 6px 16px rgba(45,90,39,.28)}.btn-primary:hover{filter:brightness(1.05)}.btn-primary:active{transform:translateY(1px)}
 .btn-outline{background:var(--surface);border:1.5px solid var(--border);color:var(--text)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
 .btn-danger{background:var(--danger-light);color:var(--danger);border:1px solid #f0c0bb}.btn-danger:hover{background:#f9e0dd}
 .btn-sm{padding:7px 12px;font-size:12.5px}
@@ -36,8 +37,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .t-shell{min-height:100vh;display:flex}
 .t-sidebar{width:246px;background:var(--surface);border-right:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
 .t-sb-brand{padding:22px 20px 18px;display:flex;align-items:center;gap:11px}
-.t-sb-brand .mark{width:42px;height:42px;border-radius:12px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:17px;flex-shrink:0}
-.t-sb-brand .txt strong{display:block;font-family:'DM Serif Display',serif;font-size:16px;line-height:1.15}
+.t-sb-brand .mark{width:42px;height:42px;border-radius:12px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:17px;flex-shrink:0;overflow:hidden}
+.t-sb-brand .mark img{width:72%;height:72%;object-fit:contain}
+.t-sb-brand .txt strong{display:block;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:16px;line-height:1.15}
 .t-sb-brand .txt span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
 .t-sb-sec{padding:6px 14px;font-size:10.5px;font-weight:700;color:var(--muted);opacity:.65;text-transform:uppercase;letter-spacing:.07em;margin-top:12px}
 .t-nav{padding:6px 12px;flex:1;overflow-y:auto}
@@ -53,7 +55,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .t-logout:hover{color:var(--danger);background:var(--danger-light)}
 .t-main-col{flex:1;min-width:0;display:flex;flex-direction:column}
 .t-topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--border);padding:13px 26px;display:flex;align-items:center;gap:12px;justify-content:space-between}
-.t-topbar h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400}
+.t-topbar h2{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:19px;font-weight:400}
 .t-topbar .sub{font-size:12px;color:var(--muted)}
 .t-menu-btn{display:none;width:40px;height:40px;border-radius:11px;background:var(--bg);border:1px solid var(--border);align-items:center;justify-content:center;cursor:pointer}
 .t-menu-btn svg{width:22px;height:22px;stroke:var(--text);stroke-width:2;fill:none}
@@ -63,14 +65,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .tab-content{display:none}.tab-content.active{display:block}
 /* stat cards */
 .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
-.stat{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:var(--shadow-sm)}
-.stat-num{font-family:'DM Serif Display',serif;font-size:28px;font-weight:400}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:var(--shadow-sm);transition:transform .14s,box-shadow .14s}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.stat-num{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:28px;font-weight:400}
 .stat-lbl{font-size:12.5px;color:var(--muted);margin-top:2px}
 .stat .tile{width:48px;height:48px;border-radius:14px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .stat .tile svg{width:24px;height:24px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .tile.gold{background:var(--gold-light);color:var(--gold)}.tile.blue{background:var(--info-light);color:var(--info)}
 /* cards */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
 .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap}
 .card-title{font-weight:700;font-size:15px}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
@@ -80,7 +83,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .empty svg{width:40px;height:40px;stroke:#c9d2c2;stroke-width:1.5;fill:none;margin-bottom:10px}
 /* Student roster cards */
 .roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
-.rost-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow-sm);transition:transform .16s,box-shadow .16s}
+.rost-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px;box-shadow:var(--shadow-sm);transition:transform .14s,box-shadow .14s}
 .rost-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
 .rost-top{display:flex;align-items:center;gap:12px}
 .rost-av{width:48px;height:48px;border-radius:13px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0;background-size:cover;background-position:center}
@@ -92,7 +95,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .pill-batch{background:#f0ede6;color:#7a6a3a}
 .rost-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
 /* Exam list */
-.exam-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px;margin-bottom:14px;box-shadow:var(--shadow-sm);transition:box-shadow .16s}
+.exam-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px 20px;margin-bottom:14px;box-shadow:var(--shadow-sm);transition:box-shadow .14s,transform .14s}
+.exam-card:hover{transform:translateY(-2px)}
 .exam-card:hover{box-shadow:var(--shadow-md)}
 .exam-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .exam-title{font-weight:700;font-size:16px}
@@ -111,7 +115,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:.2s}
 .modal-overlay.open{opacity:1;pointer-events:all}
 .modal{background:var(--surface);border-radius:var(--radius-lg);padding:26px;width:100%;max-width:620px;max-height:92vh;overflow-y:auto}
-.modal h3{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:18px}
+.modal h3{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;margin-bottom:18px}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
 /* Question builder */
 .q-item{border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--bg)}
@@ -137,12 +141,12 @@ tr:last-child td{border-bottom:none}
 <div id="login-screen">
   <div class="login-wrap">
     <div class="login-card">
-      <h1>Teacher Portal</h1>
-      <p>Ghost Digitals Academy — Instructor Access</p>
+      <div class="login-logo"><img src="gd-logo.png" alt="Ghost Digitals Academy"></div>
+      <p>Teacher Portal — Instructor Access</p>
       <div class="alert alert-danger" id="login-alert"></div>
       <div class="field"><label>Username</label><input type="text" id="login-username" placeholder="digital / event / ai"></div>
       <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="Your teacher password" onkeydown="if(event.key==='Enter')teacherLogin()"></div>
-      <button class="btn btn-primary btn-full" onclick="teacherLogin()"><span id="login-btn-text">Sign In</span><div class="spinner" id="login-spinner"></div></button>
+      <button class="btn btn-primary btn-full" onclick="teacherLogin()" style="margin-top:6px"><span id="login-btn-text">Sign In</span><div class="spinner" id="login-spinner"></div></button>
     </div>
   </div>
 </div>
@@ -151,7 +155,7 @@ tr:last-child td{border-bottom:none}
   <div class="t-shell">
     <aside class="t-sidebar" id="t-sidebar">
       <div class="t-sb-brand">
-        <div class="mark">GD</div>
+        <div class="mark"><img src="gd-icon.png" alt="Ghost Digitals Academy"></div>
         <div class="txt"><strong>GhostDigitals</strong><span>Teacher Portal</span></div>
       </div>
       <nav class="t-nav">
