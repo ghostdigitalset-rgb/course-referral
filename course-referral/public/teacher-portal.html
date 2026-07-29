@@ -120,6 +120,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 /* Question builder */
 .q-item{border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--bg)}
 .q-item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.qtype-tabs{display:flex;gap:6px;margin-bottom:14px}
+.qtype-tab{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:20px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);transition:.13s}
+.qtype-tab:hover{border-color:var(--accent)}
+.qtype-tab.active{background:var(--accent-light);color:var(--accent-text);border-color:var(--accent-light)}
+.qtype-tab .cnt{background:rgba(0,0,0,.08);border-radius:20px;padding:1px 8px;font-size:11px}
+.qtype-tab.active .cnt{background:rgba(45,90,39,.15)}
 .q-num{font-size:12px;font-weight:700;color:var(--accent)}
 .opt-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
 .opt-row input[type=text]{flex:1}
@@ -134,6 +140,35 @@ tr:last-child td{border-bottom:none}
   .t-menu-btn{display:flex}
   .stats-row{grid-template-columns:1fr}
 }
+/* ── Exam preview (teacher view — mirrors student exam UI) ─── */
+.exam-preview-overlay{position:fixed;inset:0;background:var(--bg);z-index:300;display:none;flex-direction:column}
+.exam-preview-overlay.open{display:flex}
+.ep-hd{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+.ep-back{display:inline-flex;align-items:center;gap:6px;border:none;background:none;color:var(--muted);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.ep-back:hover{color:var(--text)}
+.ep-back svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none}
+.ep-hd h2{font-size:17px;font-weight:800;flex:1}
+.ep-badge{background:var(--gold-light);color:var(--gold);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700}
+.ep-body{flex:1;overflow-y:auto;padding:28px 24px;max-width:640px;margin:0 auto;width:100%}
+.ep-progress{background:var(--surface);border:1px solid var(--border);border-radius:12px;height:7px;overflow:hidden;margin-bottom:6px}
+.ep-progress-fill{height:100%;background:var(--accent);border-radius:6px;transition:width .3s}
+.ep-q-count{text-align:right;font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:16px}
+.ep-dots{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
+.ep-dot{width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.ep-dot.current{background:var(--accent);border-color:var(--accent);color:#fff}
+.ep-q-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;box-shadow:var(--shadow-sm)}
+.ep-q-num{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);margin-bottom:8px}
+.ep-q-text{font-size:15.5px;font-weight:600;line-height:1.5;margin-bottom:18px}
+.ep-opt{display:flex;align-items:center;gap:12px;padding:13px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-weight:500;margin-bottom:9px;cursor:default}
+.ep-opt .radio{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);flex-shrink:0}
+.ep-opt.correct{border-color:var(--accent);background:var(--accent-light)}
+.ep-opt.correct .radio{border-color:var(--accent);background:var(--accent);box-shadow:inset 0 0 0 3px #fff}
+.ep-correct-tag{margin-left:auto;font-size:11px;font-weight:700;color:var(--accent-text)}
+.ep-textarea-mock{width:100%;min-height:110px;border:1.5px solid var(--border);border-radius:10px;padding:13px 16px;color:var(--muted);font-size:14px;font-style:italic}
+.ep-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 24px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
+.ep-btn{background:var(--surface);border:1.5px solid var(--border);color:var(--text);padding:10px 20px;border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.ep-btn:disabled{opacity:.4;cursor:not-allowed}
+.ep-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -349,18 +384,38 @@ tr:last-child td{border-bottom:none}
     <div style="border-top:1px solid var(--border);margin:18px 0 14px"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <div style="font-weight:700;font-size:14px">Questions</div>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-outline btn-sm" onclick="addQuestion('mc')">+ Multiple choice</button>
-        <button class="btn btn-outline btn-sm" onclick="addQuestion('tf')">+ True/False</button>
-        <button class="btn btn-outline btn-sm" onclick="addQuestion('written')">+ Written</button>
-      </div>
+      <button class="btn btn-outline btn-sm" id="qtype-add-btn" onclick="addQuestion(activeQType)">+ Add</button>
     </div>
+    <div class="qtype-tabs" id="qtype-tabs"></div>
     <div id="questions-wrap"></div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeExamModal()">Cancel</button>
+      <button class="btn btn-outline" onclick="previewExam()">👁 Preview as student</button>
       <button class="btn btn-outline" onclick="saveExam(false)">Save draft</button>
       <button class="btn btn-primary" onclick="saveExam(true)">Publish</button>
     </div>
+  </div>
+</div>
+
+<!-- Exam Preview Overlay -->
+<div class="exam-preview-overlay" id="exam-preview-overlay">
+  <div class="ep-hd">
+    <button class="ep-back" onclick="closeExamPreview()">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg> Back to editor
+    </button>
+    <h2 id="ep-title">Exam</h2>
+    <span class="ep-badge">Preview mode — not saved</span>
+  </div>
+  <div class="ep-body">
+    <div class="ep-progress"><div class="ep-progress-fill" id="ep-progress-fill" style="width:0%"></div></div>
+    <div class="ep-q-count"><span id="ep-q-current">1</span> / <span id="ep-q-total">0</span></div>
+    <div class="ep-dots" id="ep-dots"></div>
+    <div id="ep-q-container"></div>
+  </div>
+  <div class="ep-nav">
+    <button class="ep-btn" id="ep-btn-prev" onclick="epNav(-1)">← Previous</button>
+    <span id="ep-nav-label" style="font-size:12px;color:var(--muted)"></span>
+    <button class="ep-btn primary" id="ep-btn-next" onclick="epNav(1)">Next →</button>
   </div>
 </div>
 
@@ -705,8 +760,52 @@ function renderExams(){
 
 // ── Exam builder ───────────────────────────────────────────
 let qDraft=[];
+let activeQType='mc';
+const QTYPE_LABELS={mc:'Choice',tf:'True/False',written:'Written'};
+function addQuestion(type){
+  const q={id:'q'+Date.now()+Math.floor(Math.random()*1000),type,text:''};
+  if(type==='mc'){ q.options=['','','','']; q.correct=0; }
+  if(type==='tf'){ q.correct='true'; }
+  if(type==='written'){ q.points=1; }
+  qDraft.push(q); activeQType=type; renderQuestions();
+}
+function removeQuestion(id){ qDraft=qDraft.filter(q=>q.id!==id); renderQuestions(); }
+function switchQType(type){ activeQType=type; renderQuestions(); }
+function renderQTabs(){
+  const tabsEl=document.getElementById('qtype-tabs');
+  if(!tabsEl)return;
+  tabsEl.innerHTML=Object.keys(QTYPE_LABELS).map(t=>{
+    const count=qDraft.filter(q=>q.type===t).length;
+    return `<button class="qtype-tab ${activeQType===t?'active':''}" onclick="switchQType('${t}')">${QTYPE_LABELS[t]} <span class="cnt">${count}</span></button>`;
+  }).join('');
+  const addBtn=document.getElementById('qtype-add-btn');
+  if(addBtn) addBtn.textContent='+ Add '+QTYPE_LABELS[activeQType];
+}
+function renderQuestions(){
+  renderQTabs();
+  const wrap=document.getElementById('questions-wrap');
+  const filtered=qDraft.filter(q=>q.type===activeQType);
+  if(!filtered.length){ wrap.innerHTML=`<div style="color:var(--muted);font-size:13px;padding:20px 0;text-align:center">No ${QTYPE_LABELS[activeQType].toLowerCase()} questions yet — click "+ Add ${QTYPE_LABELS[activeQType]}" above.</div>`; return; }
+  wrap.innerHTML=filtered.map((q,i)=>{
+    let body='';
+    if(q.type==='mc'){
+      body=q.options.map((o,oi)=>`<div class="opt-row"><input type="radio" name="correct-${q.id}" ${q.correct===oi?'checked':''} onchange="setCorrect('${q.id}',${oi})"><input type="text" value="${escapeHtml(o)}" placeholder="Option ${oi+1}" oninput="setOpt('${q.id}',${oi},this.value)"></div>`).join('')
+        +`<button class="btn btn-outline btn-sm" style="margin-top:4px" onclick="addOpt('${q.id}')">+ Option</button>`;
+    } else if(q.type==='tf'){
+      body=`<div class="opt-row"><input type="radio" name="correct-${q.id}" ${q.correct==='true'?'checked':''} onchange="setCorrect('${q.id}','true')"> True</div>
+            <div class="opt-row"><input type="radio" name="correct-${q.id}" ${q.correct==='false'?'checked':''} onchange="setCorrect('${q.id}','false')"> False</div>`;
+    } else {
+      body=`<div style="font-size:12px;color:var(--muted)">Written answer — graded manually. <label>Points: <input type="number" value="${q.points||1}" min="1" style="width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:6px" oninput="setPoints('${q.id}',this.value)"></label></div>`;
+    }
+    return `<div class="q-item">
+      <div class="q-item-head"><span class="q-num">${QTYPE_LABELS[q.type]} ${i+1}</span><button class="btn btn-danger btn-sm" onclick="removeQuestion('${q.id}')">Remove</button></div>
+      <input type="text" value="${escapeHtml(q.text)}" placeholder="Question text" oninput="setQText('${q.id}',this.value)" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-family:inherit;font-size:14px">
+      ${body}
+    </div>`;
+  }).join('');
+}
 function openExamBuilder(){
-  qDraft=[]; document.getElementById('exam-id').value='';
+  qDraft=[]; activeQType='mc'; document.getElementById('exam-id').value='';
   document.getElementById('exam-modal-title').textContent='New Exam';
   document.getElementById('exam-title').value=''; document.getElementById('exam-desc').value='';
   document.getElementById('exam-time').value='30'; document.getElementById('exam-pass').value='50'; document.getElementById('exam-allow-retake').checked=false;
@@ -717,6 +816,7 @@ function openExamBuilder(){
 function editExam(id){
   const ex=exams.find(e=>e.id===id); if(!ex) return;
   qDraft=JSON.parse(JSON.stringify(ex.questions||[]));
+  activeQType=(qDraft.find(q=>q.type==='mc')&&'mc')||(qDraft[0]&&qDraft[0].type)||'mc';
   document.getElementById('exam-id').value=ex.id;
   document.getElementById('exam-modal-title').textContent='Edit Exam';
   document.getElementById('exam-title').value=ex.title||'';
@@ -742,40 +842,67 @@ function renderStudentPicker(selected){
   if(!roster.length){ el.innerHTML='<div style="color:var(--muted);font-size:13px">No students in your course yet.</div>'; return; }
   el.innerHTML=roster.map(s=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13.5px;cursor:pointer"><input type="checkbox" class="exam-st-cb" value="${s.id}" ${selected.includes(s.id)?'checked':''} style="width:15px;height:15px;accent-color:var(--accent)"> ${escapeHtml(s.name)} <span style="color:var(--muted);font-size:11.5px">${s.batchName?'· '+escapeHtml(s.batchName):''}</span></label>`).join('');
 }
-function addQuestion(type){
-  const q={id:'q'+Date.now()+Math.floor(Math.random()*1000),type,text:''};
-  if(type==='mc'){ q.options=['','','','']; q.correct=0; }
-  if(type==='tf'){ q.correct='true'; }
-  if(type==='written'){ q.points=1; }
-  qDraft.push(q); renderQuestions();
-}
-function removeQuestion(id){ qDraft=qDraft.filter(q=>q.id!==id); renderQuestions(); }
-function renderQuestions(){
-  const wrap=document.getElementById('questions-wrap');
-  if(!qDraft.length){ wrap.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0">No questions yet — add one above.</div>'; return; }
-  wrap.innerHTML=qDraft.map((q,i)=>{
-    const typeLabel={mc:'Multiple choice',tf:'True/False',written:'Written'}[q.type];
-    let body='';
-    if(q.type==='mc'){
-      body=q.options.map((o,oi)=>`<div class="opt-row"><input type="radio" name="correct-${q.id}" ${q.correct===oi?'checked':''} onchange="setCorrect('${q.id}',${oi})"><input type="text" value="${escapeHtml(o)}" placeholder="Option ${oi+1}" oninput="setOpt('${q.id}',${oi},this.value)"></div>`).join('')
-        +`<button class="btn btn-outline btn-sm" style="margin-top:4px" onclick="addOpt('${q.id}')">+ Option</button>`;
-    } else if(q.type==='tf'){
-      body=`<div class="opt-row"><input type="radio" name="correct-${q.id}" ${q.correct==='true'?'checked':''} onchange="setCorrect('${q.id}','true')"> True</div>
-            <div class="opt-row"><input type="radio" name="correct-${q.id}" ${q.correct==='false'?'checked':''} onchange="setCorrect('${q.id}','false')"> False</div>`;
-    } else {
-      body=`<div style="font-size:12px;color:var(--muted)">Written answer — graded manually. <label>Points: <input type="number" value="${q.points||1}" min="1" style="width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:6px" oninput="setPoints('${q.id}',this.value)"></label></div>`;
-    }
-    return `<div class="q-item">
-      <div class="q-item-head"><span class="q-num">Q${i+1} · ${typeLabel}</span><button class="btn btn-danger btn-sm" onclick="removeQuestion('${q.id}')">Remove</button></div>
-      <input type="text" value="${escapeHtml(q.text)}" placeholder="Question text" oninput="setQText('${q.id}',this.value)" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-family:inherit;font-size:14px">
-      ${body}
-    </div>`;
-  }).join('');
-}
 function setQText(id,v){ const q=qDraft.find(x=>x.id===id); if(q)q.text=v; }
 function setOpt(id,oi,v){ const q=qDraft.find(x=>x.id===id); if(q)q.options[oi]=v; }
 function setCorrect(id,val){ const q=qDraft.find(x=>x.id===id); if(q)q.correct=val; }
 function setPoints(id,v){ const q=qDraft.find(x=>x.id===id); if(q)q.points=parseInt(v)||1; }
+
+// ── Exam preview (teacher view) ─────────────────────────────
+let epQuestions=[], epCurrent=0;
+function previewExam(){
+  epQuestions=qDraft.filter(q=>(q.text||'').trim());
+  if(!epQuestions.length){ alert('Add at least one question with text before previewing.'); return; }
+  epCurrent=0;
+  document.getElementById('ep-title').textContent=document.getElementById('exam-title').value||'Untitled Exam';
+  document.getElementById('ep-q-total').textContent=epQuestions.length;
+  document.getElementById('exam-preview-overlay').classList.add('open');
+  buildEpDots();
+  renderEpQuestion();
+}
+function closeExamPreview(){
+  document.getElementById('exam-preview-overlay').classList.remove('open');
+}
+function buildEpDots(){
+  document.getElementById('ep-dots').innerHTML=epQuestions.map((_,i)=>
+    `<div class="ep-dot" id="epdot-${i}" onclick="epJump(${i})">${i+1}</div>`
+  ).join('');
+}
+function epJump(i){ epCurrent=i; renderEpQuestion(); }
+function epNav(dir){
+  const next=epCurrent+dir;
+  if(next<0||next>=epQuestions.length)return;
+  epCurrent=next; renderEpQuestion();
+}
+function renderEpQuestion(){
+  const q=epQuestions[epCurrent];
+  const total=epQuestions.length;
+  document.getElementById('ep-q-current').textContent=epCurrent+1;
+  document.getElementById('ep-progress-fill').style.width=((epCurrent+1)/total*100)+'%';
+  document.getElementById('ep-btn-prev').disabled=epCurrent===0;
+  document.getElementById('ep-btn-next').disabled=epCurrent===total-1;
+  document.getElementById('ep-nav-label').textContent=`${epCurrent+1} of ${total} questions`;
+  document.querySelectorAll('.ep-dot').forEach((d,i)=>d.classList.toggle('current',i===epCurrent));
+
+  const container=document.getElementById('ep-q-container');
+  const typeLabel=QTYPE_LABELS[q.type]||'Question';
+  let body='';
+  if(q.type==='mc'){
+    body='<div>'+(q.options||[]).map((o,i)=>{
+      const isCorrect=q.correct===i;
+      return `<div class="ep-opt ${isCorrect?'correct':''}"><div class="radio"></div>${escapeHtml(o||'(empty option)')}${isCorrect?'<span class="ep-correct-tag">✓ Correct answer</span>':''}</div>`;
+    }).join('')+'</div>';
+  } else if(q.type==='tf'){
+    body=`<div class="ep-opt ${q.correct==='true'?'correct':''}"><div class="radio"></div>True${q.correct==='true'?'<span class="ep-correct-tag">✓ Correct answer</span>':''}</div>
+          <div class="ep-opt ${q.correct==='false'?'correct':''}"><div class="radio"></div>False${q.correct==='false'?'<span class="ep-correct-tag">✓ Correct answer</span>':''}</div>`;
+  } else {
+    body=`<div class="ep-textarea-mock">Student will type their written answer here… (${q.points||1} point${(q.points||1)!==1?'s':''}, graded manually)</div>`;
+  }
+  container.innerHTML=`<div class="ep-q-card">
+    <div class="ep-q-num">${typeLabel} · Question ${epCurrent+1}</div>
+    <div class="ep-q-text">${escapeHtml(q.text||'(no question text)')}</div>
+    ${body}
+  </div>`;
+}
 function addOpt(id){ const q=qDraft.find(x=>x.id===id); if(q){q.options.push('');renderQuestions();} }
 
 async function saveExam(publish){
