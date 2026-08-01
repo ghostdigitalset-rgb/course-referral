@@ -19,6 +19,8 @@ h1{font-size:20px;font-weight:800;margin-bottom:4px}
 .icon-badge svg{width:32px;height:32px;stroke-width:2;fill:none}
 .icon-badge.valid svg{stroke:var(--accent)}
 .icon-badge.invalid svg{stroke:var(--danger)}
+.stu-photo{width:88px;height:88px;border-radius:50%;object-fit:cover;border:3px solid var(--accent-light);margin:0 auto 14px;display:block}
+.stu-photo-fallback{width:88px;height:88px;border-radius:50%;background:var(--accent-light);color:var(--accent-dark);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:32px;margin:0 auto 14px}
 .status{font-size:18px;font-weight:800;margin-bottom:20px}
 .status.valid{color:var(--accent)}
 .status.invalid{color:var(--danger)}
@@ -55,8 +57,11 @@ async function verify(){
     }
     const c=d.certificate;
     const date=new Date(c.issuedAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-    resultEl.innerHTML='<div class="icon-badge valid"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>'
-      +'<div class="status valid">Valid Certificate</div>'
+    const photoHtml=c.photoUrl
+      ? '<img class="stu-photo" src="'+c.photoUrl+'" alt="'+escapeHtml(c.studentName)+'">'
+      : '<div class="stu-photo-fallback">'+escapeHtml((c.studentName||'?').trim().charAt(0).toUpperCase())+'</div>';
+    resultEl.innerHTML=photoHtml
+      +'<div class="status valid"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:3;fill:none;vertical-align:-2px;margin-right:4px"><path d="M20 6L9 17l-5-5"/></svg>Valid Certificate</div>'
       +'<div class="details">'
       +'<div class="row"><span class="k">Student</span><span class="v">'+escapeHtml(c.studentName)+'</span></div>'
       +'<div class="row"><span class="k">Course</span><span class="v">'+escapeHtml(c.courseLabel)+'</span></div>'
