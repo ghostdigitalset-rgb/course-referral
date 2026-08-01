@@ -250,6 +250,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .result-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:26px;margin-bottom:6px}
 .result-sub{color:var(--muted);font-size:14px;margin-bottom:24px}
 .result-details{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;width:100%;max-width:400px;margin:0 auto 24px;text-align:left}
+/* ── Certificate ──────────────────────────────────────────── */
+.cert-locked{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:48px 24px;text-align:center;color:var(--muted)}
+.cert-locked svg{width:44px;height:44px;stroke:#c9d2c2;stroke-width:1.5;fill:none;margin-bottom:12px}
+.cert-wrap{max-width:760px;margin:0 auto}
+.cert-actions{display:flex;justify-content:center;gap:10px;margin-bottom:18px}
+.cert-canvas{width:100%;aspect-ratio:1000/700;position:relative;border-radius:14px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.18)}
+.cert-canvas svg{width:100%;height:100%;display:block}
 </style>
 </head>
 <body>
@@ -276,6 +283,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         <button class="snav-btn" onclick="showStudentTab('marks',this)"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg><span>Marks</span></button>
         <button class="snav-btn" id="exams-nav-btn" onclick="showStudentTab('exams',this)"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg><span>Exams</span></button>
         <button class="snav-btn" onclick="showStudentTab('attendance',this)"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Attendance</span></button>
+        <button class="snav-btn" onclick="showStudentTab('certificate',this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.5 13.5L17 22l-5-3-5 3 1.5-8.5"/></svg><span>Certificate</span></button>
         <div class="s-sb-sec">Communication</div>
         <button class="snav-btn" onclick="showStudentTab('messages',this)"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Messages</span></button>
         <button class="snav-btn" onclick="showStudentTab('profile',this)"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></button>
@@ -315,6 +323,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <!-- ATTENDANCE -->
     <div class="s-tab" id="s-attendance">
       <div id="attendance-body"><div class="empty">Loading…</div></div>
+    </div>
+
+    <!-- CERTIFICATE -->
+    <div class="s-tab" id="s-certificate">
+      <div id="certificate-body"><div class="empty">Loading…</div></div>
     </div>
 
     <!-- MESSAGES -->
@@ -447,6 +460,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 function escapeHtml(s){s=String(s==null?'':s);return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function showAlert(el,msg){el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),4000);}
@@ -523,7 +538,7 @@ async function loadAnnouncements(){
 }
 
 // ── Student tabs ───────────────────────────────────────────
-const S_TAB_META={learn:['Learn','Your modules and sessions'],marks:['Marks','Your exam results & grade'],exams:['Exams','Take your assigned exams'],attendance:['Attendance','Your session attendance'],messages:['Messages','Chat with your teacher'],profile:['Profile','Your account details']};
+const S_TAB_META={learn:['Learn','Your modules and sessions'],marks:['Marks','Your exam results & grade'],exams:['Exams','Take your assigned exams'],attendance:['Attendance','Your session attendance'],certificate:['Certificate','Your course completion certificate'],messages:['Messages','Chat with your teacher'],profile:['Profile','Your account details']};
 function showStudentTab(tab,el){
   document.querySelectorAll('.snav-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.s-tab').forEach(t=>t.classList.remove('active'));
@@ -533,6 +548,7 @@ function showStudentTab(tab,el){
   if(tab==='marks') loadMarks();
   if(tab==='exams') loadExams();
   if(tab==='attendance') loadAttendance();
+  if(tab==='certificate') loadCertificate();
   if(tab==='messages') loadStudentMessages();
   if(tab==='profile') renderProfile();
   closeStudentSidebar();
@@ -589,6 +605,86 @@ async function loadAttendance(){
   }
   body.innerHTML=html;
 }
+
+// ── Certificate ──────────────────────────────────────────
+async function loadCertificate(){
+  const body=document.getElementById('certificate-body');
+  body.innerHTML='<div class="empty">Loading…</div>';
+  try{
+    const res=await fetch('/api/sessions?action=my-certificate',{headers:{'x-student-id':student.portalId}});
+    const d=await res.json();
+    if(!d.ok){ body.innerHTML='<div class="empty">Could not load certificate status.</div>'; return; }
+    if(!d.eligible){
+      body.innerHTML=`<div class="cert-locked">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.5 13.5L17 22l-5-3-5 3 1.5-8.5"/></svg>
+        <div style="font-weight:700;font-size:15px;margin-bottom:4px;color:var(--text)">No certificate yet</div>
+        <div style="font-size:13px">Your certificate will appear here once your teacher marks your course as completed.</div>
+      </div>`;
+      return;
+    }
+    renderCertificate(d.certificate);
+  }catch(e){
+    body.innerHTML='<div class="empty">Could not load certificate.</div>';
+  }
+}
+
+function renderCertificate(cert){
+  const body=document.getElementById('certificate-body');
+  const issuedDate=new Date(cert.issuedAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  body.innerHTML=`
+    <div class="cert-wrap">
+      <div class="cert-actions">
+        <button class="btn-exam-start" onclick="downloadCertificatePDF()">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          Download PDF
+        </button>
+      </div>
+      <div class="cert-canvas" id="cert-canvas">
+        <svg viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="1000" height="700" fill="#1e4019"/>
+          <path d="M-50 550 Q 100 450 250 550 T 550 550 T 850 450" fill="none" stroke="#c4860a" stroke-width="55" stroke-linecap="round" opacity="0.9"/>
+          <path d="M600 -50 Q 750 100 650 250 T 750 500 Q 850 600 1050 550" fill="none" stroke="#c4860a" stroke-width="55" stroke-linecap="round" opacity="0.9"/>
+          <rect x="30" y="30" width="940" height="640" fill="none" stroke="#3d7536" stroke-width="2"/>
+          <rect x="60" y="70" width="16" height="16" fill="#fdfdfb"/>
+          <rect x="80" y="86" width="16" height="16" fill="#fdfdfb"/>
+          <text x="108" y="82" font-size="17" font-weight="600" fill="#fdfdfb">Ghost Digitals Academy</text>
+          <text x="108" y="102" font-size="12" fill="#c9d9c5">Skills for the digital economy</text>
+          <text x="940" y="78" text-anchor="end" font-size="13" fill="#fdfdfb">${escapeHtml(issuedDate)}</text>
+          <text x="940" y="98" text-anchor="end" font-size="12" fill="#c9d9c5">Certificate No. ${escapeHtml(cert.code)}</text>
+          <text x="80" y="220" font-size="56" font-weight="600" fill="#fdfdfb">Certificate</text>
+          <text x="80" y="264" font-size="30" fill="#e8d9a8">Of Completion</text>
+          <text x="80" y="330" font-size="13" fill="#c9d9c5">This is to certify that</text>
+          <text x="80" y="380" font-size="38" font-weight="600" fill="#fdfdfb">${escapeHtml(cert.studentName)}</text>
+          <text x="530" y="322" font-size="13" fill="#c9d9c5">For completing ${escapeHtml(cert.courseLabel)}</text>
+          <text x="530" y="352" font-size="12.5" fill="#e8e8e2">Demonstrated consistent effort, strong skill mastery, and</text>
+          <text x="530" y="372" font-size="12.5" fill="#e8e8e2">completed all coursework and assessments successfully.</text>
+          <text x="80" y="460" font-size="12" fill="#c9d9c5">Issued by</text>
+          <line x1="80" y1="560" x2="280" y2="560" stroke="#fdfdfb" stroke-width="1"/>
+          <text x="80" y="548" font-size="16" font-family="cursive" fill="#fdfdfb">${escapeHtml(cert.teacherName)}</text>
+          <text x="80" y="580" font-size="11" fill="#c9d9c5">Lead Instructor</text>
+          <line x1="360" y1="560" x2="560" y2="560" stroke="#fdfdfb" stroke-width="1"/>
+          <text x="360" y="548" font-size="16" font-family="cursive" fill="#fdfdfb">Gosaye Tujar</text>
+          <text x="360" y="580" font-size="11" fill="#c9d9c5">Founder / CEO</text>
+        </svg>
+      </div>
+    </div>`;
+}
+
+async function downloadCertificatePDF(){
+  const el=document.getElementById('cert-canvas');
+  if(!el) return;
+  try{
+    const canvas=await html2canvas(el,{scale:2,backgroundColor:'#1e4019'});
+    const imgData=canvas.toDataURL('image/png');
+    const { jsPDF }=window.jspdf;
+    const pdf=new jsPDF({orientation:'landscape',unit:'px',format:[canvas.width,canvas.height]});
+    pdf.addImage(imgData,'PNG',0,0,canvas.width,canvas.height);
+    pdf.save('Ghost-Digitals-Academy-Certificate.pdf');
+  }catch(e){
+    alert('Could not generate PDF. Please try again.');
+  }
+}
+
 function renderProfile(){
   const s=student;
   document.getElementById('profile-body').innerHTML=`
