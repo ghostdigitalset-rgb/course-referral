@@ -283,6 +283,65 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, roster, batches: (data.batches || []).filter(b => b.status !== 'archived'), _debug });
   }
 
+  // ── Certificates ──────────────────────────────────────────
+  if (action === 'issue-certificate' && req.method === 'POST') {
+    if (!teacherKeyValid(teacherKey, data)) return res.status(401).json({ error: 'Unauthorized' });
+    const t = resolveTeacher(teacherKey, data);
+    const body = await parseJSON(req);
+    const targetStudentId = body.studentId;
+    if (!targetStudentId) return res.status(400).json({ error: 'studentId is required' });
+    const student = (data.students || []).find(s => s.id === targetStudentId);
+    if (!student) return res.status(404).json({ error: 'Student not found' });
+
+    student.status = 'completed';
+
+    if (!data.certificates) data.certificates = [];
+    let cert = data.certificates.find(c => c.studentId === targetStudentId && c.course === t.course);
+    if (!cert) {
+      const code = 'GDA-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+      cert = {
+        id: 'cert_' + Date.now(),
+        studentId: targetStudentId,
+        studentName: student.name,
+        course: t.course,
+        courseLabel: t.label || t.course,
+        teacherName: t.label || 'Instructor',
+        issuedAt: new Date().toISOString(),
+        code,
+      };
+      data.certificates.push(cert);
+    }
+    await setData(data);
+    return res.status(200).json({ ok: true, certificate: cert });
+  }
+
+  if (action === 'my-certificate' && req.method === 'GET') {
+    const student = (data.students || []).find(s => s.portalId === studentId);
+    if (!student) return res.status(401).json({ error: 'Unauthorized' });
+    if (student.status !== 'completed') {
+      return res.status(200).json({ ok: true, eligible: false });
+    }
+    if (!data.certificates) data.certificates = [];
+    let cert = data.certificates.find(c => c.studentId === student.id);
+    if (!cert) {
+      // Backward compatibility: student was already marked completed before certificates existed
+      const code = 'GDA-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+      cert = {
+        id: 'cert_' + Date.now(),
+        studentId: student.id,
+        studentName: student.name,
+        course: student.course || '',
+        courseLabel: student.courseLabel || student.course || 'Course',
+        teacherName: 'Instructor',
+        issuedAt: new Date().toISOString(),
+        code,
+      };
+      data.certificates.push(cert);
+      await setData(data);
+    }
+    return res.status(200).json({ ok: true, eligible: true, certificate: cert });
+  }
+
   // ── Exams ─────────────────────────────────────────────────
   if (action === 'exams' && req.method === 'GET') {
     if (!teacherKeyValid(teacherKey, data)) return res.status(401).json({ error: 'Unauthorized' });
