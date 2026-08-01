@@ -290,6 +290,7 @@ export default async function handler(req, res) {
     if (!code) return res.status(400).json({ ok: true, valid: false, error: 'No certificate code provided' });
     const cert = (data.certificates || []).find(c => (c.code || '').toUpperCase() === code);
     if (!cert) return res.status(200).json({ ok: true, valid: false });
+    const stu = (data.students || []).find(s => s.id === cert.studentId);
     return res.status(200).json({
       ok: true, valid: true,
       certificate: {
@@ -298,6 +299,7 @@ export default async function handler(req, res) {
         issuedAt: cert.issuedAt,
         code: cert.code,
         teacherName: cert.teacherName,
+        photoUrl: stu?.photoUrl || null,
       },
     });
   }
