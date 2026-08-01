@@ -284,6 +284,24 @@ export default async function handler(req, res) {
   }
 
   // ── Certificates ──────────────────────────────────────────
+  // Public verification — no auth required, anyone with the code/link can check
+  if (action === 'verify-certificate' && req.method === 'GET') {
+    const code = (req.query.code || '').toString().trim().toUpperCase();
+    if (!code) return res.status(400).json({ ok: true, valid: false, error: 'No certificate code provided' });
+    const cert = (data.certificates || []).find(c => (c.code || '').toUpperCase() === code);
+    if (!cert) return res.status(200).json({ ok: true, valid: false });
+    return res.status(200).json({
+      ok: true, valid: true,
+      certificate: {
+        studentName: cert.studentName,
+        courseLabel: cert.courseLabel,
+        issuedAt: cert.issuedAt,
+        code: cert.code,
+        teacherName: cert.teacherName,
+      },
+    });
+  }
+
   if (action === 'issue-certificate' && req.method === 'POST') {
     if (!teacherKeyValid(teacherKey, data)) return res.status(401).json({ error: 'Unauthorized' });
     const t = resolveTeacher(teacherKey, data);
