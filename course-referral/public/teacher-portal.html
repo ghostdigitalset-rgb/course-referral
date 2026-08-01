@@ -518,6 +518,9 @@ function renderRoster(){
     const sub=[s.gender,s.age?s.age+' yrs':'',s.phone].filter(Boolean).join(' · ');
     // exam count for this student
     const taken=results.filter(r=>r.studentId===s.id).length;
+    const certBtn = s.status==='completed'
+      ? `<button class="btn btn-outline btn-sm" style="margin-top:10px;width:100%;color:var(--accent)" disabled>🎓 Certificate Issued</button>`
+      : `<button class="btn btn-outline btn-sm" style="margin-top:10px;width:100%" onclick="issueCertificate('${s.id}','${escapeHtml(s.name||'').replace(/'/g,"\\'")}')">🎓 Issue Certificate</button>`;
     return `<div class="rost-card">
       <div class="rost-top">${av}<div class="info"><h4>${escapeHtml(s.name||'')}</h4><div class="s">${escapeHtml(sub)}</div></div></div>
       <div class="rost-chips">
@@ -525,8 +528,25 @@ function renderRoster(){
         ${s.batchName?`<span class="pill pill-batch">${escapeHtml(s.batchName)}</span>`:''}
         <span class="pill" style="background:var(--bg);color:var(--muted)">${taken} exam${taken!==1?'s':''} taken</span>
       </div>
+      ${certBtn}
     </div>`;
   }).join('');
+}
+
+async function issueCertificate(studentId, studentName){
+  if(!confirm(`Issue a certificate for ${studentName}? This will also mark their status as Completed.`)) return;
+  try{
+    const res=await fetch('/api/sessions?action=issue-certificate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-teacher-key':teacherData.username},
+      body:JSON.stringify({studentId})
+    });
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Could not issue certificate');
+    toast(`🎓 Certificate issued for ${studentName}`);
+    await loadRoster();
+    renderRoster();
+  }catch(e){ toast(e.message); }
 }
 
 // ── Modules & Sessions ─────────────────────────────────────
