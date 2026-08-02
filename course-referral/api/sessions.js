@@ -1,4 +1,5 @@
 import { getData, setData } from './_store.js';
+import { verifyAdmin } from './_auth.js';
 import { put } from '@vercel/blob';
 import crypto from 'crypto';
 
@@ -121,6 +122,8 @@ export default async function handler(req, res) {
   const teacherKey = req.headers['x-teacher-key'];
   const adminKey = req.headers['x-admin-key'];
   const studentId = req.headers['x-student-id'];
+  // Accepts either the super-admin env password or a stored admin "username:password".
+  const isAdmin = verifyAdmin(adminKey, data).ok;
 
   // ── Teacher login ─────────────────────────────────────────
   if (req.method === 'POST' && action === 'login') {
@@ -132,7 +135,7 @@ export default async function handler(req, res) {
 
   // ── Teacher logins: list (admin) ──────────────────────────
   if (req.method === 'GET' && action === 'teacher-logins') {
-    if (adminKey !== process.env.ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+    if (!isAdmin) return res.status(401).json({ error: 'Unauthorized' });
     const map = teacherMap(data);
     const builtins = new Set(Object.keys(TEACHER_CREDENTIALS));
     const logins = Object.entries(map).map(([username, t]) => ({
@@ -149,7 +152,7 @@ export default async function handler(req, res) {
   }
   // ── Teacher logins: set / reset password (admin) ──────────
   if (req.method === 'POST' && action === 'set-teacher-password') {
-    if (adminKey !== process.env.ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+    if (!isAdmin) return res.status(401).json({ error: 'Unauthorized' });
     const body = await parseJSON(req);
     const username = String(body.username || '').trim();
     if (!username) return res.status(400).json({ error: 'Course/username required' });
@@ -171,13 +174,13 @@ export default async function handler(req, res) {
 
   // ── Batches: list (teacher or admin) ──────────────────────
   if (req.method === 'GET' && action === 'batches') {
-    if (!teacherKeyValid(teacherKey, data) && adminKey !== process.env.ADMIN_PASSWORD)
+    if (!teacherKeyValid(teacherKey, data) && !isAdmin)
       return res.status(401).json({ error: 'Unauthorized' });
     return res.status(200).json({ ok: true, batches: data.batches || [] });
   }
   // ── Batches: create (admin) ───────────────────────────────
   if (req.method === 'POST' && action === 'create-batch') {
-    if (adminKey !== process.env.ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+    if (!isAdmin) return res.status(401).json({ error: 'Unauthorized' });
     const body = await parseJSON(req);
     if (!body.name || !body.name.trim()) return res.status(400).json({ error: 'Batch name is required' });
     const batch = {
@@ -194,7 +197,7 @@ export default async function handler(req, res) {
   }
   // ── Batches: update (admin) ───────────────────────────────
   if (req.method === 'PATCH' && action === 'update-batch') {
-    if (adminKey !== process.env.ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+    if (!isAdmin) return res.status(401).json({ error: 'Unauthorized' });
     const body = await parseJSON(req);
     const batch = (data.batches || []).find(b => b.id === body.batchId);
     if (!batch) return res.status(404).json({ error: 'Batch not found' });
@@ -209,7 +212,7 @@ export default async function handler(req, res) {
   }
   // ── Batches: delete (admin) ───────────────────────────────
   if (req.method === 'DELETE' && action === 'delete-batch') {
-    if (adminKey !== process.env.ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+    if (!isAdmin) return res.status(401).json({ error: 'Unauthorized' });
     const batchId = req.query.batchId;
     if (!batchId) return res.status(400).json({ error: 'batchId required' });
     // Un-batch any sessions that pointed here (they become legacy/global) so
@@ -226,7 +229,7 @@ export default async function handler(req, res) {
     let course = null;
     if (teacherKeyValid(teacherKey, data)) { const t = resolveTeacher(teacherKey, data); course = t ? t.course : null; }
     else if (studentId) { const st = (data.students || []).find(s => s.portalId === studentId); if (st) course = st.course; else return res.status(401).json({ error: 'Unauthorized' }); }
-    else if (adminKey !== process.env.ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+    else if (!isAdmin) return res.status(401).json({ error: 'Unauthorized' });
     const matchCourse = (a) => { if (!course) return true; if (course === 'all' || course === 'all3') return true; return course.split('+').includes(a.course) || course.includes(a.course); };
     const list = (data.announcements || []).filter(matchCourse)
       .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
@@ -923,7 +926,7 @@ export default async function handler(req, res) {
     teacher = resolveTeacher(teacherKey, data);
     if (!teacher) return res.status(401).json({ error: 'Unauthorized' });
   } else if (action !== 'portal-login' && action !== 'student-login' && action !== 'save-notes' && action !== 'save-highlights' && action !== 'submit-quiz' && action !== 'ask-teacher' && !studentId) {
-    if (adminKey !== process.env.ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+    if (!isAdmin) return res.status(401).json({ error: 'Unauthorized' });
   }
 
   // ── GET: sessions, codes, attendance ─────────────────────
