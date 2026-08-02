@@ -15,8 +15,29 @@ function generatePortalId(existingIds = new Set()) {
   return id;
 }
 
-function resolveCourse(course, courseLabel, fee, dynamicCourses = []) {
-  // All 3 bundle shortcut
+function resolveCourse(course, courseLabel, fee, dynamicCourses = [], bundleDiscount = 0) {
+  // "All courses together" bundle. The registration page sends course:'all'
+  // when every available (dynamic) course is selected.
+  if (course === 'all') {
+    // Prefer the dynamic course list (that's what the live site uses). Fall back
+    // to the 3 legacy base courses only if no dynamic courses are configured.
+    if (dynamicCourses.length >= 1) {
+      const rawFee = dynamicCourses.reduce((s, c) => s + (Number(c.price) || Number(c.fee) || 0), 0);
+      const discounted = bundleDiscount > 0 ? Math.round(rawFee * (1 - bundleDiscount / 100)) : rawFee;
+      return {
+        courseKey: 'all',
+        courseLabel: courseLabel || 'All courses',
+        fee: fee != null ? fee : discounted
+      };
+    }
+    return {
+      courseKey: 'all3',
+      courseLabel: courseLabel || 'All 3 courses',
+      fee: fee != null ? fee : BUNDLE_PRICE
+    };
+  }
+
+  // All 3 bundle shortcut (legacy)
   if (course === 'all3' || course === 'both') {
     return {
       courseKey: 'all3',
@@ -44,23 +65,34 @@ function resolveCourse(course, courseLabel, fee, dynamicCourses = []) {
     };
   }
 
-  // Combo like "digital+event" or "digital+ai" etc.
+  // Combo like "digital+event" or "<id1>+<id2>" etc.
   if (course && course.includes('+')) {
     const parts = course.split('+').filter(p => BASE_FEES[p] != null || dynamicCourses.some(c => String(c.id) === p));
     if (parts.length < 2) return null;
+
     const all3 = ['digital', 'event', 'ai'].every(k => parts.includes(k));
-    const computedFee = all3 ? BUNDLE_PRICE : parts.reduce((s, k) => {
+    // All dynamic courses selected via the combo path → treat as the full bundle.
+    const allDynamic = dynamicCourses.length >= 2 && dynamicCourses.every(c => parts.includes(String(c.id)));
+
+    let computedFee = parts.reduce((s, k) => {
       if (BASE_FEES[k] != null) return s + BASE_FEES[k];
       const dc = dynamicCourses.find(c => String(c.id) === k);
-      return s + (dc ? (dc.fee || dc.price || 0) : 0);
+      return s + (dc ? (Number(dc.price) || Number(dc.fee) || 0) : 0);
     }, 0);
-    const computedLabel = all3 ? 'All 3 courses' : parts.map(k => {
+    if (all3) {
+      computedFee = BUNDLE_PRICE;
+    } else if (allDynamic && bundleDiscount > 0) {
+      computedFee = Math.round(computedFee * (1 - bundleDiscount / 100));
+    }
+
+    const computedLabel = (all3 || allDynamic) ? 'All courses' : parts.map(k => {
       if (BASE_LABELS[k]) return BASE_LABELS[k];
       const dc = dynamicCourses.find(c => String(c.id) === k);
       return dc ? dc.name : k;
     }).join(' + ');
+
     return {
-      courseKey: all3 ? 'all3' : course,
+      courseKey: all3 ? 'all3' : (allDynamic ? 'all' : course),
       courseLabel: courseLabel || computedLabel,
       fee: fee != null ? fee : computedFee
     };
@@ -89,8 +121,9 @@ export default async function handler(req, res) {
 
   const data = await getData();
   const dynamicCourses = (data?.settings?.courses) || [];
+  const bundleDiscount = Number(data?.settings?.bundleDiscount) || 0;
 
-  const resolved = resolveCourse(course, courseLabel, fee, dynamicCourses);
+  const resolved = resolveCourse(course, courseLabel, fee, dynamicCourses, bundleDiscount);
   if (!resolved) return res.status(400).json({ error: 'Invalid course selection' });
 
   if (!paymentMethod || !PAYMENT_METHODS[paymentMethod]) {
