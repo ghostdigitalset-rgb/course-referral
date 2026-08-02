@@ -171,6 +171,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .admin-tab.active{background:var(--grad-accent);color:#fff;box-shadow:var(--shadow-md);transform:translateX(2px)}
 .admin-tab.active svg{transform:scale(1.05)}
 .admin-tab-ic{display:none}
+.super-only{display:none!important}
+body.is-super .super-only{display:flex!important}
+body.is-super .admin-content.super-only{display:block!important}
 .admin-sb-foot{padding:12px;border-top:1px solid var(--border)}
 .admin-logout-btn{display:flex;align-items:center;gap:12px;width:100%;border:none;background:none;color:var(--muted);padding:11px 13px;border-radius:11px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:.13s}
 .admin-logout-btn svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
@@ -575,16 +578,17 @@ tr:last-child td{border-bottom:none}
   <div id="admin-login-screen" class="admin-login">
     <div class="login-box">
       <h2>Admin access</h2>
-      <p>Enter your admin password to continue</p>
+      <p>Enter your admin credentials to continue</p>
       <div id="admin-login-alert" class="alert alert-danger"></div>
       <div class="field">
+        <label>Username <span style="color:var(--muted);font-weight:400">(leave blank if using the master password)</span></label>
+        <input type="text" id="admin-username" placeholder="Username" autocomplete="username" onkeydown="if(event.key==='Enter')adminLogin()">
+      </div>
+      <div class="field">
         <label>Password</label>
-        <input type="password" id="admin-password" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')adminLogin()">
+        <input type="password" id="admin-password" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')adminLogin()">
       </div>
       <button class="submit-btn" onclick="adminLogin()" style="margin-top:4px">Sign in →</button>
-      <div style="margin-top:14px;font-size:12px;color:var(--muted)">
-        Set <code>ADMIN_PASSWORD</code> in your Vercel environment variables
-      </div>
     </div>
   </div>
 
@@ -619,6 +623,9 @@ tr:last-child td{border-bottom:none}
           </button>
           <button class="admin-tab" data-tab="teachers" onclick="switchAdminTab('teachers',this)">
             <svg viewBox="0 0 24 24"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg><span>Teacher logins</span>
+          </button>
+          <button class="admin-tab super-only" data-tab="admins" onclick="switchAdminTab('admins',this)">
+            <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Admins</span>
           </button>
         </nav>
         <div class="admin-sb-foot">
@@ -841,6 +848,34 @@ tr:last-child td{border-bottom:none}
           <div id="teacher-logins-alert" class="alert alert-danger" style="max-width:720px"></div>
           <div id="teacher-logins-success" class="alert alert-success" style="max-width:720px"></div>
           <div id="teacher-logins-list" style="max-width:720px"></div>
+        </div>
+
+        <div id="admin-admins" class="admin-content super-only">
+          <div id="admins-alert" class="alert alert-danger" style="max-width:720px"></div>
+          <div id="admins-success" class="alert alert-success" style="max-width:720px"></div>
+
+          <div style="max-width:720px;background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:18px">
+            <h3 style="margin:0 0 4px">Add an admin</h3>
+            <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Create a login for another admin. They'll have full access except managing admins.</p>
+            <div class="field">
+              <label>Username</label>
+              <input type="text" id="new-admin-username" placeholder="e.g. sara" autocomplete="off">
+            </div>
+            <div class="field">
+              <label>Password</label>
+              <input type="text" id="new-admin-password" placeholder="At least 4 characters" autocomplete="off">
+              <div style="font-size:12px;color:var(--muted);margin-top:6px">Shown as plain text so you can share it with them.</div>
+            </div>
+            <button class="submit-btn" onclick="addAdmin()" id="add-admin-btn" style="max-width:220px">
+              <span id="add-admin-text">Add admin</span>
+              <div class="spinner" id="add-admin-spinner"></div>
+            </button>
+          </div>
+
+          <div style="max-width:720px">
+            <h3 style="margin:0 0 12px">Existing admins</h3>
+            <div id="admins-list"></div>
+          </div>
         </div>
       </div>
       </div>
@@ -1552,15 +1587,21 @@ function resetReg(){
 }
 
 // ── Admin ─────────────────────────────────────────────────
+let isSuperAdmin = false;
 async function adminLogin(){
+  const username = document.getElementById('admin-username').value.trim();
   const pw = document.getElementById('admin-password').value;
   if(!pw) return;
   const alertEl = document.getElementById('admin-login-alert');
+  // With a username → "username:password". Without → treat password as the master key.
+  const key = username ? (username + ':' + pw) : pw;
   try{
-    const res = await fetch('/api/admin',{headers:{'x-admin-key':pw}});
-    if(!res.ok) throw new Error('Wrong password');
-    adminKey = pw;
+    const res = await fetch('/api/admin',{headers:{'x-admin-key':key}});
+    if(!res.ok) throw new Error('Invalid username or password');
+    adminKey = key;
     adminData = await res.json();
+    isSuperAdmin = !!(adminData._auth && adminData._auth.isSuper);
+    document.body.classList.toggle('is-super', isSuperAdmin);
     await loadBatches();
     document.getElementById('admin-login-screen').style.display='none';
     document.getElementById('admin-dashboard-screen').style.display='block';
@@ -1571,10 +1612,92 @@ async function adminLogin(){
 }
 
 function adminLogout(){
-  adminKey='';adminData=null;
+  adminKey='';adminData=null;isSuperAdmin=false;
+  document.body.classList.remove('is-super');
   document.getElementById('admin-password').value='';
+  const u=document.getElementById('admin-username'); if(u) u.value='';
   document.getElementById('admin-login-screen').style.display='flex';
   document.getElementById('admin-dashboard-screen').style.display='none';
+}
+
+// ── Admin accounts (super admin only) ─────────────────────
+async function loadAdmins(){
+  const wrap=document.getElementById('admins-list');
+  wrap.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px">Loading…</div>';
+  try{
+    const res=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({action:'list-admins'})});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Could not load admins');
+    if(!data.admins.length){ wrap.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px">No admins yet. Add one above.</div>'; return; }
+    wrap.innerHTML=data.admins.map(a=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px">
+        <div>
+          <div style="font-weight:700">${escapeHtml(a.username)}</div>
+          <div style="font-size:12px;color:var(--muted)">${a.createdAt?('Added '+new Date(a.createdAt).toLocaleDateString('en-GB')):''}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="action-btn sm" onclick="changeAdminPassword('${escapeHtml(a.username)}')">Change password</button>
+          <button class="action-btn sm danger" onclick="removeAdmin('${escapeHtml(a.username)}')">Remove</button>
+        </div>
+      </div>`).join('');
+  }catch(e){
+    wrap.innerHTML=`<div class="alert alert-danger" style="display:block">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function addAdmin(){
+  const username=document.getElementById('new-admin-username').value.trim();
+  const password=document.getElementById('new-admin-password').value.trim();
+  const alertEl=document.getElementById('admins-alert');
+  const successEl=document.getElementById('admins-success');
+  const btn=document.getElementById('add-admin-btn');
+  const spinner=document.getElementById('add-admin-spinner');
+  const txt=document.getElementById('add-admin-text');
+  if(!username){ showAlert(alertEl,'Please enter a username'); return; }
+  if(password.length<4){ showAlert(alertEl,'Password must be at least 4 characters'); return; }
+  btn.disabled=true; spinner.style.display='block'; txt.textContent='Adding…';
+  try{
+    const res=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({action:'add-admin',username,password})});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Could not add admin');
+    document.getElementById('new-admin-username').value='';
+    document.getElementById('new-admin-password').value='';
+    successEl.textContent='Admin added ✓'; successEl.style.display='block';
+    setTimeout(()=>{successEl.style.display='none';},2500);
+    loadAdmins();
+  }catch(e){
+    showAlert(alertEl,e.message);
+  }finally{
+    btn.disabled=false; spinner.style.display='none'; txt.textContent='Add admin';
+  }
+}
+
+async function changeAdminPassword(username){
+  const password=prompt('New password for "'+username+'" (min 4 characters):');
+  if(password===null) return;
+  if(password.trim().length<4){ alert('Password must be at least 4 characters'); return; }
+  try{
+    const res=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({action:'update-admin-password',username,password:password.trim()})});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Could not update password');
+    const successEl=document.getElementById('admins-success');
+    successEl.textContent='Password updated ✓'; successEl.style.display='block';
+    setTimeout(()=>{successEl.style.display='none';},2500);
+  }catch(e){
+    showAlert(document.getElementById('admins-alert'),e.message);
+  }
+}
+
+async function removeAdmin(username){
+  if(!confirm('Remove admin "'+username+'"? They will no longer be able to log in.')) return;
+  try{
+    const res=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({action:'remove-admin',username})});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Could not remove admin');
+    loadAdmins();
+  }catch(e){
+    showAlert(document.getElementById('admins-alert'),e.message);
+  }
 }
 
 // ── Reports ────────────────────────────────────────────────
@@ -1652,7 +1775,7 @@ function exportReportsCSV(){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Ghost_Academy_Report_'+rangeLabel+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
 
-const ADMIN_TAB_META={overview:['Overview','Your course business at a glance'],reps:['Sales reps','Manage your team and referral links'],students:['Students','All course registrations'],reports:['Reports','Income & performance'],payments:['Payment settings','Telebirr and CBE account details'],courses:['Courses','Pricing, discounts and course listing'],teachers:['Teacher logins','Course teacher access credentials']};
+const ADMIN_TAB_META={overview:['Overview','Your course business at a glance'],reps:['Sales reps','Manage your team and referral links'],students:['Students','All course registrations'],reports:['Reports','Income & performance'],payments:['Payment settings','Telebirr and CBE account details'],courses:['Courses','Pricing, discounts and course listing'],teachers:['Teacher logins','Course teacher access credentials'],admins:['Admins','Manage admin accounts and passwords']};
 function switchAdminTab(name,el){
   document.querySelectorAll('.admin-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.admin-tab').forEach(i=>i.classList.remove('active'));
@@ -1663,6 +1786,7 @@ function switchAdminTab(name,el){
   if(meta){ const h=document.getElementById('admin-page-heading'),s=document.getElementById('admin-page-sub'); if(h)h.textContent=meta[0]; if(s)s.textContent=meta[1]; }
   if(name==='students'){ backToCourses(); }
   if(name==='reports'){ loadReports(_reportRange); }
+  if(name==='admins'){ loadAdmins(); }
   closeAdminSidebar();
   window.scrollTo({top:0,behavior:'smooth'});
 }
