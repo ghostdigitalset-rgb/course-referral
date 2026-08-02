@@ -1,4 +1,5 @@
 import { getData, setData } from './_store.js';
+import { verifyAdmin } from './_auth.js';
 
 const BASE_FEES = { digital: 10000, event: 8000, ai: 10000 };
 const BASE_LABELS = { digital: 'Digital Marketing', event: 'Event Organizing', ai: 'Applied AI' };
@@ -123,6 +124,11 @@ export default async function handler(req, res) {
   const dynamicCourses = (data?.settings?.courses) || [];
   const bundleDiscount = Number(data?.settings?.bundleDiscount) || 0;
 
+  // A manual (admin-entered) registration is only honored for an authenticated admin.
+  // Public visitors always go through the normal proof-of-payment flow.
+  const isAdmin = verifyAdmin(req.headers['x-admin-key'], data).ok;
+  const isManual = !!manualEntry && isAdmin;
+
   const resolved = resolveCourse(course, courseLabel, fee, dynamicCourses, bundleDiscount);
   if (!resolved) return res.status(400).json({ error: 'Invalid course selection' });
 
@@ -131,7 +137,7 @@ export default async function handler(req, res) {
   }
 
   // Proof is required for public registrations but not manual admin entries
-  if (!manualEntry && (!proofPathname || !proofPathname.trim())) {
+  if (!isManual && (!proofPathname || !proofPathname.trim())) {
     return res.status(400).json({ error: 'Please attach your proof of payment' });
   }
 
@@ -139,7 +145,7 @@ export default async function handler(req, res) {
   const existingPortalIds = new Set(data.students.map(s => s.portalId).filter(Boolean));
   const portalId = generatePortalId(existingPortalIds);
 
-  const isVerified = manualEntry
+  const isVerified = isManual
     ? (paymentStatus === 'verified')
     : false;
 
@@ -164,7 +170,7 @@ export default async function handler(req, res) {
     proofPathname: (proofPathname || '').trim(),
     paymentStatus: isVerified ? 'verified' : 'pending',
     paid: isVerified,
-    manualEntry: !!manualEntry,
+    manualEntry: isManual,
     classType: classType || 'in-person',
     status: 'ongoing',
     portalId,
