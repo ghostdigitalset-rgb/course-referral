@@ -72,6 +72,17 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    if (action === 'change-master-password') {
+      if (!auth.isSuper) return res.status(403).json({ error: 'Only the super admin can change the master password' });
+      const newPassword = (req.body.newPassword || '').trim();
+      if (newPassword.length < 6) return res.status(400).json({ error: 'Master password must be at least 6 characters' });
+      if (newPassword.includes(':')) return res.status(400).json({ error: 'Master password cannot contain a colon (:)' });
+      if (!data.settings) data.settings = {};
+      data.settings.masterPassword = newPassword;
+      await setData(data);
+      return res.status(200).json({ ok: true });
+    }
+
     if (action === 'remove-admin') {
       if (!auth.isSuper) return res.status(403).json({ error: 'Only the super admin can remove admins' });
       const username = (req.body.username || '').trim();
