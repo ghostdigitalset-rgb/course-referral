@@ -6,6 +6,27 @@ const BASE_LABELS = { digital: 'Digital Marketing', event: 'Event Organizing', a
 const BUNDLE_PRICE = 25000;
 const PAYMENT_METHODS = { telebirr: 'Telebirr', cbe: 'CBE', cash: 'Cash' };
 
+// Fixed two-course bundles, matched by course name (case/space-insensitive).
+// If a registration selects exactly the two named courses in a pair, the fixed
+// price applies instead of the sum of individual prices.
+const PAIR_BUNDLES = [
+  { courses: ['social media marketing', 'event organizing'], price: 10000, label: 'Social Media Marketing + Event Organizing' },
+  { courses: ['canva for beginners', 'applied ai'], price: 8500, label: 'Canva for Beginners + Applied AI' },
+];
+
+const normName = (s) => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+
+// Given the selected dynamic-course objects, returns a matching pair bundle or null.
+function matchPairBundle(selected) {
+  if (selected.length !== 2) return null;
+  const names = selected.map((c) => normName(c.name)).sort();
+  for (const pair of PAIR_BUNDLES) {
+    const target = pair.courses.map(normName).sort();
+    if (names[0] === target[0] && names[1] === target[1]) return pair;
+  }
+  return null;
+}
+
 function generatePortalId(existingIds = new Set()) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let id;
@@ -74,6 +95,20 @@ function resolveCourse(course, courseLabel, fee, dynamicCourses = [], bundleDisc
     const all3 = ['digital', 'event', 'ai'].every(k => parts.includes(k));
     // All dynamic courses selected via the combo path → treat as the full bundle.
     const allDynamic = dynamicCourses.length >= 2 && dynamicCourses.every(c => parts.includes(String(c.id)));
+
+    // Fixed two-course pair bundle (e.g. SMM + Event = 10,000).
+    // Only applies when exactly two dynamic courses are selected and they match a pair.
+    if (!allDynamic) {
+      const selectedDyn = parts.map(k => dynamicCourses.find(c => String(c.id) === k)).filter(Boolean);
+      const pair = matchPairBundle(selectedDyn);
+      if (pair) {
+        return {
+          courseKey: course,
+          courseLabel: courseLabel || pair.label,
+          fee: fee != null ? fee : pair.price,
+        };
+      }
+    }
 
     let computedFee = parts.reduce((s, k) => {
       if (BASE_FEES[k] != null) return s + BASE_FEES[k];
