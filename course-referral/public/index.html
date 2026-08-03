@@ -1244,6 +1244,22 @@ tr:last-child td{border-bottom:none}
 let COURSES = [];          // loaded from /api/settings
 let BUNDLE_DISCOUNT = 0;    // percent off when ALL courses selected
 let selectedCourses = new Set();
+
+// Fixed two-course pair bundles, matched by course name (case/space-insensitive).
+const PAIR_BUNDLES = [
+  { courses: ['social media marketing', 'event organizing'], price: 10000, label: 'Social Media Marketing + Event Organizing' },
+  { courses: ['canva for beginners', 'applied ai'], price: 8500, label: 'Canva for Beginners + Applied AI' },
+];
+const normCourseName = (s) => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+function matchSelectedPairBundle(){
+  if(selectedCourses.size !== 2) return null;
+  const names = [...selectedCourses].map(k=>normCourseName(courseById(k)?.name)).sort();
+  for(const pair of PAIR_BUNDLES){
+    const target = pair.courses.map(normCourseName).sort();
+    if(names[0]===target[0] && names[1]===target[1]) return pair;
+  }
+  return null;
+}
 let currentPaymentMethod = 'telebirr';
 let proofUrl = '';
 let proofPathname = '';
@@ -1418,8 +1434,13 @@ function updateCourseUI(){
 
   // Compute total
   const rawTotal = [...selectedCourses].reduce((s,k)=>s+effectivePrice(courseById(k)?.price),0);
-  const isBundle = allSelected && BUNDLE_DISCOUNT>0 && COURSES.length>=2;
-  const total = isBundle ? Math.round(rawTotal*(1-BUNDLE_DISCOUNT/100)) : rawTotal;
+  const allBundle = allSelected && BUNDLE_DISCOUNT>0 && COURSES.length>=2;
+  const pairBundle = matchSelectedPairBundle();
+  const isBundle = allBundle || !!pairBundle;
+  let total;
+  if(pairBundle){ total = pairBundle.price; }
+  else if(allBundle){ total = Math.round(rawTotal*(1-BUNDLE_DISCOUNT/100)); }
+  else { total = rawTotal; }
 
   // Show/hide summary box
   const box = document.getElementById('course-total-box');
@@ -1437,7 +1458,10 @@ function updateCourseUI(){
   const discountNote = document.getElementById('course-discount-note');
   discountNote.style.display = isBundle ? 'block' : 'none';
   if(isBundle){
-    discountNote.textContent = `🎉 Bundle discount applied — you save ${(rawTotal-total).toLocaleString()} ETB!`;
+    const saved = rawTotal - total;
+    discountNote.textContent = pairBundle
+      ? `🎉 Bundle price — you save ${saved.toLocaleString()} ETB!`
+      : `🎉 Bundle discount applied — you save ${saved.toLocaleString()} ETB!`;
     document.getElementById('course-total-amount').style.color = 'var(--gold)';
   } else {
     document.getElementById('course-total-amount').style.color = 'var(--accent)';
@@ -1553,11 +1577,23 @@ async function submitReg(){
 
   const allIds = COURSES.map(c=>c.id);
   const coursesArr = [...selectedCourses];
-  const isBundle = allIds.length>=2 && BUNDLE_DISCOUNT>0 && allIds.every(k=>selectedCourses.has(k));
+  const allBundle = allIds.length>=2 && BUNDLE_DISCOUNT>0 && allIds.every(k=>selectedCourses.has(k));
+  const pairBundle = matchSelectedPairBundle();
   const rawFee = coursesArr.reduce((s,k)=>s+effectivePrice(courseById(k)?.price),0);
-  const fee = isBundle ? Math.round(rawFee*(1-BUNDLE_DISCOUNT/100)) : rawFee;
-  const courseKey = isBundle ? 'all' : (coursesArr.length===1 ? coursesArr[0] : coursesArr.join('+'));
-  const courseLabel = isBundle ? 'All courses' : coursesArr.map(k=>courseById(k)?.name||k).join(' + ');
+  let fee, courseKey, courseLabel;
+  if(pairBundle){
+    fee = pairBundle.price;
+    courseKey = coursesArr.join('+');
+    courseLabel = pairBundle.label;
+  } else if(allBundle){
+    fee = Math.round(rawFee*(1-BUNDLE_DISCOUNT/100));
+    courseKey = 'all';
+    courseLabel = 'All courses';
+  } else {
+    fee = rawFee;
+    courseKey = coursesArr.length===1 ? coursesArr[0] : coursesArr.join('+');
+    courseLabel = coursesArr.map(k=>courseById(k)?.name||k).join(' + ');
+  }
 
   const btn = document.getElementById('reg-btn');
   const spinner = document.getElementById('reg-spinner');
