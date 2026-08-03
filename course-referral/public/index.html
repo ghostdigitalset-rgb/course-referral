@@ -855,6 +855,19 @@ tr:last-child td{border-bottom:none}
           <div id="admins-success" class="alert alert-success" style="max-width:720px"></div>
 
           <div style="max-width:720px;background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:18px">
+            <h3 style="margin:0 0 4px">Master password</h3>
+            <p style="font-size:13px;color:var(--muted);margin:0 0 16px">This is your super-admin password. Change it here anytime — you'll use the new one next time you log in (leave the username blank at login).</p>
+            <div class="field">
+              <label>New master password</label>
+              <input type="text" id="new-master-password" placeholder="At least 6 characters" autocomplete="off">
+            </div>
+            <button class="submit-btn" onclick="changeMasterPassword()" id="master-pw-btn" style="max-width:260px">
+              <span id="master-pw-text">Update master password</span>
+              <div class="spinner" id="master-pw-spinner"></div>
+            </button>
+          </div>
+
+          <div style="max-width:720px;background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:18px">
             <h3 style="margin:0 0 4px">Add an admin</h3>
             <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Create a login for another admin. They'll have full access except managing admins.</p>
             <div class="field">
@@ -1642,6 +1655,32 @@ async function loadAdmins(){
       </div>`).join('');
   }catch(e){
     wrap.innerHTML=`<div class="alert alert-danger" style="display:block">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function changeMasterPassword(){
+  const newPassword=document.getElementById('new-master-password').value.trim();
+  const alertEl=document.getElementById('admins-alert');
+  const successEl=document.getElementById('admins-success');
+  const btn=document.getElementById('master-pw-btn');
+  const spinner=document.getElementById('master-pw-spinner');
+  const txt=document.getElementById('master-pw-text');
+  if(newPassword.length<6){ showAlert(alertEl,'Master password must be at least 6 characters'); return; }
+  if(!confirm('Change the master password? You will use this new password to log in as super admin from now on.')) return;
+  btn.disabled=true; spinner.style.display='block'; txt.textContent='Updating…';
+  try{
+    const res=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({action:'change-master-password',newPassword})});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Could not change master password');
+    // The key we're authenticated with just changed — update it so we stay logged in.
+    adminKey=newPassword;
+    document.getElementById('new-master-password').value='';
+    successEl.textContent='Master password updated ✓'; successEl.style.display='block';
+    setTimeout(()=>{successEl.style.display='none';},3000);
+  }catch(e){
+    showAlert(alertEl,e.message);
+  }finally{
+    btn.disabled=false; spinner.style.display='none'; txt.textContent='Update master password';
   }
 }
 
