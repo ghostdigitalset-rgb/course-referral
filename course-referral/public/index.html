@@ -1325,7 +1325,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       .then(d=>{if(d.rep) document.getElementById('reg-ref-text').textContent='Referred by '+d.rep.name;})
       .catch(()=>{});
   }
-  if(page==='admin') showPage('admin-page');
+  if(page==='admin'){ showPage('admin-page'); restoreAdminSession(); }
   if(page==='rep') showPage('rep-portal-page');
 });
 
@@ -1645,23 +1645,44 @@ async function adminLogin(){
   // With a username → "username:password". Without → treat password as the master key.
   const key = username ? (username + ':' + pw) : pw;
   try{
-    const res = await fetch('/api/admin',{headers:{'x-admin-key':key}});
-    if(!res.ok) throw new Error('Invalid username or password');
-    adminKey = key;
-    adminData = await res.json();
-    isSuperAdmin = !!(adminData._auth && adminData._auth.isSuper);
-    document.body.classList.toggle('is-super', isSuperAdmin);
-    await loadBatches();
-    document.getElementById('admin-login-screen').style.display='none';
-    document.getElementById('admin-dashboard-screen').style.display='block';
-    renderAdminDashboard();
+    await activateAdminSession(key);
+    try{ localStorage.setItem('gda_admin_key', key); }catch(e){}
   }catch(e){
     showAlert(alertEl,e.message);
   }
 }
 
+// Validates a key with the server and, if good, shows the dashboard.
+// Throws on failure so callers can decide how to react.
+async function activateAdminSession(key){
+  const res = await fetch('/api/admin',{headers:{'x-admin-key':key}});
+  if(!res.ok) throw new Error('Invalid username or password');
+  adminKey = key;
+  adminData = await res.json();
+  isSuperAdmin = !!(adminData._auth && adminData._auth.isSuper);
+  document.body.classList.toggle('is-super', isSuperAdmin);
+  await loadBatches();
+  document.getElementById('admin-login-screen').style.display='none';
+  document.getElementById('admin-dashboard-screen').style.display='block';
+  renderAdminDashboard();
+}
+
+// On page load, silently restore a saved session if one exists.
+async function restoreAdminSession(){
+  let key='';
+  try{ key = localStorage.getItem('gda_admin_key') || ''; }catch(e){}
+  if(!key) return;
+  try{
+    await activateAdminSession(key);
+  }catch(e){
+    // Saved key no longer valid (e.g. password changed) — clear it and stay on login.
+    try{ localStorage.removeItem('gda_admin_key'); }catch(_){}
+  }
+}
+
 function adminLogout(){
   adminKey='';adminData=null;isSuperAdmin=false;
+  try{ localStorage.removeItem('gda_admin_key'); }catch(e){}
   document.body.classList.remove('is-super');
   document.getElementById('admin-password').value='';
   const u=document.getElementById('admin-username'); if(u) u.value='';
@@ -1710,6 +1731,7 @@ async function changeMasterPassword(){
     if(!res.ok) throw new Error(data.error||'Could not change master password');
     // The key we're authenticated with just changed — update it so we stay logged in.
     adminKey=newPassword;
+    try{ localStorage.setItem('gda_admin_key', newPassword); }catch(e){}
     document.getElementById('new-master-password').value='';
     successEl.textContent='Master password updated ✓'; successEl.style.display='block';
     setTimeout(()=>{successEl.style.display='none';},3000);
