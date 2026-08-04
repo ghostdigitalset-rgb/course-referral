@@ -1,4 +1,5 @@
 import { getData, setData } from './_store.js';
+import { verifyAdmin } from './_auth.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -6,13 +7,14 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-key');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
+  const data = await getData();
+
   const adminKey = req.headers['x-admin-key'];
-  if (adminKey !== process.env.ADMIN_PASSWORD) {
+  if (!verifyAdmin(adminKey, data).ok) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
   const { id } = req.query;
-  const data = await getData();
 
   // ── Bulk or single DELETE ─────────────────────────────────
   if (req.method === 'DELETE') {
