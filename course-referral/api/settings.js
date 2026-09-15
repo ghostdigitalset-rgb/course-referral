@@ -1,4 +1,5 @@
 import { getData, setData } from './_store.js';
+import { verifyAdmin } from './_auth.js';
 
 // Default courses (used only if none saved yet — preserves your original 3)
 const DEFAULT_COURSES = [
@@ -35,13 +36,12 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     // Admin only
-    const adminKey = req.headers['x-admin-key'];
-    if (adminKey !== process.env.ADMIN_PASSWORD) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     let data = await getData();
     data = ensureDefaults(data);
+    const adminKey = req.headers['x-admin-key'];
+    if (!verifyAdmin(adminKey, data).ok) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
     const action = req.body?.action || 'payment';
 
