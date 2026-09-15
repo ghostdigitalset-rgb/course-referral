@@ -1,4 +1,5 @@
 import { getData, setData } from './_store.js';
+import { verifyAdmin } from './_auth.js';
 
 function generatePortalId() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -20,7 +21,7 @@ export default async function handler(req, res) {
   // ── Generate Portal ID (admin only) ──────────────────────
   if (action === 'generate-id') {
     const adminKey = req.headers['x-admin-key'];
-    if (adminKey !== process.env.ADMIN_PASSWORD) {
+    if (!verifyAdmin(adminKey, data).ok) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
