@@ -1,6 +1,7 @@
 import { get } from '@vercel/blob';
 import { Readable } from 'node:stream';
 import { getData } from './_store.js';
+import { verifyAdmin } from './_auth.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -10,15 +11,16 @@ export default async function handler(req, res) {
 
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  const adminKey = req.headers['x-admin-key'];
-  if (adminKey !== process.env.ADMIN_PASSWORD) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
   const { id } = req.query;
   if (!id) return res.status(400).json({ error: 'Student ID required' });
 
   const data = await getData();
+
+  const adminKey = req.headers['x-admin-key'];
+  if (!verifyAdmin(adminKey, data).ok) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   const student = data.students.find(s => s.id === id);
   if (!student || !student.proofPathname) {
     return res.status(404).json({ error: 'No proof of payment on file' });
@@ -38,4 +40,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Could not load proof image' });
   }
 }
-
