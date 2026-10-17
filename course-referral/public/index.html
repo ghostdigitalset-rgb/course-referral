@@ -462,7 +462,8 @@ function renderCourses(s){
         <h3>${esc(c.name)}</h3>
         <p class="desc">${esc(c.description || '')}</p>
         ${c.duration ? `<div class="meta">⏱ ${esc(c.duration)}</div>` : ''}
-        ${c.schedule ? `<div class="meta">🗓 ${esc(c.schedule)}</div>` : ''}
+        ${c.schedule ? `<div class="meta">🏫 In-person: ${esc(c.schedule)}</div>` : ''}
+        ${c.scheduleOnline ? `<div class="meta">💻 Online: ${esc(c.scheduleOnline)}</div>` : ''}
         ${roundTag}
         ${seatHtml}
         <div class="price">${priceHtml}</div>
@@ -553,10 +554,15 @@ function gdaAnswer(q){
     for (const k of (f.keywords || [])){ if (k && text.includes(' ' + String(k).toLowerCase() + ' ')) score += 2; }
     if (score > bestScore){ best = f; bestScore = score; }
   }
-  const scheduled = SITE_DATA.courses.filter(c => c.schedule);
+  const scheduled = SITE_DATA.courses.filter(c => c.schedule || c.scheduleOnline);
   const asksTime = words.some(w => ['schedule','timetable','time','timing','when','hours','class'].includes(w));
   if (asksTime && scheduled.length && bestScore < 2){
-    return scheduled.map(c => c.name + ': ' + c.schedule).join('\n');
+    const lines = [];
+    for (const c of scheduled){
+      if (c.schedule) lines.push(c.name + ' (in-person): ' + c.schedule);
+      if (c.scheduleOnline) lines.push(c.name + ' (online): ' + c.scheduleOnline);
+    }
+    return lines.join('\n');
   }
   if (best && bestScore >= 1) return best.a;
   return null;
