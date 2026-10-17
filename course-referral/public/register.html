@@ -468,6 +468,10 @@ tr:last-child td{border-bottom:none}
   #register-page .course-grid{grid-template-columns:1fr}
   #register-page .gda-features{grid-template-columns:1fr 1fr 1fr;font-size:11px}
 }
+#register-page .seat-chip{display:inline-block;background:var(--accent-light);color:var(--accent-text);font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;margin:6px 0 2px}
+#register-page .seat-chip-low{background:var(--gold-bg);color:var(--gold)}
+#register-page .seat-chip-out{background:var(--danger-bg);color:var(--danger)}
+#register-page .course-card.sold-out{opacity:.55;cursor:not-allowed;filter:grayscale(.4)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
@@ -521,7 +525,7 @@ tr:last-child td{border-bottom:none}
       <span class="gda-blob b2" aria-hidden="true"></span>
 
       <div class="gda-panel-left">
-        <div class="discount-strip">🔥 Save 40% · offer ends Aug 2</div>
+        <div class="discount-strip" style="display:none"></div>
         <div class="gda-eyebrow">✦ 2nd round registration is now open</div>
         <h2>Where Skills Meet Real Results</h2>
         <p>Digital marketing and event organizing courses taught by industry professionals in Addis Ababa.</p>
@@ -946,6 +950,16 @@ tr:last-child td{border-bottom:none}
               <label>Bundle discount (%) — applied when a student selects ALL courses</label>
               <input type="number" id="set-bundle-discount" min="0" max="90" placeholder="10" style="max-width:160px">
               <div style="font-size:12px;color:var(--muted);margin-top:6px">Set to 0 for no bundle discount.</div>
+            </div>
+          </div>
+
+          <!-- ===== OFFER BADGE ===== -->
+          <div class="data-card" style="max-width:720px;padding:20px 24px;margin-bottom:20px">
+            <h3 style="font-size:15px;font-weight:600;margin-bottom:4px">🏷️ Offer badge</h3>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:16px">The banner shown at the top of the registration page, e.g. "Save 40% · offer ends Aug 2". Leave empty to hide it.</div>
+            <div class="field" style="margin-bottom:0">
+              <label>Badge text</label>
+              <input type="text" id="set-badge-text" maxlength="80" placeholder="Save 40% · offer ends Aug 2">
             </div>
           </div>
 
@@ -1431,8 +1445,13 @@ function applyDiscountBannerVisibility(){
       discEl.parentElement.style.display='none';
     }
   }
+  // Offer badge: text is set by admin in Settings. Empty = hidden.
   const stripEl = document.querySelector('.discount-strip');
-  if(stripEl) stripEl.style.display = isDiscountActive() ? '' : 'none';
+  const badge = (paymentSettings && paymentSettings.badgeText) || '';
+  if(stripEl){
+    stripEl.textContent = '🔥 ' + badge;
+    stripEl.style.display = badge ? '' : 'none';
+  }
 }
 
 // ── Routing ──────────────────────────────────────────────
@@ -1498,12 +1517,19 @@ function renderCourseCards(){
     const priceLine = disc
       ? `<div class="fee">${effectivePrice(c.price).toLocaleString()} ETB <span style="font-size:12px;font-weight:500;color:var(--muted);text-decoration:line-through;margin-left:4px">${Number(c.price).toLocaleString()} ETB</span></div>`
       : `<div class="fee">${Number(c.price).toLocaleString()} ETB</div>`;
-    return `<div class="course-card" id="card-${c.id}" onclick="toggleCourse('${c.id}')" ${full?'style="grid-column:1/-1"':''}>
+    const soldOut = c.seatsLeft === 0;
+    const seatsChip = c.seats > 0
+      ? (soldOut
+          ? '<span class="seat-chip seat-chip-out">Sold out</span>'
+          : `<span class="seat-chip ${c.seatsLeft <= 3 ? 'seat-chip-low' : ''}">${c.seatsLeft} seat${c.seatsLeft===1?'':'s'} left</span>`)
+      : '';
+    return `<div class="course-card${soldOut?' sold-out':''}" id="card-${c.id}" onclick="toggleCourse('${c.id}')" ${full?'style="grid-column:1/-1"':''}>
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
         <div class="icon">${c.icon||'📚'}</div>
         <div class="course-check" id="check-${c.id}">✓</div>
       </div>
       <h3>${escapeHtml(c.name)}</h3>
+      ${seatsChip}
       ${disc?`<div class="discount-tag">-${DISCOUNT_PERCENT}%</div>`:''}
       ${priceLine}
       ${c.description?`<div class="desc">${escapeHtml(c.description)}</div>`:''}
@@ -1540,7 +1566,10 @@ function courseById(id){ return COURSES.find(c=>c.id===id); }
 // Every course, including hidden ones. Only the admin page uses this.
 function adminCourses(){ return (adminData?.settings?.courses) || COURSES; }
 
+function isSoldOut(id){ const c = COURSES.find(x=>x.id===id); return !!(c && c.seatsLeft === 0); }
+
 function toggleCourse(key){
+  if(!selectedCourses.has(key) && isSoldOut(key)){ alert('Sorry, this course is fully booked.'); return; }
   if(selectedCourses.has(key)) selectedCourses.delete(key);
   else selectedCourses.add(key);
   updateCourseUI();
@@ -1548,6 +1577,9 @@ function toggleCourse(key){
 
 function selectAllCourses(){
   const allIds = COURSES.map(c=>c.id);
+  if(!allIds.every(k=>selectedCourses.has(k)) && allIds.some(isSoldOut)){
+    alert('One of the courses is fully booked, so the bundle is not available right now.'); return;
+  }
   const allSelected = allIds.every(k=>selectedCourses.has(k));
   if(allSelected){ selectedCourses.clear(); }
   else { allIds.forEach(k=>selectedCourses.add(k)); }
@@ -2105,6 +2137,7 @@ function populateSettingsForm(settings){
   courseDraft = Array.isArray(settings.courses) ? JSON.parse(JSON.stringify(settings.courses)) : [];
   document.getElementById('set-bundle-discount').value = (settings.bundleDiscount ?? 0);
   document.getElementById('set-discount-percent').value = (settings.discountPercent ?? 0);
+  document.getElementById('set-badge-text').value = settings.badgeText || '';
   document.getElementById('set-discount-start').value = settings.discountStart || '';
   document.getElementById('set-discount-end').value = settings.discountEnd || '';
   renderCourseEditor();
@@ -2200,7 +2233,7 @@ function renderCourseEditor(){
         <label>Name *</label>
         <input type="text" value="${escapeAttr(c.name)}" oninput="courseDraft[${i}].name=this.value" placeholder="e.g. Digital Marketing">
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
         <div class="field">
           <label>Price (ETB) *</label>
           <input type="number" min="0" value="${Number(c.price)||0}" oninput="courseDraft[${i}].price=this.value" placeholder="10000">
@@ -2208,6 +2241,10 @@ function renderCourseEditor(){
         <div class="field">
           <label>Duration</label>
           <input type="text" value="${escapeAttr(c.duration||'')}" oninput="courseDraft[${i}].duration=this.value" placeholder="e.g. 6 weeks">
+        </div>
+        <div class="field">
+          <label>Seats <span style="color:var(--muted);font-weight:400">(0 = unlimited)</span></label>
+          <input type="number" min="0" value="${Number(c.seats)||0}" oninput="courseDraft[${i}].seats=Math.max(0,Math.round(Number(this.value)||0))" placeholder="0">
         </div>
       </div>
       <div style="display:grid;grid-template-columns:80px 1fr;gap:12px">
@@ -2227,7 +2264,7 @@ function renderCourseEditor(){
 function escapeAttr(s){return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 
 function addCourseRow(){
-  courseDraft.push({ id:'', name:'', price:0, description:'', duration:'', icon:'📚', hidden:false });
+  courseDraft.push({ id:'', name:'', price:0, description:'', duration:'', icon:'📚', hidden:false, seats:0 });
   renderCourseEditor();
 }
 
@@ -2265,6 +2302,7 @@ async function saveCourses(){
       body:JSON.stringify({
         action:'courses',
         courses: courseDraft,
+        badgeText: document.getElementById('set-badge-text').value,
         bundleDiscount: Number(document.getElementById('set-bundle-discount').value)||0,
         discountPercent: Number(document.getElementById('set-discount-percent').value)||0,
         discountStart: document.getElementById('set-discount-start').value || null,
