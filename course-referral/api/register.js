@@ -1,6 +1,6 @@
 import { getData, setData } from './_store.js';
 import { verifyAdmin } from './_auth.js';
-import { enrolledCount, courseIdsFor } from './_seats.js';
+import { seatInfo, DEFAULT_ROUND_ID } from './_seats.js';
 
 const BASE_FEES = { digital: 10000, event: 8000, ai: 10000 };
 const BASE_LABELS = { digital: 'Digital Marketing', event: 'Event Organizing', ai: 'Applied AI' };
@@ -165,8 +165,9 @@ export default async function handler(req, res) {
   const isAdmin = verifyAdmin(req.headers['x-admin-key'], data).ok;
   const isManual = !!manualEntry && isAdmin;
 
-  // Registration can be closed by the admin between rounds.
-  if (!isAdmin && data?.settings?.registrationOpen === false) {
+  // The current round can be closed by the admin between rounds.
+  const round = data?.settings?.currentRound || { id: DEFAULT_ROUND_ID, label: '2nd round', open: data?.settings?.registrationOpen !== false, seats: {} };
+  if (!isAdmin && round.open === false) {
     return res.status(403).json({ error: 'Registration is closed right now. Please check back for the next round.' });
   }
 
@@ -177,14 +178,13 @@ export default async function handler(req, res) {
   const resolved = resolveCourse(course, courseLabel, fee, dynamicCourses, bundleDiscount);
   if (!resolved) return res.status(400).json({ error: 'Invalid course selection' });
 
-  // Seat check for public registrations: a course with a seat limit is closed once
-  // its confirmed students reach that limit. Admin manual entries skip this check.
+  // Seat check for public registrations: each round has its own seats for in-person and
+  // online. Only confirmed students use them. Admin manual entries skip this check.
   if (!isManual) {
-    const full = courseIdsFor(resolved.courseKey, dynamicCourses)
-      .map(id => dynamicCourses.find(c => String(c.id) === id))
-      .find(c => c && Number(c.seats) > 0 && enrolledCount(data.students, String(c.id)) >= Number(c.seats));
-    if (full) {
-      return res.status(409).json({ error: `Sorry, ${full.name} is fully booked. Please choose another course or contact us.` });
+    const ct = classType === 'online' ? 'online' : 'in-person';
+    const info = seatInfo(data.students, round, ct);
+    if (info.left === 0) {
+      return res.status(409).json({ error: `Sorry, ${ct === 'online' ? 'online' : 'in-person'} seats are full for ${round.label || 'this round'}.` });
     }
   }
 
@@ -228,6 +228,7 @@ export default async function handler(req, res) {
     paid: isVerified,
     manualEntry: isManual,
     classType: classType || 'in-person',
+    round: round.id,
     status: 'ongoing',
     portalId,
     portalActive: true,
