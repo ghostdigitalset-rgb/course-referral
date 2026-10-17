@@ -165,6 +165,11 @@ export default async function handler(req, res) {
   const isAdmin = verifyAdmin(req.headers['x-admin-key'], data).ok;
   const isManual = !!manualEntry && isAdmin;
 
+  // Registration can be closed by the admin between rounds.
+  if (!isAdmin && data?.settings?.registrationOpen === false) {
+    return res.status(403).json({ error: 'Registration is closed right now. Please check back for the next round.' });
+  }
+
   // Hidden courses can't be picked by the public. Admins (manual entry) can still
   // assign students to them.
   const dynamicCourses = isAdmin ? allCourses : allCourses.filter(c => !c.hidden);
