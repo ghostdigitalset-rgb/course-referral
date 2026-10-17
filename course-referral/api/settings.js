@@ -1,5 +1,6 @@
 import { getData, setData } from './_store.js';
 import { verifyAdmin } from './_auth.js';
+import { enrolledCount } from './_seats.js';
 
 // Default courses (used only if none saved yet — preserves your original 3)
 const DEFAULT_COURSES = [
@@ -15,6 +16,7 @@ function ensureDefaults(data) {
   if (typeof data.settings.discountPercent !== 'number') data.settings.discountPercent = 0; // sitewide discount, 0 = off
   if (!('discountStart' in data.settings)) data.settings.discountStart = null; // 'YYYY-MM-DD'
   if (!('discountEnd' in data.settings)) data.settings.discountEnd = null;     // 'YYYY-MM-DD'
+  if (typeof data.settings.badgeText !== 'string') data.settings.badgeText = ''; // offer banner text, empty = hidden
   if (!data.settings.telebirr) data.settings.telebirr = { number: '', holder: 'Ghost Digitals Academy' };
   if (!data.settings.cbe) data.settings.cbe = { number: '', holder: 'Ghost Digitals Academy' };
   return data;
@@ -33,9 +35,17 @@ export default async function handler(req, res) {
     await setData(data);
     // Hidden courses are left out for public visitors. The admin page reads
     // everything from /api/admin, so it still sees hidden courses.
+    const students = data.students || [];
+    const publicCourses = data.settings.courses
+      .filter(c => !c.hidden)
+      .map(c => {
+        const seats = Number(c.seats) || 0; // 0 = unlimited
+        const taken = enrolledCount(students, String(c.id));
+        return { ...c, seats, seatsLeft: seats > 0 ? Math.max(0, seats - taken) : null };
+      });
     return res.status(200).json({
       ...data.settings,
-      courses: data.settings.courses.filter(c => !c.hidden)
+      courses: publicCourses
     });
   }
 
@@ -90,7 +100,8 @@ export default async function handler(req, res) {
           description: (c.description || '').trim(),
           duration: (c.duration || '').trim(),
           icon: (c.icon || '📚').trim() || '📚',
-          hidden: c.hidden === true
+          hidden: c.hidden === true,
+          seats: Math.max(0, Math.round(Number(c.seats) || 0))
         });
       }
       let disc = Number(bundleDiscount);
@@ -110,6 +121,7 @@ export default async function handler(req, res) {
       data.settings.discountPercent = Math.round(sitewideDisc);
       data.settings.discountStart = cleanStart;
       data.settings.discountEnd = cleanEnd;
+      if (typeof req.body.badgeText === 'string') data.settings.badgeText = req.body.badgeText.trim().slice(0, 80);
       await setData(data);
       return res.status(200).json({ ok: true, settings: data.settings });
     }
