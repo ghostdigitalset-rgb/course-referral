@@ -209,9 +209,9 @@ footer p{color:#b9cab4;margin-top:14px;max-width:320px}
     </div>
 
     <aside class="card">
-      <span class="card-tag"><i></i>Registration is open</span>
+      <span class="card-tag"><i></i><span id="round-tag">Registration is open</span></span>
       <h2>Secure your place</h2>
-      <p>Second round registration is now open. It takes a few minutes.</p>
+      <p id="round-desc">Registration is now open. It takes a few minutes.</p>
       <ul class="checklist">
         <li>Choose your course</li>
         <li>Pay by Telebirr or CBE</li>
@@ -423,11 +423,24 @@ function renderCourses(s){
   }
 }
 
+function applyLandingRound(s){
+  const round = (s.roundLabel || '').trim();
+  const open = s.registrationOpen !== false;
+  const tag = document.getElementById('round-tag');
+  const desc = document.getElementById('round-desc');
+  if(tag) tag.textContent = open ? (round ? round+' registration is open' : 'Registration is open') : (round ? round+' registration is closed' : 'Registration is closed');
+  if(desc) desc.textContent = open
+    ? 'Secure your place. It takes a few minutes.'
+    : 'Registration is closed for now. Message us on Telegram to get notified about the next round.';
+}
+
 async function loadCourses(){
   try{
     const res = await fetch('/api/settings');
     if (!res.ok) throw new Error('Failed');
-    renderCourses(await res.json());
+    const s = await res.json();
+    applyLandingRound(s);
+    renderCourses(s);
   }catch(e){
     document.getElementById('course-list').innerHTML =
       '<div class="empty" style="grid-column:1/-1">We could not load the course list right now. Please try again shortly, or message us on Telegram.</div>';
