@@ -1,5 +1,6 @@
 import { getData, setData } from './_store.js';
 import { verifyAdmin } from './_auth.js';
+import { enrolledCount, courseIdsFor } from './_seats.js';
 
 const BASE_FEES = { digital: 10000, event: 8000, ai: 10000 };
 const BASE_LABELS = { digital: 'Digital Marketing', event: 'Event Organizing', ai: 'Applied AI' };
@@ -170,6 +171,17 @@ export default async function handler(req, res) {
 
   const resolved = resolveCourse(course, courseLabel, fee, dynamicCourses, bundleDiscount);
   if (!resolved) return res.status(400).json({ error: 'Invalid course selection' });
+
+  // Seat check for public registrations: a course with a seat limit is closed once
+  // its confirmed students reach that limit. Admin manual entries skip this check.
+  if (!isManual) {
+    const full = courseIdsFor(resolved.courseKey, dynamicCourses)
+      .map(id => dynamicCourses.find(c => String(c.id) === id))
+      .find(c => c && Number(c.seats) > 0 && enrolledCount(data.students, String(c.id)) >= Number(c.seats));
+    if (full) {
+      return res.status(409).json({ error: `Sorry, ${full.name} is fully booked. Please choose another course or contact us.` });
+    }
+  }
 
   if (!paymentMethod || !PAYMENT_METHODS[paymentMethod]) {
     return res.status(400).json({ error: 'Please select a payment method' });
