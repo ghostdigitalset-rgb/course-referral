@@ -1,0 +1,3337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghost Digitals Academy — Course Registration</title>
+<link rel="icon" type="image/png" href="/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f6f2;
+  --surface:#ffffff;
+  --border:#e4e8df;
+  --text:#161a14;
+  --muted:#69706280;
+  --muted:#697062;
+  --accent:#2d5a27;
+  --accent-2:#3f7a34;
+  --accent-light:#eaf3e7;
+  --accent-text:#1e4019;
+  --danger:#c0392b;
+  --danger-bg:#fdf0ee;
+  --info:#1a4f8a;
+  --info-bg:#eef3fb;
+  --gold:#c4860a;
+  --gold-bg:#fdf6e3;
+  --radius:12px;
+  --radius-lg:18px;
+  --grad-accent:linear-gradient(135deg,#3f7a34 0%,#2d5a27 55%,#204019 100%);
+  --grad-surface:linear-gradient(180deg,#ffffff 0%,#fbfcfa 100%);
+  --grad-page:radial-gradient(1200px 600px at 100% -10%,#e7f0e3 0%,rgba(231,240,227,0) 55%),radial-gradient(900px 500px at -10% 0%,#eef4ea 0%,rgba(238,244,234,0) 50%);
+  --shadow-sm:0 1px 2px rgba(20,30,15,.04),0 1px 3px rgba(20,30,15,.06);
+  --shadow-md:0 4px 12px rgba(20,40,15,.06),0 2px 6px rgba(20,40,15,.05);
+  --shadow-lg:0 18px 44px rgba(20,45,15,.12),0 6px 16px rgba(20,45,15,.08);
+  --ring:0 0 0 3px rgba(45,90,39,.14);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
+
+/* Layout */
+.page{display:none;min-height:100vh;flex-direction:column}
+.page.active{display:flex}
+.container{max-width:560px;margin:0 auto;padding:0 20px;width:100%}
+.container-wide{max-width:900px;margin:0 auto;padding:0 20px;width:100%}
+
+/* Header */
+.site-header{padding:18px 0;border-bottom:1px solid var(--border);background:var(--surface)}
+.site-header .inner{display:flex;align-items:center;justify-content:space-between}
+.logo-wrap{display:flex;align-items:center;gap:10px}
+.logo-mark{height:34px;width:auto;display:block}
+.logo{font-family:'DM Serif Display',serif;font-size:20px;letter-spacing:-0.3px;color:var(--accent)}
+.logo span{color:var(--accent)}
+.header-nav{display:flex;gap:8px}
+.nav-btn{padding:7px 14px;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all 0.15s}
+.nav-btn:hover{background:var(--bg);color:var(--text);border-color:var(--text)}
+.nav-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.nav-btn.primary:hover{opacity:0.9}
+
+/* Hero section */
+.hero{padding:48px 0 32px;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--accent-light);color:var(--accent-text);font-size:12px;font-weight:500;padding:5px 12px;border-radius:20px;margin-bottom:20px}
+.hero h1{font-family:'DM Serif Display',serif;font-size:38px;line-height:1.15;letter-spacing:-0.5px;margin-bottom:12px}
+.hero p{font-size:16px;color:var(--muted);max-width:420px;margin:0 auto 28px}
+
+/* Trust bar */
+.trust-bar{border-bottom:1px solid var(--border);background:var(--surface)}
+.trust-bar .inner{display:flex;justify-content:center;gap:32px;padding:14px 20px;flex-wrap:wrap}
+.trust-item{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);font-weight:500}
+.trust-item .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+
+/* Discount strip */
+.discount-strip{display:inline-flex;align-items:center;gap:8px;background:var(--gold-bg);color:var(--gold);border:1px solid #e8c96f;font-size:12.5px;font-weight:600;padding:6px 14px;border-radius:20px;margin-bottom:16px}
+.discount-tag{display:inline-block;background:var(--gold-bg);color:var(--gold);border:1px solid #e8c96f;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:5px;margin-bottom:5px}
+
+/* Course cards */
+.course-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.course-card{border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;background:var(--surface);text-align:left}
+.course-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:#c7d3c2}
+.course-card.selected{border-color:var(--accent);background:var(--accent-light)}
+.course-card .icon{width:36px;height:36px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:all .15s}
+.course-card.selected .icon{background:var(--accent);color:#fff}
+.course-card .course-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;flex-shrink:0;transition:all 0.15s}
+.course-card.selected .course-check{background:var(--accent);border-color:var(--accent);color:#fff}
+.course-card h3{font-size:14px;font-weight:600;margin-bottom:4px}
+.course-card .fee{font-size:15px;color:var(--accent);font-weight:600}
+.course-card .desc{font-size:12px;color:var(--muted);margin-top:3px}
+.course-both{border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;cursor:pointer;transition:all 0.15s;background:var(--surface);display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.course-both:hover,.course-both.selected{border-color:var(--gold);background:var(--gold-bg)}
+.course-both-left{display:flex;align-items:center;gap:12px}
+.course-both-badge{background:var(--gold-bg);color:var(--gold);font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;border:1px solid #e8c96f}
+.course-both h3{font-size:14px;font-weight:600}
+.course-both .fee{font-size:16px;font-weight:600;color:var(--gold)}
+.course-both .save{font-size:11px;color:var(--muted);text-decoration:line-through}
+
+/* Form */
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:16px}
+.form-card h2{font-size:17px;font-weight:600;margin-bottom:18px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:500;color:var(--muted);margin-bottom:6px}
+.field input,.field textarea,.field select{width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);transition:border-color 0.15s}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,90,39,0.08)}
+.field textarea{resize:vertical;line-height:1.5}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ref-banner{display:flex;align-items:center;gap:10px;background:var(--accent-light);border:1px solid #b8d9b4;border-radius:8px;padding:10px 14px;margin-bottom:18px;font-size:13px;color:var(--accent-text)}
+
+/* Contact card */
+.contact-card{background:var(--info-bg);border:1px solid #c3d9f0;border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:18px}
+.contact-card-title{font-size:13px;font-weight:600;color:var(--info);margin-bottom:10px}
+.contact-card-row{display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0}
+.contact-label{color:var(--muted);min-width:70px}
+.contact-value{color:var(--info);font-weight:500;text-decoration:none}
+.contact-value:hover{text-decoration:underline}
+
+/* Payment method */
+.pay-method-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+.pay-method{border:1.5px solid var(--border);border-radius:var(--radius);padding:13px 14px;cursor:pointer;transition:all 0.15s;background:var(--surface)}
+.pay-method:hover{border-color:var(--accent)}
+.pay-method.selected{border-color:var(--accent);background:var(--accent-light)}
+.pay-method-name{font-size:14px;font-weight:600;margin-bottom:3px}
+.pay-method-number{font-size:12px;color:var(--muted)}
+.pay-hint{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5}
+.pay-hint a{color:var(--accent);font-weight:500;text-decoration:none}
+.pay-hint a:hover{text-decoration:underline}
+
+/* Upload box */
+.upload-box{border:1.5px dashed var(--border);border-radius:var(--radius);padding:22px;text-align:center;cursor:pointer;transition:all 0.15s;background:var(--bg)}
+.upload-box:hover{border-color:var(--accent);background:var(--accent-light)}
+.upload-box.has-error{border-color:var(--danger)}
+.upload-icon{font-size:26px;margin-bottom:8px}
+.upload-text{font-size:13px;font-weight:500;color:var(--text)}
+.upload-subtext{font-size:12px;color:var(--muted);margin-top:3px}
+.upload-box img{max-width:100%;max-height:160px;border-radius:8px;display:block;margin:0 auto;box-shadow:0 1px 4px rgba(0,0,0,0.1)}
+.upload-filename{font-size:12px;color:var(--muted);margin-top:8px;word-break:break-all}
+.upload-status{font-size:12px;margin-top:8px;color:var(--muted)}
+.upload-status.uploading{color:var(--info)}
+.upload-status.error{color:var(--danger)}
+.upload-status.success{color:var(--accent-text)}
+.submit-btn{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:opacity 0.15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.submit-btn:hover{opacity:0.9}
+.submit-btn:disabled{opacity:0.5;cursor:not-allowed}
+.alert{padding:11px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none}
+.alert.show{display:flex;align-items:center;gap:8px}
+.alert-danger{background:var(--danger-bg);color:var(--danger);border:1px solid #f0c0bb}
+.alert-success{background:var(--accent-light);color:var(--accent-text);border:1px solid #b8d9b4}
+
+/* Success screen */
+.success-screen{text-align:center;padding:48px 20px}
+.success-icon{width:64px;height:64px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:28px;color:#fff}
+.success-screen h2{font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:10px}
+.success-screen p{color:var(--muted);font-size:15px;max-width:340px;margin:0 auto 24px}
+.btn-outline{padding:10px 20px;border:1px solid var(--border);border-radius:8px;background:transparent;font-family:inherit;font-size:14px;cursor:pointer;color:var(--text);transition:all 0.15s}
+.btn-outline:hover{background:var(--bg);border-color:var(--text)}
+
+/* ===== ADMIN PAGE (premium top-tab layout) ===== */
+.admin-shell{min-height:100vh;background:var(--bg);display:flex}
+/* ===== Premium sidebar layout (Bensen-style) ===== */
+.admin-sidebar{width:248px;background:var(--surface);border-right:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.admin-sb-brand{padding:22px 20px 18px;display:flex;align-items:center;gap:11px}
+.admin-sb-brand .mark{width:42px;height:42px;border-radius:12px;background:var(--grad-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:17px;flex-shrink:0;box-shadow:var(--shadow-md);position:relative}
+.admin-sb-brand .mark::after{content:"";position:absolute;inset:-3px;border-radius:15px;border:1.5px solid var(--accent);opacity:.3;animation:pulseRing 2.4s ease-out infinite}
+@keyframes pulseRing{0%{transform:scale(.9);opacity:.5}70%{transform:scale(1.18);opacity:0}100%{opacity:0}}
+.admin-sb-brand .txt strong{display:block;font-family:'DM Serif Display',serif;font-size:16px;color:var(--text);line-height:1.15;font-weight:400}
+.admin-sb-brand .txt span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.admin-sb-sec{padding:6px 14px;font-size:10.5px;font-weight:700;color:var(--muted);opacity:.65;text-transform:uppercase;letter-spacing:.07em;margin-top:12px}
+.admin-nav{padding:6px 12px;flex:1;overflow-y:auto}
+.admin-tab{display:flex;align-items:center;gap:12px;width:100%;padding:11px 13px;border-radius:11px;color:var(--muted);font-family:inherit;font-size:14px;font-weight:600;margin-bottom:2px;transition:background .18s,color .18s,transform .18s;cursor:pointer;border:none;background:none;text-align:left;position:relative}
+.admin-tab svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;transition:transform .18s}
+.admin-tab:hover{background:var(--bg);color:var(--text)}
+.admin-tab:hover svg{transform:translateX(1px)}
+.admin-tab.active{background:var(--grad-accent);color:#fff;box-shadow:var(--shadow-md);transform:translateX(2px)}
+.admin-tab.active svg{transform:scale(1.05)}
+.admin-tab-ic{display:none}
+.super-only{display:none!important}
+body.is-super .super-only{display:flex!important}
+body.is-super .admin-content.super-only{display:block!important}
+.admin-sb-foot{padding:12px;border-top:1px solid var(--border)}
+.admin-logout-btn{display:flex;align-items:center;gap:12px;width:100%;border:none;background:none;color:var(--muted);padding:11px 13px;border-radius:11px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:.13s}
+.admin-logout-btn svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.admin-logout-btn:hover{color:var(--danger);background:var(--danger-bg)}
+/* main column */
+.admin-main-col{flex:1;min-width:0;display:flex;flex-direction:column}
+.admin-topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--border)}
+.admin-topbar-inner{padding:13px 26px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.admin-topbar-title h2{font-family:'DM Serif Display',serif;font-size:19px;font-weight:400;letter-spacing:-.2px;color:var(--text)}
+.admin-topbar-title span{font-size:12px;color:var(--muted)}
+.live-pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--accent-text);background:var(--accent-light);padding:5px 11px;border-radius:20px}
+.live-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:dotPulse 1.6s ease-in-out infinite}
+@keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.menu-btn{display:none;width:40px;height:40px;border-radius:11px;background:var(--bg);border:1px solid var(--border);align-items:center;justify-content:center;cursor:pointer}
+.menu-btn svg{width:22px;height:22px;stroke:var(--text);stroke-width:2;fill:none}
+.sb-backdrop{display:none;position:fixed;inset:0;background:rgba(20,25,15,.4);z-index:45}
+.sb-backdrop.show{display:block}
+.admin-main{padding:26px;flex:1}
+.main-area{overflow-y:visible}
+.page-title{font-family:'DM Serif Display',serif;font-size:26px;letter-spacing:-.4px;margin-bottom:6px;color:var(--text)}
+.page-subtitle{font-size:14px;color:var(--muted);margin-bottom:24px}
+/* ===== Premium stat cards ===== */
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.admin-content.active{animation:cardIn .35s ease both}
+.metrics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:22px}
+.metric-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px;box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:space-between;gap:12px;transition:transform .16s,box-shadow .16s;overflow:hidden;animation:cardIn .4s ease both}
+.metrics-row .metric-card:nth-child(1){animation-delay:.02s}
+.metrics-row .metric-card:nth-child(2){animation-delay:.08s}
+.metrics-row .metric-card:nth-child(3){animation-delay:.14s}
+.metric-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);opacity:0;transition:opacity .16s}
+.metric-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.metric-card:hover::before{opacity:1}
+.metric-card .val{font-family:'DM Serif Display',serif;font-size:30px;font-weight:400;line-height:1;margin-bottom:5px;color:var(--text)}
+.metric-card .lbl{font-size:12.5px;color:var(--muted);font-weight:500}
+.metric-card .tile{width:52px;height:52px;border-radius:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--accent-light);color:var(--accent);transition:transform .18s}
+.metric-card:hover .tile{transform:scale(1.06) rotate(-3deg)}
+.metric-card .tile svg{width:25px;height:25px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.metric-card.accent{background:var(--grad-accent);border-color:transparent;box-shadow:var(--shadow-lg)}
+.metric-card.accent::before{background:rgba(255,255,255,.5)}
+.metric-card.accent .val,.metric-card.accent .lbl{color:#fff}
+.metric-card.accent .lbl{opacity:.85}
+.metric-card.accent .tile{background:rgba(255,255,255,.18);color:#fff}
+.tile.blue{background:var(--info-bg);color:var(--info)}
+.tile.gold{background:var(--gold-bg);color:var(--gold)}
+.tile.danger{background:var(--danger-bg);color:var(--danger)}
+/* charts row */
+.charts-row{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:22px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow .16s}
+.chart-card:hover{box-shadow:var(--shadow-md)}
+.chart-card-h{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.chart-card-h h3{font-size:15px;font-weight:700}
+.chart-card-h span{font-size:11.5px;color:var(--muted)}
+.chart-card-body{padding:20px}
+@media(max-width:1000px){.charts-row{grid-template-columns:1fr}}
+.ico{width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px}
+.course-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.course-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .16s,box-shadow .16s;text-align:left}
+.course-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:#c7d3c2}
+.course-card .cc-ic{width:50px;height:50px;border-radius:14px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.course-card .cc-ic svg{width:25px;height:25px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.course-card h4{font-size:16px;font-weight:700;margin-bottom:4px;color:var(--text)}
+.course-card .cc-count{font-size:13px;color:var(--muted)}
+.course-card .cc-arrow{margin-top:14px;display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--accent)}
+/* student card grid */
+.students-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;padding:16px}
+.st-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:17px;transition:transform .16s,box-shadow .16s;position:relative}
+.st-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.st-card.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light)}
+.st-card-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:13px}
+.st-card .st-cb{position:absolute;top:15px;right:15px;width:16px;height:16px;cursor:pointer}
+.st-avatar{width:50px;height:50px;border-radius:13px;background:var(--grad-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;background-size:cover;background-position:center}
+.st-card-top .info{flex:1;min-width:0;padding-right:22px}
+.st-card-top .info h4{font-size:15px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-card-top .info .sub{font-size:11.5px;color:var(--muted)}
+.st-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.pill-ongoing{background:var(--info-bg);color:var(--info)}
+.pill-completed{background:var(--accent-light);color:var(--accent-text)}
+.pill-hold{background:var(--gold-bg);color:var(--gold)}
+.pill-dropped{background:var(--danger-bg);color:var(--danger)}
+.pay-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700}
+.pay-verified{background:var(--accent-light);color:var(--accent-text)}
+.pay-pending{background:var(--gold-bg);color:var(--gold)}
+.pay-rejected{background:var(--danger-bg);color:var(--danger)}
+.st-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.st-chip{font-size:11px;color:var(--muted);background:var(--bg);padding:4px 9px;border-radius:8px;display:inline-flex;align-items:center;gap:4px}
+.st-chip svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none}
+.st-portal{font-family:monospace;font-size:11.5px;font-weight:700;color:var(--accent);cursor:pointer}
+.st-card-foot{display:flex;gap:7px;border-top:1px solid var(--border);padding-top:12px;margin-top:2px}
+.st-card-foot button{flex:1;padding:7px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:600;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;gap:5px;transition:.13s}
+.st-card-foot button:hover{background:var(--bg)}
+.st-card-foot button.primary{background:var(--grad-accent);color:#fff;border-color:transparent}
+.st-card-foot button svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none}
+.st-review{display:flex;gap:6px;margin-top:10px}
+.st-review button{flex:1;padding:6px;border-radius:7px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface)}
+.st-review .v{border-color:#b8d9b4;color:var(--accent-text)}
+.st-review .r{border-color:#f0c0bb;color:var(--danger)}
+.seg button{padding:8px 15px;border:none;background:none;border-radius:9px;font-family:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:.13s;display:inline-flex;align-items:center;gap:5px}
+.seg button:hover{color:var(--text)}
+.seg button.active{background:var(--accent-light);color:var(--accent-text)}
+.report-bd-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px}
+.report-bd-card h3{font-size:14px;font-weight:700;padding:15px 18px;border-bottom:1px solid var(--border)}
+.rb-row{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);font-size:13.5px}
+.rb-row:last-child{border-bottom:none}
+.rb-bar-track{height:8px;background:var(--bg);border-radius:6px;overflow:hidden;flex:1;margin:0 14px;max-width:220px}
+.rb-bar-fill{height:100%;background:var(--grad-accent);border-radius:6px}
+
+/* Tables */
+.data-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-md)}
+.data-card-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);background:var(--grad-surface)}
+.data-card-header h3{font-size:15px;font-weight:700;letter-spacing:-.1px}
+.action-btn{padding:8px 14px;border-radius:9px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;box-shadow:var(--shadow-sm)}
+.action-btn:hover{background:var(--bg);border-color:#d5dacf;transform:translateY(-1px)}
+.action-btn.primary{background:var(--grad-accent);color:#fff;border-color:transparent;box-shadow:var(--shadow-md)}
+.action-btn.primary:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.action-btn.danger{color:var(--danger);border-color:#f0c0bb;background:var(--surface)}
+.action-btn.danger:hover{background:var(--danger-bg)}
+.action-btn.sm{padding:6px 11px;font-size:12px;border-radius:8px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:12px 18px;font-size:11.5px;font-weight:700;color:var(--muted);background:var(--bg);border-bottom:1px solid var(--border);letter-spacing:.04em;text-transform:uppercase}
+td{padding:14px 18px;font-size:13.5px;border-bottom:1px solid var(--border)}
+tbody tr{transition:background .12s}
+tbody tr:hover{background:rgba(45,90,39,.028)}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-flex;align-items:center;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.01em}
+.badge-green{background:var(--accent-light);color:var(--accent-text)}
+.badge-blue{background:var(--info-bg);color:var(--info)}
+.badge-gold{background:var(--gold-bg);color:var(--gold)}
+.link-cell{font-family:monospace;font-size:11px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rep-name-cell{display:flex;align-items:center;gap:10px}
+.avatar{width:34px;height:34px;border-radius:11px;background:var(--grad-accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:var(--shadow-sm)}
+.empty{text-align:center;padding:40px 32px;color:var(--muted);font-size:13.5px}
+.empty-icon{font-size:34px;margin-bottom:10px;opacity:.8}
+.tab-nav{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab-nav button{padding:8px 16px;border:none;background:none;font-family:inherit;font-size:14px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab-nav button.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
+.admin-content{display:none}
+.admin-content.active{display:block}
+
+/* Copy btn */
+.copy-btn{padding:4px 9px;border-radius:6px;font-size:11px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-family:monospace;transition:all 0.12s}
+.copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,25,12,.42);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+.modal-overlay.show{display:flex;animation:overlayIn .18s ease}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--surface);border-radius:var(--radius-lg);padding:26px;width:360px;max-width:100%;max-height:90vh;overflow-y:auto;border:1px solid var(--border);box-shadow:var(--shadow-lg);animation:modalIn .22s cubic-bezier(.2,.8,.2,1)}
+.modal::-webkit-scrollbar{width:10px}
+.modal::-webkit-scrollbar-thumb{background:#d3d8cd;border-radius:8px;border:3px solid var(--surface)}
+.modal::-webkit-scrollbar-track{background:transparent}
+/* Large form modals: sticky header + footer, scrollable body */
+.modal.modal-form{padding:0;display:flex;flex-direction:column}
+.modal.modal-form h3{margin:0;padding:20px 24px;border-bottom:1px solid var(--border);background:var(--grad-surface);position:sticky;top:0;z-index:2;border-radius:var(--radius-lg) var(--radius-lg) 0 0}
+.modal-form-body{padding:22px 24px;overflow-y:auto;flex:1}
+.modal.modal-form .modal-actions{margin:0;padding:16px 24px;border-top:1px solid var(--border);background:var(--grad-surface);position:sticky;bottom:0;z-index:2;border-radius:0 0 var(--radius-lg) var(--radius-lg)}
+@keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:18px;letter-spacing:-.2px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+
+/* Admin login */
+.admin-login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);background-image:var(--grad-page);background-attachment:fixed;padding:20px}
+.login-box{background:var(--grad-surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:38px 34px;width:380px;max-width:100%;text-align:center;box-shadow:var(--shadow-lg)}
+.login-box h2{font-family:'DM Serif Display',serif;font-size:24px;margin-bottom:6px}
+.login-box p{font-size:13px;color:var(--muted);margin-bottom:22px}
+.login-box .field{text-align:left}
+
+/* ===== REP PORTAL ===== */
+.rep-login{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 57px);background:var(--bg)}
+.rep-login-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px;width:380px}
+.rep-login-box h2{font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:6px}
+.rep-login-box p{font-size:13px;color:var(--muted);margin-bottom:22px}
+.rep-dashboard{padding:32px 0}
+.rep-dash-header{margin-bottom:24px}
+.rep-dash-header h2{font-family:'DM Serif Display',serif;font-size:24px}
+.rep-dash-header p{color:var(--muted);font-size:14px}
+.rep-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.breakdown-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.breakdown-row:last-child{border-bottom:none}
+.my-link-box{background:var(--accent-light);border:1px solid #b8d9b4;border-radius:10px;padding:16px;margin-bottom:20px}
+.my-link-box h4{font-size:13px;font-weight:600;color:var(--accent-text);margin-bottom:8px}
+.my-link-url{font-family:monospace;font-size:12px;color:var(--accent-text);background:rgba(255,255,255,0.6);padding:7px 10px;border-radius:6px;word-break:break-all;margin-bottom:8px}
+.logout-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:7px;border:1px solid var(--border);background:transparent;font-family:inherit;font-size:13px;cursor:pointer;color:var(--muted);transition:all 0.12s}
+.logout-btn:hover{background:var(--bg);color:var(--text)}
+
+/* Spinner */
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Responsive */
+@media(max-width:900px){
+  .admin-sidebar{position:fixed;left:0;top:0;bottom:0;z-index:50;transform:translateX(-100%);transition:transform .25s ease;box-shadow:var(--shadow-lg)}
+  .admin-sidebar.open{transform:translateX(0)}
+  .menu-btn{display:flex}
+  .admin-main{padding:18px 16px}
+  .metrics-row{grid-template-columns:1fr 1fr}
+  #a-course-breakdown{grid-template-columns:1fr 1fr !important}
+}
+@media(max-width:640px){
+  .course-grid{grid-template-columns:1fr}
+  .grid-2{grid-template-columns:1fr}
+  .metrics-row{grid-template-columns:1fr}
+  .rep-metrics{grid-template-columns:1fr}
+  .admin-topbar-inner{padding:12px 16px}
+  .page-title{font-size:22px}
+  .metric-card{padding:18px 20px}
+  .metric-card .val{font-size:29px}
+}
+
+/* ===== REGISTRATION PAGE — redesigned layout (all rules scoped to #register-page) ===== */
+#register-page{font-family:'Plus Jakarta Sans','DM Sans',sans-serif;background:#f6f8f4;background-image:var(--grad-page);background-attachment:fixed;color:var(--text);padding-bottom:64px}
+#register-page .gda-trust{background:#fff;border-bottom:1px solid var(--border)}
+#register-page .gda-trust-inner{display:flex;justify-content:center;flex-wrap:wrap;gap:28px;padding:12px 20px;max-width:1040px;margin:0 auto}
+#register-page .gda-trust-inner>span{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--muted)}
+#register-page .gda-trust-inner i{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block}
+
+#register-page .gda-hero{max-width:1040px;margin:0 auto;padding:40px 20px 0}
+#register-page .gda-hero-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+#register-page .gda-hero-right{text-align:right;margin-left:auto}
+#register-page .gda-h-lite{font-size:clamp(20px,2.8vw,30px);font-weight:600;color:var(--text);line-height:1.15;margin:0}
+#register-page .gda-h-bold{font-size:clamp(64px,13vw,150px);font-weight:800;color:var(--accent);line-height:.88;letter-spacing:-.04em;text-transform:uppercase}
+
+#register-page .gda-panel{position:relative;overflow:hidden;margin-top:26px;background:var(--grad-accent);border-radius:28px;padding:36px;display:grid;grid-template-columns:1.1fr 1fr;gap:28px;color:#fff;box-shadow:var(--shadow-lg)}
+#register-page .gda-blob{position:absolute;border-radius:50%;background:rgba(255,255,255,.08);pointer-events:none}
+#register-page .gda-blob.b1{width:340px;height:340px;right:-120px;top:-140px}
+#register-page .gda-blob.b2{width:240px;height:240px;left:-90px;bottom:-120px}
+#register-page .gda-panel-left,#register-page .gda-panel-right{position:relative;z-index:1}
+#register-page .gda-panel .discount-strip{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.35);margin-bottom:14px}
+#register-page .gda-eyebrow{font-size:13px;font-weight:600;opacity:.95;margin-bottom:12px}
+#register-page .gda-panel h2{font-size:clamp(26px,3.4vw,40px);font-weight:800;line-height:1.1;letter-spacing:-.02em;margin:0 0 14px;color:#fff}
+#register-page .gda-panel p{font-size:15px;line-height:1.6;opacity:.92;max-width:390px;margin:0 0 24px}
+#register-page .gda-pill{display:inline-flex;align-items:center;gap:12px;background:#fff;color:var(--accent-text);padding:12px 22px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none;box-shadow:var(--shadow-md)}
+#register-page .gda-pill:hover{opacity:.92}
+#register-page .gda-trust-card{margin-top:26px;display:inline-flex;align-items:center;gap:12px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:18px;padding:12px 16px;font-size:12.5px;font-weight:600;line-height:1.45}
+#register-page .gda-avatars{display:flex}
+#register-page .gda-avatars span{width:34px;height:34px;border-radius:50%;background:#fff;color:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;border:2px solid var(--accent);margin-left:-8px}
+#register-page .gda-avatars span:first-child{margin-left:0}
+
+#register-page .gda-features{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;font-size:12px;font-weight:600;line-height:1.35;margin-bottom:6px}
+#register-page .gda-features span{display:block;font-size:24px;margin-bottom:6px}
+
+#register-page .gda-featured{margin-top:22px;max-width:300px;margin-left:auto;margin-right:auto}
+#register-page .gda-featured-label{font-size:13px;font-weight:700;text-align:center;margin-bottom:10px}
+#register-page .gda-featured-card{background:#fff;color:var(--text);border-radius:22px;padding:16px;box-shadow:var(--shadow-md);text-align:center}
+#register-page .gda-featured-img{height:120px;border-radius:16px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:44px;margin-bottom:12px}
+#register-page .gda-featured-name{font-size:15px;font-weight:700}
+#register-page .gda-featured-sub{font-size:12px;color:var(--muted);margin-top:2px}
+#register-page .gda-featured-btn{display:block;margin-top:12px;background:var(--accent);color:#fff;border-radius:999px;padding:10px;font-weight:700;font-size:13px;text-decoration:none}
+
+#register-page .gda-contact{max-width:none;margin:22px 0 0;border-radius:20px}
+
+#register-page .gda-form-wrap{max-width:660px;margin:0 auto;padding:0 20px}
+#register-page .ref-banner{border-radius:14px;margin-top:22px}
+#register-page .gda-hint{font-size:13px;color:var(--muted);margin-bottom:14px}
+
+#register-page .gda-card{background:#fff;border:1px solid var(--border);border-radius:24px;padding:26px;margin-top:18px;box-shadow:var(--shadow-sm)}
+#register-page .gda-card>h2{font-size:18px;font-weight:800;margin-bottom:16px;letter-spacing:-.01em}
+#register-page .field input,#register-page .field textarea{border-radius:14px;padding:12px 15px;font-family:inherit}
+#register-page .field label{font-weight:600;color:var(--text)}
+
+#register-page .course-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+#register-page .course-card{background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:18px;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s}
+#register-page .course-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+#register-page .course-card.selected{border-color:var(--accent);background:var(--accent-light)}
+#register-page .course-card .icon{width:44px;height:44px;border-radius:14px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:20px}
+#register-page .course-card.selected .icon{background:var(--accent);color:#fff}
+#register-page .course-card h3{font-size:15px;font-weight:800;margin:14px 0 4px;line-height:1.3}
+#register-page .course-card .fee{font-size:16px;color:var(--accent);font-weight:800}
+#register-page .course-card .desc{font-size:12px;color:var(--muted);margin-top:4px}
+#register-page .course-card .discount-tag{display:inline-block;background:var(--gold-bg);color:var(--gold);border:1px solid #e8c96f;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:6px;margin-bottom:4px}
+#register-page .course-card .course-check{position:absolute}
+#register-page .course-card>div:first-child{display:flex;align-items:center;justify-content:space-between;margin-bottom:0}
+#register-page .course-card .course-check{position:static;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent}
+#register-page .course-card.selected .course-check{background:var(--accent);border-color:var(--accent);color:#fff}
+
+#register-page .course-both{background:var(--accent-light);border:1.5px solid #b8d9b4;border-radius:20px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:14px;transition:.15s}
+#register-page .course-both:hover,#register-page .course-both.selected{border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,90,39,.12)}
+#register-page .course-both-left{display:flex;align-items:center;gap:12px}
+#register-page .course-both h3{font-size:14px;font-weight:800}
+
+#register-page #course-total-box{display:none;background:var(--grad-surface)!important;border:1.5px solid var(--border)!important;border-radius:20px!important;padding:16px 18px!important;margin-top:4px}
+
+#register-page .pay-method{border-radius:18px;padding:14px 16px}
+#register-page .pay-method.selected{border-color:var(--accent);background:var(--accent-light)}
+#register-page .upload-box{border-radius:20px;background:var(--grad-surface)}
+#register-page .submit-btn{border-radius:999px;padding:16px;font-size:15px;font-weight:700;box-shadow:var(--shadow-md);margin-top:6px}
+#register-page .submit-btn span:not(.spinner){font-size:16px}
+
+@media(max-width:760px){
+  #register-page .gda-panel{grid-template-columns:1fr;padding:26px}
+  #register-page .gda-hero-right{text-align:left;margin-left:0}
+  #register-page .course-grid{grid-template-columns:1fr}
+  #register-page .gda-features{grid-template-columns:1fr 1fr 1fr;font-size:11px}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- SITE HEADER -->
+<header class="site-header">
+  <div class="container-wide">
+    <div class="inner">
+      <a class="logo-wrap" href="index.html" style="text-decoration:none">
+        <img src="/logo.png" alt="Ghost Digitals Academy" class="logo-mark">
+        <div class="logo">Ghost<span>Digitals Academy</span></div>
+      </a>
+      <div class="header-nav">
+        <a class="nav-btn" href="index.html" style="text-decoration:none">← Home</a>
+        <button class="nav-btn" onclick="showPage('rep-portal-page')">Sales rep login</button>
+        <button class="nav-btn primary" onclick="showPage('register-page')">Register now</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================
+     REGISTRATION PAGE
+============================= -->
+<div id="register-page" class="page active">
+
+  <!-- TRUST STRIP -->
+  <div class="gda-trust">
+    <div class="gda-trust-inner">
+      <span><i></i>2nd round registration open</span>
+      <span><i></i><span id="trust-discount-text">Discount active</span></span>
+      <span><i></i>Certified instructors</span>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <section class="gda-hero">
+    <div class="gda-hero-top">
+      <div class="gda-hero-left">
+        <h1 class="gda-h-lite">Master Your</h1>
+        <div class="gda-h-bold">SKILLS</div>
+      </div>
+      <div class="gda-hero-right">
+        <div class="gda-h-lite">Build Your</div>
+        <div class="gda-h-bold">FUTURE</div>
+      </div>
+    </div>
+
+    <div class="gda-panel">
+      <span class="gda-blob b1" aria-hidden="true"></span>
+      <span class="gda-blob b2" aria-hidden="true"></span>
+
+      <div class="gda-panel-left">
+        <div class="discount-strip">🔥 Save 40% · offer ends Aug 2</div>
+        <div class="gda-eyebrow">✦ 2nd round registration is now open</div>
+        <h2>Where Skills Meet Real Results</h2>
+        <p>Digital marketing and event organizing courses taught by industry professionals in Addis Ababa.</p>
+        <a class="gda-pill" href="#course-select">Register now <span aria-hidden="true">→</span></a>
+
+        <div class="gda-trust-card">
+          <div class="gda-avatars" aria-hidden="true"><span>GD</span><span>✓</span><span>★</span></div>
+          <div>Certified instructors<br>Practical, hands-on training</div>
+        </div>
+      </div>
+
+      <div class="gda-panel-right">
+        <div class="gda-features">
+          <div><span aria-hidden="true">🎓</span>Certified Instructors</div>
+          <div><span aria-hidden="true">🛠️</span>Hands-On Practice</div>
+          <div><span aria-hidden="true">⏰</span>Flexible Schedule</div>
+        </div>
+
+        <div class="gda-featured">
+          <div class="gda-featured-label">Our Courses</div>
+          <div class="gda-featured-card">
+            <div class="gda-featured-img" aria-hidden="true">📚</div>
+            <div class="gda-featured-name">Pick one or combine</div>
+            <div class="gda-featured-sub">Bundle courses together and save</div>
+            <a class="gda-featured-btn" href="#course-select">View courses</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="reg-ref-banner" class="ref-banner" style="display:none">
+      ✅ <span id="reg-ref-text">Referred by a sales rep</span>
+    </div>
+
+    <div class="contact-card gda-contact">
+      <div class="contact-card-title">📞 Questions before you pay?</div>
+      <div class="contact-card-row">
+        <span class="contact-label">Telegram</span>
+        <a href="https://t.me/GhostDigitalsAcademySupport" target="_blank" rel="noopener" class="contact-value">@GhostDigitalsAcademySupport</a>
+      </div>
+      <div class="contact-card-row">
+        <span class="contact-label">Phone</span>
+        <a href="tel:+251985340983" class="contact-value">+251 98 534 0983</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="gda-form-wrap">
+    <div id="reg-alert" class="alert alert-danger"></div>
+
+    <div id="reg-form-section">
+      <!-- Course selection -->
+      <div class="gda-card" id="course-select">
+        <h2>Choose your course</h2>
+        <p class="gda-hint" id="course-select-hint">Select one or more courses.</p>
+        <div class="course-grid" id="course-grid"></div>
+
+        <!-- Bundle shortcut (shown only if a bundle discount is set) -->
+        <div class="course-both" id="bundle-card" onclick="selectAllCourses()" style="display:none">
+          <div class="course-both-left">
+            <span style="font-size:22px">⭐</span>
+            <div>
+              <h3>All courses together</h3>
+              <div style="font-size:12px;color:var(--muted)">Get everything for less</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="fee" style="font-size:16px;color:var(--accent);font-weight:700" id="bundle-price"></div>
+            <div style="font-size:11px;color:var(--muted)" id="bundle-save"></div>
+          </div>
+        </div>
+
+        <!-- Total summary — shown once at least 1 course selected -->
+        <div id="course-total-box" style="display:none">
+          <div id="course-total-lines" style="font-size:13px;color:var(--muted);margin-bottom:8px"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:14px;font-weight:600">Total</span>
+            <span id="course-total-amount" style="font-size:20px;font-weight:800;color:var(--accent)"></span>
+          </div>
+          <div id="course-discount-note" style="display:none;font-size:12px;color:var(--gold);margin-top:4px;font-weight:600">🎉 Bundle discount applied — you save 3,000 ETB!</div>
+        </div>
+      </div>
+
+      <!-- Personal info -->
+      <div class="gda-card">
+        <h2>Your details</h2>
+        <div class="field">
+          <label>Full name *</label>
+          <input type="text" id="f-name" placeholder="Abebe Kebede">
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Phone number *</label>
+            <input type="tel" id="f-phone" placeholder="09XX XXX XXXX">
+          </div>
+          <div class="field">
+            <label>Email (optional)</label>
+            <input type="email" id="f-email" placeholder="your@email.com">
+          </div>
+        </div>
+        <div class="field">
+          <label>Questions or notes</label>
+          <textarea id="f-notes" rows="2" placeholder="Any questions? Payment method preference?"></textarea>
+        </div>
+        <input type="hidden" id="f-ref">
+      </div>
+
+      <!-- Payment -->
+      <div class="gda-card">
+        <h2>Payment</h2>
+        <div class="field">
+          <label>Pay with *</label>
+          <div class="pay-method-grid">
+            <div class="pay-method selected" id="pm-telebirr" onclick="selectPaymentMethod('telebirr')">
+              <div class="pay-method-name">📱 Telebirr</div>
+              <div class="pay-method-number" id="pm-telebirr-number">Loading...</div>
+            </div>
+            <div class="pay-method" id="pm-cbe" onclick="selectPaymentMethod('cbe')">
+              <div class="pay-method-name">🏦 CBE</div>
+              <div class="pay-method-number" id="pm-cbe-number">Loading...</div>
+            </div>
+          </div>
+          <div class="pay-hint">Send the course fee to the account above, then attach your screenshot/receipt below. Questions? Message <a href="https://t.me/GhostDigitalsAcademySupport" target="_blank" rel="noopener">@GhostDigitalsAcademySupport</a> or call <a href="tel:+251985340983">+251 98 534 0983</a>.</div>
+        </div>
+        <input type="hidden" id="f-payment-method" value="telebirr">
+
+        <!-- Class type selection -->
+        <div class="field" style="margin-bottom:20px">
+          <label style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;display:block">How will you attend? *</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div id="ct-inperson" onclick="selectClassType('in-person')"
+              style="border:2px solid var(--accent);border-radius:16px;padding:14px;cursor:pointer;text-align:center;background:var(--accent-light);transition:.15s">
+              <div style="font-size:24px;margin-bottom:6px">🏫</div>
+              <div style="font-weight:700;font-size:14px;color:var(--accent-text)">In-Person</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">Attend physical classes</div>
+            </div>
+            <div id="ct-online" onclick="selectClassType('online')"
+              style="border:2px solid var(--border);border-radius:16px;padding:14px;cursor:pointer;text-align:center;background:#fff;transition:.15s">
+              <div style="font-size:24px;margin-bottom:6px">💻</div>
+              <div style="font-weight:700;font-size:14px;color:var(--text)">Online</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">Join via video call</div>
+            </div>
+          </div>
+          <input type="hidden" id="f-class-type" value="in-person">
+        </div>
+
+        <div class="upload-box" id="upload-box" onclick="document.getElementById('f-proof').click()">
+          <div id="upload-box-empty">
+            <div class="upload-icon">📎</div>
+            <div class="upload-text">Tap to attach screenshot or receipt</div>
+            <div class="upload-subtext">JPG, PNG or WEBP — max 5MB</div>
+          </div>
+          <div id="upload-box-preview" style="display:none">
+            <img id="upload-preview-img" src="" alt="Payment proof preview">
+            <div class="upload-filename" id="upload-filename"></div>
+            <button type="button" class="btn-outline" style="margin-top:8px" onclick="event.stopPropagation();clearProofUpload()">Remove & choose another</button>
+          </div>
+        </div>
+        <input type="file" id="f-proof" accept="image/png,image/jpeg,image/webp,image/heic,image/heif" style="display:none" onchange="handleProofSelect(event)">
+        <div id="upload-status" class="upload-status"></div>
+
+        <button class="submit-btn" onclick="submitReg()" id="reg-btn">
+          <span id="reg-btn-text">Complete registration</span>
+          <span>→</span>
+          <div class="spinner" id="reg-spinner"></div>
+        </button>
+      </div>
+    </div>
+
+    <div id="reg-success" style="display:none">
+      <div class="success-screen">
+        <div class="success-icon">✓</div>
+        <h2>You're registered!</h2>
+        <p>Thank you for registering. Our team will contact you soon with payment details and schedule information.</p>
+        <button class="btn-outline" onclick="resetReg()">Register another student</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================
+     ADMIN PAGE
+============================= -->
+<div id="admin-page" class="page">
+
+  <!-- Admin Login -->
+  <div id="admin-login-screen" class="admin-login">
+    <div class="login-box">
+      <h2>Admin access</h2>
+      <p>Enter your admin credentials to continue</p>
+      <div id="admin-login-alert" class="alert alert-danger"></div>
+      <div class="field">
+        <label>Username <span style="color:var(--muted);font-weight:400">(leave blank if using the master password)</span></label>
+        <input type="text" id="admin-username" placeholder="Username" autocomplete="username" onkeydown="if(event.key==='Enter')adminLogin()">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="admin-password" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')adminLogin()">
+      </div>
+      <button class="submit-btn" onclick="adminLogin()" style="margin-top:4px">Sign in →</button>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard -->
+  <div id="admin-dashboard-screen" style="display:none">
+    <div class="admin-shell">
+      <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="admin-sb-brand">
+          <div class="mark">GD</div>
+          <div class="txt"><strong>GhostDigitals</strong><span>Academy · Admin</span></div>
+        </div>
+        <nav class="admin-nav" id="admin-tabs">
+          <div class="admin-sb-sec">Main</div>
+          <button class="admin-tab active" data-tab="overview" onclick="switchAdminTab('overview',this)">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Overview</span>
+          </button>
+          <button class="admin-tab" data-tab="reps" onclick="switchAdminTab('reps',this)">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Sales reps</span>
+          </button>
+          <button class="admin-tab" data-tab="students" onclick="switchAdminTab('students',this)">
+            <svg viewBox="0 0 24 24"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg><span>Students</span>
+          </button>
+          <button class="admin-tab" data-tab="reports" onclick="switchAdminTab('reports',this)">
+            <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><span>Reports</span>
+          </button>
+          <div class="admin-sb-sec">Administration</div>
+          <button class="admin-tab" data-tab="payments" onclick="switchAdminTab('payments',this)">
+            <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg><span>Payment settings</span>
+          </button>
+          <button class="admin-tab" data-tab="courses" onclick="switchAdminTab('courses',this)">
+            <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>Courses</span>
+          </button>
+          <button class="admin-tab" data-tab="teachers" onclick="switchAdminTab('teachers',this)">
+            <svg viewBox="0 0 24 24"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg><span>Teacher logins</span>
+          </button>
+          <button class="admin-tab super-only" data-tab="admins" onclick="switchAdminTab('admins',this)">
+            <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Admins</span>
+          </button>
+        </nav>
+        <div class="admin-sb-foot">
+          <button class="admin-logout-btn" onclick="adminLogout()">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span>Sign out</span>
+          </button>
+        </div>
+      </aside>
+      <div class="sb-backdrop" id="sb-backdrop" onclick="closeAdminSidebar()"></div>
+
+      <div class="admin-main-col">
+        <header class="admin-topbar">
+          <div class="admin-topbar-inner">
+            <div style="display:flex;align-items:center;gap:12px">
+              <button class="menu-btn" onclick="toggleAdminSidebar()" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+              <div class="admin-topbar-title"><h2 id="admin-page-heading">Overview</h2><span id="admin-page-sub">Your course business at a glance</span></div>
+            </div>
+            <div class="live-pill"><span class="dot"></span>Live</div>
+          </div>
+        </header>
+
+      <div class="admin-main">
+        <div class="main-area">
+        <!-- Overview tab -->
+        <div id="admin-overview" class="admin-content active">
+          <div class="metrics-row">
+            <div class="metric-card">
+              <div><div class="val" id="a-reps">—</div><div class="lbl">Sales reps</div></div>
+              <div class="tile blue"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
+            </div>
+            <div class="metric-card">
+              <div><div class="val" id="a-students">—</div><div class="lbl">Total registrations</div></div>
+              <div class="tile"><svg viewBox="0 0 24 24"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg></div>
+            </div>
+            <div class="metric-card accent">
+              <div><div class="val" id="a-revenue">—</div><div class="lbl">Est. revenue (ETB)</div></div>
+              <div class="tile"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg></div>
+            </div>
+          </div>
+          <div class="charts-row">
+            <div class="chart-card"><div class="chart-card-h"><h3>Registrations by course</h3><span>Enrollment breakdown</span></div><div class="chart-card-body"><canvas id="chart-courses" height="150"></canvas></div></div>
+            <div class="chart-card"><div class="chart-card-h"><h3>Payment status</h3></div><div class="chart-card-body" style="display:flex;flex-direction:column;align-items:center"><canvas id="chart-payments" height="150"></canvas><div id="payments-legend" style="margin-top:14px;display:flex;gap:16px;flex-wrap:wrap;justify-content:center"></div></div></div>
+          </div>
+          <div class="metrics-row" id="a-course-breakdown" style="grid-template-columns:repeat(4,1fr)"></div>
+        </div>
+
+        <!-- Reps tab -->
+        <div id="admin-reps" class="admin-content">
+          <div class="data-card">
+            <div class="data-card-header">
+              <h3 id="reps-count-label">All reps</h3>
+              <button class="action-btn primary" onclick="openAddRepModal()">+ Add rep</button>
+            </div>
+            <div id="reps-table-wrap">
+              <div class="empty"><div class="empty-icon">👥</div>No sales reps yet. Add your first one.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Students tab -->
+        <div id="admin-students" class="admin-content">
+          <!-- Course picker (default view) -->
+          <div id="students-course-view">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+              <div style="font-size:14px;color:var(--muted)">Select a course to view its students</div>
+              <button class="action-btn primary" onclick="openAddStudentModal()">+ Add student</button>
+            </div>
+            <div id="course-cards-grid" class="course-cards-grid"></div>
+          </div>
+          <!-- Students list (shown after picking a course) -->
+          <div id="students-list-view" style="display:none">
+          <button class="action-btn sm" onclick="backToCourses()" style="margin-bottom:14px">← All courses</button>
+          <div class="data-card">
+            <div class="data-card-header">
+              <h3 id="students-count-label">All students</h3>
+              <div style="display:flex;gap:8px">
+                <button class="action-btn primary" onclick="openAddStudentModal()">+ Add student</button>
+                <button class="action-btn" onclick="generateAllPortalIds()"><svg viewBox="0 0 24 24" class="ico"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Generate All IDs</button>
+                <button class="action-btn" onclick="exportCSV()"><svg viewBox="0 0 24 24" class="ico"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Export CSV</button>
+              </div>
+            </div>
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap">
+              <input type="text" id="student-search" placeholder="Search by name or phone..." oninput="filterStudents()" style="flex:1;min-width:180px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--bg)">
+              <select id="payment-filter" onchange="filterStudents()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--bg);color:var(--text)">
+                <option value="all">All payments</option>
+                <option value="pending">Pending review</option>
+                <option value="verified">Verified</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <select id="status-filter" onchange="filterStudents()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--bg);color:var(--text)">
+                <option value="all">All statuses</option>
+                <option value="ongoing">Ongoing</option>
+                <option value="completed">Completed</option>
+                <option value="hold">On Hold</option>
+                <option value="dropped">Dropped</option>
+              </select>
+              <select id="batch-filter" onchange="filterStudents()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--bg);color:var(--text)">
+                <option value="all">All batches</option>
+                <option value="none">No batch</option>
+              </select>
+              <button class="action-btn sm" onclick="openBatchManager()" style="white-space:nowrap"><svg viewBox="0 0 24 24" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg> Manage Batches</button>
+            </div>
+            <!-- Bulk action bar — shown when 1+ selected -->
+            <div id="bulk-bar" style="display:none;align-items:center;gap:12px;padding:10px 16px;background:#fdf0ee;border-bottom:1px solid #f0c0bb;flex-wrap:wrap">
+              <span id="bulk-count" style="font-size:13px;font-weight:600;color:var(--danger)">0 selected</span>
+              <button class="action-btn sm primary" onclick="openGenerateCodesModal()"><svg viewBox="0 0 24 24" class="ico"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Generate Class Codes</button>
+              <select id="bulk-batch-select" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--bg);color:var(--text)">
+                <option value="">Assign to batch…</option>
+                <option value="__none__">➖ Remove from batch</option>
+              </select>
+              <button class="action-btn sm" onclick="bulkAssignBatch()">Apply</button>
+              <button class="action-btn sm danger" onclick="bulkDelete()"><svg viewBox="0 0 24 24" class="ico"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete selected</button>
+              <button class="action-btn sm" onclick="clearSelection()" style="margin-left:auto">✕ Clear selection</button>
+            </div>
+            <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+              <label style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);cursor:pointer"><input type="checkbox" id="select-all-cb" onchange="toggleSelectAll(this)" style="cursor:pointer;width:15px;height:15px"> Select all</label>
+            </div>
+            <div id="students-cards" class="students-cards">
+              <div class="empty" style="grid-column:1/-1">No registrations yet</div>
+            </div>
+          </div>
+          </div>
+        </div>
+
+        <!-- Reports tab -->
+        <div id="admin-reports" class="admin-content">
+          <div class="seg" id="report-range-seg" style="display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:20px;gap:2px">
+            <button onclick="loadReports('today')">Today</button>
+            <button onclick="loadReports('week')">This week</button>
+            <button class="active" onclick="loadReports('month')">This month</button>
+            <button onclick="loadReports('all')">All time</button>
+            <button onclick="exportReportsCSV()" style="margin-left:6px"><svg viewBox="0 0 24 24" class="ico"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Export CSV</button>
+          </div>
+          <div id="reports-body"></div>
+        </div>
+
+        <!-- Settings tab -->
+        <div id="admin-payments" class="admin-content">
+
+          <div id="settings-alert" class="alert alert-danger" style="max-width:480px"></div>
+          <div id="settings-success" class="alert alert-success" style="max-width:480px"></div>
+
+          <div class="data-card" style="max-width:480px;padding:24px;margin-bottom:16px">
+            <h3 style="font-size:15px;font-weight:600;margin-bottom:16px">📱 Telebirr</h3>
+            <div class="field">
+              <label>Phone number *</label>
+              <input type="text" id="set-telebirr-number" placeholder="+251 9X XXX XXXX">
+            </div>
+            <div class="field" style="margin-bottom:0">
+              <label>Account holder name</label>
+              <input type="text" id="set-telebirr-holder" placeholder="Ghost Digitals Academy">
+            </div>
+          </div>
+
+          <div class="data-card" style="max-width:480px;padding:24px;margin-bottom:20px">
+            <h3 style="font-size:15px;font-weight:600;margin-bottom:16px">🏦 CBE</h3>
+            <div class="field">
+              <label>Account number *</label>
+              <input type="text" id="set-cbe-number" placeholder="1000XXXXXXXX">
+            </div>
+            <div class="field" style="margin-bottom:0">
+              <label>Account holder name</label>
+              <input type="text" id="set-cbe-holder" placeholder="Ghost Digitals Academy">
+            </div>
+          </div>
+
+          <button class="submit-btn" style="max-width:480px" onclick="saveSettings()" id="settings-save-btn">
+            <span id="settings-save-text">Save changes</span>
+            <div class="spinner" id="settings-spinner"></div>
+          </button>
+        </div>
+
+        <!-- ===== COURSE MANAGEMENT ===== -->
+        <div id="admin-courses" class="admin-content">
+
+          <div id="courses-alert" class="alert alert-danger" style="max-width:720px"></div>
+          <div id="courses-success" class="alert alert-success" style="max-width:720px"></div>
+
+          <div id="courses-editor" style="max-width:720px"></div>
+
+          <button class="btn-outline" onclick="addCourseRow()" style="margin-bottom:20px">+ Add course</button>
+
+          <div class="data-card" style="max-width:720px;padding:20px 24px;margin-bottom:20px">
+            <div class="field" style="margin-bottom:0">
+              <label>Bundle discount (%) — applied when a student selects ALL courses</label>
+              <input type="number" id="set-bundle-discount" min="0" max="90" placeholder="10" style="max-width:160px">
+              <div style="font-size:12px;color:var(--muted);margin-top:6px">Set to 0 for no bundle discount.</div>
+            </div>
+          </div>
+
+          <!-- ===== SITEWIDE DISCOUNT ===== -->
+          <div class="data-card" style="max-width:720px;padding:20px 24px;margin-bottom:20px">
+            <h3 style="font-size:15px;font-weight:600;margin-bottom:4px">🔥 Sitewide discount</h3>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Shows a discount banner and strikethrough pricing on every course during this window. Set percent to 0 to turn it off anytime.</div>
+            <div class="grid-2">
+              <div class="field">
+                <label>Discount (%)</label>
+                <input type="number" id="set-discount-percent" min="0" max="90" placeholder="40">
+              </div>
+              <div class="field"></div>
+              <div class="field">
+                <label>Starts</label>
+                <input type="date" id="set-discount-start">
+              </div>
+              <div class="field">
+                <label>Ends</label>
+                <input type="date" id="set-discount-end">
+              </div>
+            </div>
+          </div>
+
+          <button class="submit-btn" style="max-width:720px" onclick="saveCourses()" id="courses-save-btn">
+            <span id="courses-save-text">Save courses</span>
+            <div class="spinner" id="courses-spinner"></div>
+          </button>
+        </div>
+
+        <!-- ===== TEACHER LOGINS ===== -->
+        <div id="admin-teachers" class="admin-content">
+          <div id="teacher-logins-alert" class="alert alert-danger" style="max-width:720px"></div>
+          <div id="teacher-logins-success" class="alert alert-success" style="max-width:720px"></div>
+          <div id="teacher-logins-list" style="max-width:720px"></div>
+        </div>
+
+        <div id="admin-admins" class="admin-content super-only">
+          <div id="admins-alert" class="alert alert-danger" style="max-width:720px"></div>
+          <div id="admins-success" class="alert alert-success" style="max-width:720px"></div>
+
+          <div style="max-width:720px;background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:18px">
+            <h3 style="margin:0 0 4px">Master password</h3>
+            <p style="font-size:13px;color:var(--muted);margin:0 0 16px">This is your super-admin password. Change it here anytime — you'll use the new one next time you log in (leave the username blank at login).</p>
+            <div class="field">
+              <label>New master password</label>
+              <input type="text" id="new-master-password" placeholder="At least 6 characters" autocomplete="off">
+            </div>
+            <button class="submit-btn" onclick="changeMasterPassword()" id="master-pw-btn" style="max-width:260px">
+              <span id="master-pw-text">Update master password</span>
+              <div class="spinner" id="master-pw-spinner"></div>
+            </button>
+          </div>
+
+          <div style="max-width:720px;background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:18px">
+            <h3 style="margin:0 0 4px">Add an admin</h3>
+            <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Create a login for another admin. They'll have full access except managing admins.</p>
+            <div class="field">
+              <label>Username</label>
+              <input type="text" id="new-admin-username" placeholder="e.g. sara" autocomplete="off">
+            </div>
+            <div class="field">
+              <label>Password</label>
+              <input type="text" id="new-admin-password" placeholder="At least 4 characters" autocomplete="off">
+              <div style="font-size:12px;color:var(--muted);margin-top:6px">Shown as plain text so you can share it with them.</div>
+            </div>
+            <button class="submit-btn" onclick="addAdmin()" id="add-admin-btn" style="max-width:220px">
+              <span id="add-admin-text">Add admin</span>
+              <div class="spinner" id="add-admin-spinner"></div>
+            </button>
+          </div>
+
+          <div style="max-width:720px">
+            <h3 style="margin:0 0 12px">Existing admins</h3>
+            <div id="admins-list"></div>
+          </div>
+        </div>
+      </div>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================
+     REP PORTAL PAGE
+============================= -->
+<div id="rep-portal-page" class="page">
+  <div class="container">
+
+    <!-- Rep login -->
+    <div id="rep-login-screen" class="rep-login">
+      <div class="rep-login-box">
+        <h2>Sales rep portal</h2>
+        <p>Enter your rep code to see how many students you've signed up.</p>
+        <div id="rep-login-alert" class="alert alert-danger"></div>
+        <div class="field">
+          <label>Your rep code</label>
+          <input type="text" id="rep-code-input" placeholder="rep_1234567890" onkeydown="if(event.key==='Enter')repLogin()">
+          <div style="font-size:12px;color:var(--muted);margin-top:6px">Your code is in the referral link you received from admin</div>
+        </div>
+        <button class="submit-btn" onclick="repLogin()" id="rep-login-btn">
+          <span id="rep-login-btn-text">View my stats</span>
+          <div class="spinner" id="rep-login-spinner" style="display:none"></div>
+        </button>
+        <div style="text-align:center;margin-top:16px">
+          <button class="btn-outline" onclick="showPage('register-page')" style="font-size:13px">← Back to registration</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rep dashboard -->
+    <div id="rep-dashboard-screen" style="display:none" class="rep-dashboard">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px">
+        <div class="rep-dash-header" style="margin-bottom:0">
+          <h2 id="rep-welcome">Welcome back!</h2>
+          <p>Here's your referral performance</p>
+        </div>
+        <button class="logout-btn" onclick="repLogout()">← Sign out</button>
+      </div>
+
+      <div class="my-link-box">
+        <h4>🔗 Your referral link</h4>
+        <div class="my-link-url" id="rep-my-link">—</div>
+        <button class="action-btn sm" onclick="copyRepLink()">Copy link</button>
+        <span style="font-size:12px;color:var(--accent-text);margin-left:8px">Share this with potential students</span>
+      </div>
+
+      <div class="rep-metrics">
+        <div class="metric-card accent">
+          <div class="val" id="rep-signups">0</div>
+          <div class="lbl">Students signed up</div>
+        </div>
+        <div class="metric-card">
+          <div class="val" id="rep-revenue">0</div>
+          <div class="lbl">Revenue generated (ETB)</div>
+        </div>
+        <div class="metric-card">
+          <div class="val" id="rep-this-month">0</div>
+          <div class="lbl">This month</div>
+        </div>
+      </div>
+
+      <!-- Breakdown -->
+      <div class="data-card" style="margin-bottom:20px">
+        <div class="data-card-header"><h3>Course breakdown</h3></div>
+        <div style="padding:4px 20px 8px">
+          <div class="breakdown-row">
+            <span>📣 Digital Marketing</span>
+            <span id="rep-bd-digital" style="font-weight:600">0 students</span>
+          </div>
+          <div class="breakdown-row">
+            <span>🎪 Event Organizing</span>
+            <span id="rep-bd-event" style="font-weight:600">0 students</span>
+          </div>
+          <div class="breakdown-row">
+            <span>🤖 Applied AI</span>
+            <span id="rep-bd-ai" style="font-weight:600">0 students</span>
+          </div>
+          <div class="breakdown-row">
+            <span>⭐ All 3 courses</span>
+            <span id="rep-bd-both" style="font-weight:600">0 students</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Students list -->
+      <div class="data-card">
+        <div class="data-card-header"><h3>My students</h3></div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>Name</th><th>Course</th><th>Fee (ETB)</th><th>Date</th><th>Payment</th>
+            </tr></thead>
+            <tbody id="rep-students-tbody">
+              <tr><td colspan="5"><div class="empty">No students yet. Share your link to start!</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit class type modal -->
+<div class="modal-overlay" id="edit-classtype-modal" onclick="if(event.target===this)closeEditClassType()">
+  <div class="modal" style="max-width:380px">
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:8px">Change Class Type</h3>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:20px">Update how this student attends the course.</p>
+    <input type="hidden" id="edit-ct-student-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+      <div id="edit-ct-inperson" onclick="selectEditClassType('in-person')"
+        style="border:2px solid var(--accent);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:var(--accent-light);transition:.15s">
+        <div style="font-size:24px;margin-bottom:6px">🏫</div>
+        <div style="font-weight:700;font-size:13px;color:var(--accent-text)">In-Person</div>
+      </div>
+      <div id="edit-ct-online" onclick="selectEditClassType('online')"
+        style="border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:#fff;transition:.15s">
+        <div style="font-size:24px;margin-bottom:6px">💻</div>
+        <div style="font-weight:700;font-size:13px">Online</div>
+      </div>
+    </div>
+    <input type="hidden" id="edit-ct-value" value="in-person">
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeEditClassType()" class="action-btn">Cancel</button>
+      <button onclick="saveEditClassType()" class="action-btn primary">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Batch Manager modal -->
+<div class="modal-overlay" id="batch-manager-modal" onclick="if(event.target===this)closeBatchManager()">
+  <div class="modal" style="width:560px;max-width:95vw">
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">🎯 Manage Batches</h3>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:18px">Group students into cohorts. Sessions can be assigned to a batch so each cohort sees only their own classes.</p>
+    <div id="batch-alert" class="alert alert-danger"></div>
+    <div style="border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:18px;background:var(--bg)">
+      <div style="font-weight:600;font-size:13px;margin-bottom:10px">Create a new batch</div>
+      <div class="field"><label>Batch name *</label>
+        <input type="text" id="nb-name" placeholder="e.g. July 2026 — DM + Event" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
+      <div class="field"><label>Start date (optional)</label>
+        <input type="date" id="nb-start" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
+      <div class="field"><label>Courses in this batch (optional — for your reference)</label>
+        <div id="nb-courses" style="margin-top:4px"></div></div>
+      <button class="action-btn primary" onclick="createBatch()" style="margin-top:6px">+ Create batch</button>
+    </div>
+    <div style="font-weight:600;font-size:13px;margin-bottom:10px">Existing batches</div>
+    <div id="batch-list"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:16px">
+      <button onclick="closeBatchManager()" class="action-btn">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Student (full profile) modal -->
+<div class="modal-overlay" id="edit-student-modal" onclick="if(event.target===this)closeEditStudent()">
+  <div class="modal" style="width:520px;max-width:95vw">
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">✏️ Edit Student</h3>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:16px">Update this student's full profile. Their Portal ID stays the same.</p>
+    <div id="es-alert" class="alert alert-danger"></div>
+    <input type="hidden" id="es-id">
+    <input type="hidden" id="es-photo-url">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+      <div id="es-photo-preview" style="width:64px;height:64px;border-radius:16px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--accent);overflow:hidden;flex-shrink:0;border:1px solid var(--border)">—</div>
+      <div>
+        <button type="button" class="action-btn sm" onclick="document.getElementById('es-photo-file').click()">
+          <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;vertical-align:-2px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Upload photo
+        </button>
+        <input type="file" id="es-photo-file" accept="image/png,image/jpeg,image/webp,image/heic,image/heif" style="display:none" onchange="handleEsPhoto(event)">
+        <div id="es-photo-status" style="font-size:11.5px;color:var(--muted);margin-top:5px">JPG, PNG or WEBP</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>Name *</label><input type="text" id="es-name" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
+      <div class="field"><label>Phone</label><input type="text" id="es-phone" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
+      <div class="field"><label>Age</label><input type="number" id="es-age" min="1" max="99" oninput="toggleGuardian('es')" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
+      <div class="field"><label>Gender</label><select id="es-gender" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"><option value="">—</option><option value="Male">Male</option><option value="Female">Female</option></select></div>
+      <div class="field"><label>Email</label><input type="email" id="es-email" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
+      <div class="field"><label>Fee (ETB)</label><input type="number" id="es-fee" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
+      <div class="field es-guardian-wrap" id="es-guardian-wrap" style="display:none"><label>Guardian name</label><input type="text" id="es-guardian" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
+      <div class="field es-guardian-wrap-p" id="es-guardian-phone-wrap" style="display:none"><label>Guardian phone</label><input type="text" id="es-guardian-phone" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
+      <div class="field"><label>Course</label><select id="es-course" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></select></div>
+      <div class="field"><label>Class type</label><select id="es-class" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"><option value="in-person">🏫 In-Person</option><option value="online">💻 Online</option></select></div>
+      <div class="field"><label>Batch</label><select id="es-batch" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></select></div>
+      <div class="field"><label>Payment status</label><select id="es-paystatus" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"><option value="pending">⏳ Pending</option><option value="verified">✅ Verified</option><option value="rejected">❌ Rejected</option></select></div>
+      <div class="field"><label>Enrollment status</label><select id="es-status" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"><option value="ongoing">Ongoing</option><option value="completed">Completed</option><option value="hold">On Hold</option><option value="dropped">Dropped</option></select></div>
+    </div>
+    <div class="field" style="margin-top:4px"><label>Address</label><input type="text" id="es-address" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)"></div>
+    <div class="field" style="margin-top:4px"><label>Notes</label><textarea id="es-notes" rows="2" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);resize:vertical"></textarea></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button onclick="closeEditStudent()" class="action-btn">Cancel</button>
+      <button onclick="saveEditStudent()" class="action-btn primary">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generate Class Codes modal -->
+<div class="modal-overlay" id="gen-codes-modal" onclick="if(event.target===this)closeGenCodesModal()">
+  <div class="modal" style="width:500px;max-width:95vw">
+    <h3>🔑 Generate Class Codes</h3>
+    <div id="gen-codes-alert" class="alert alert-danger"></div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Generate a unique session code for each selected student. Each code is tied to the student's name for attendance tracking.</p>
+    <div class="field">
+      <label>Select Session *</label>
+      <select id="gen-codes-session" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)">
+        <option value="">Loading sessions...</option>
+      </select>
+    </div>
+    <div id="gen-codes-students-preview" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px;max-height:200px;overflow-y:auto;font-size:13px">
+      Select students first...
+    </div>
+    <div id="gen-codes-result" style="display:none">
+      <div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:12px">✅ Codes generated! Share each code with the corresponding student.</div>
+      <div id="gen-codes-list" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:300px;overflow-y:auto"></div>
+      <button class="action-btn primary" style="margin-top:12px;width:100%;justify-content:center" onclick="copyAllCodes()">📋 Copy All Codes</button>
+    </div>
+    <div class="modal-actions" id="gen-codes-actions">
+      <button class="action-btn" onclick="closeGenCodesModal()">Cancel</button>
+      <button class="action-btn primary" onclick="generateClassCodes()" id="gen-codes-btn">Generate Codes</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="add-rep-modal" onclick="closeModalIf(event)">
+  <div class="modal">
+    <h3>Add sales rep</h3>
+    <div id="modal-alert" class="alert alert-danger"></div>
+    <div class="field"><label>Full name *</label><input type="text" id="modal-rep-name" placeholder="Sales rep name"></div>
+    <div class="field"><label>Phone / contact</label><input type="text" id="modal-rep-phone" placeholder="09XX XXX XXXX"></div>
+    <div class="modal-actions">
+      <button class="action-btn" onclick="closeAddRepModal()">Cancel</button>
+      <button class="action-btn primary" onclick="addRep()">Add rep</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add student modal -->
+<div class="modal-overlay" id="add-student-modal" onclick="closeAddStudentModalIf(event)">
+  <div class="modal modal-form" style="width:480px;max-width:95vw">
+    <h3>Add student manually</h3>
+    <div class="modal-form-body">
+    <div id="add-student-alert" class="alert alert-danger"></div>
+    <div class="field">
+      <label>Full name *</label>
+      <input type="text" id="ms-name" placeholder="Abebe Kebede">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field">
+        <label>Phone *</label>
+        <input type="tel" id="ms-phone" placeholder="09XX XXX XXXX">
+      </div>
+      <div class="field">
+        <label>Email (optional)</label>
+        <input type="email" id="ms-email" placeholder="email@example.com">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field">
+        <label>Age</label>
+        <input type="number" id="ms-age" min="1" max="99" placeholder="e.g. 22" oninput="toggleGuardian('ms')">
+      </div>
+      <div class="field">
+        <label>Gender</label>
+        <select id="ms-gender"><option value="">—</option><option value="Male">Male</option><option value="Female">Female</option></select>
+      </div>
+    </div>
+    <div style="display:none;grid-template-columns:1fr 1fr;gap:12px" id="ms-guardian-wrap">
+      <div class="field">
+        <label>Guardian name</label>
+        <input type="text" id="ms-guardian" placeholder="Parent / guardian">
+      </div>
+      <div class="field">
+        <label>Guardian phone</label>
+        <input type="tel" id="ms-guardian-phone" placeholder="09XX XXX XXXX">
+      </div>
+    </div>
+    <div class="field">
+      <label>Address</label>
+      <input type="text" id="ms-address" placeholder="e.g. Bole, Addis Ababa">
+    </div>
+    <div class="field">
+      <label>Course(s) *</label>
+      <div id="ms-course-list" style="display:flex;flex-direction:column;gap:7px;margin-top:2px"></div>
+    </div>
+    <div id="ms-total-row" style="display:none;background:var(--accent-light);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;font-size:13px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="color:var(--muted)">Total</span>
+        <span id="ms-total" style="font-weight:700;font-size:16px;color:var(--accent)"></span>
+      </div>
+      <div id="ms-discount-note" style="display:none;font-size:12px;color:var(--gold);margin-top:3px;font-weight:500">🎉 Bundle discount — saves 3,000 ETB</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field">
+        <label>Payment method</label>
+        <select id="ms-payment-method" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)">
+          <option value="cash">💵 Cash (in person)</option>
+          <option value="telebirr">📱 Telebirr</option>
+          <option value="cbe">🏦 CBE</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Payment status</label>
+        <select id="ms-payment-status" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)">
+          <option value="verified">✅ Verified</option>
+          <option value="pending">⏳ Pending</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Class Type *</label>
+      <select id="ms-class-type" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text)">
+        <option value="in-person">🏫 In-Person</option>
+        <option value="online">💻 Online (Video Call)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Proof of payment (optional)</label>
+      <div class="upload-box" id="ms-upload-box" onclick="document.getElementById('ms-proof-file').click()" style="padding:14px">
+        <div id="ms-upload-empty">
+          <div class="upload-icon" style="font-size:20px">📎</div>
+          <div class="upload-text" style="font-size:13px">Tap to attach screenshot or receipt</div>
+          <div class="upload-subtext">JPG, PNG or WEBP — max 5MB</div>
+        </div>
+        <div id="ms-upload-preview" style="display:none">
+          <img id="ms-preview-img" src="" alt="Payment proof" style="max-width:100%;max-height:120px;border-radius:8px;display:block;margin:0 auto">
+          <div class="upload-filename" id="ms-upload-filename"></div>
+          <button type="button" class="btn-outline" style="margin-top:8px;font-size:12px" onclick="event.stopPropagation();clearMsProof()">Remove</button>
+        </div>
+      </div>
+      <input type="file" id="ms-proof-file" accept="image/png,image/jpeg,image/webp,image/heic,image/heif" style="display:none" onchange="handleMsProofSelect(event)">
+      <div id="ms-upload-status" class="upload-status"></div>
+    </div>
+    <div class="field" style="margin-bottom:0">
+      <label>Notes (optional)</label>
+      <textarea id="ms-notes" rows="2" placeholder="Any notes about this student..." style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);resize:vertical;line-height:1.5"></textarea>
+    </div>
+    </div>
+    <div class="modal-actions">
+      <button class="action-btn" onclick="closeAddStudentModal()">Cancel</button>
+      <button class="action-btn primary" onclick="addStudentManually()" id="ms-submit-btn">
+        <span id="ms-submit-text">Add student</span>
+        <div class="spinner" id="ms-spinner" style="display:none"></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+let COURSES = [];          // loaded from /api/settings
+let BUNDLE_DISCOUNT = 0;    // percent off when ALL courses selected
+let selectedCourses = new Set();
+
+// Fixed two-course pair bundles, matched by course name (case/space-insensitive).
+const PAIR_BUNDLES = [
+  { courses: ['social media marketing', 'event organizing'], price: 10000, label: 'Social Media Marketing + Event Organizing' },
+  { courses: ['canva for beginners', 'applied ai'], price: 8500, label: 'Canva for Beginners + Applied AI' },
+];
+const normCourseName = (s) => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+function matchSelectedPairBundle(){
+  if(selectedCourses.size !== 2) return null;
+  const names = [...selectedCourses].map(k=>normCourseName(courseById(k)?.name)).sort();
+  for(const pair of PAIR_BUNDLES){
+    const target = pair.courses.map(normCourseName).sort();
+    if(names[0]===target[0] && names[1]===target[1]) return pair;
+  }
+  return null;
+}
+let currentPaymentMethod = 'telebirr';
+let proofUrl = '';
+let proofPathname = '';
+let proofUploading = false;
+let adminKey = '';
+let currentRepId = '';
+let adminData = null;
+let paymentSettings = null;
+
+// ── Course discount config ──────────────────────────────────
+// Controlled from Admin → Courses → Sitewide discount (once backend supports it).
+// Until then, these fallback values apply automatically.
+const DISCOUNT_FALLBACK_PERCENT = 40;
+const DISCOUNT_FALLBACK_START = '2026-07-23';
+const DISCOUNT_FALLBACK_END = '2026-08-02';
+
+let DISCOUNT_PERCENT = DISCOUNT_FALLBACK_PERCENT;
+let DISCOUNT_START = new Date(DISCOUNT_FALLBACK_START+'T00:00:00');
+let DISCOUNT_END = new Date(DISCOUNT_FALLBACK_END+'T23:59:59');
+
+function isDiscountActive(){
+  const now = new Date();
+  return DISCOUNT_PERCENT > 0 && DISCOUNT_START && DISCOUNT_END && now >= DISCOUNT_START && now <= DISCOUNT_END;
+}
+function effectivePrice(price){
+  price = Number(price)||0;
+  return isDiscountActive() ? Math.round(price*(1-DISCOUNT_PERCENT/100)) : price;
+}
+function applyDiscountBannerVisibility(){
+  const discEl = document.getElementById('trust-discount-text');
+  if(discEl){
+    if(isDiscountActive()){
+      discEl.textContent = DISCOUNT_PERCENT+'% off · through '+DISCOUNT_END.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      discEl.parentElement.style.display='';
+    } else {
+      discEl.parentElement.style.display='none';
+    }
+  }
+  const stripEl = document.querySelector('.discount-strip');
+  if(stripEl) stripEl.style.display = isDiscountActive() ? '' : 'none';
+}
+
+// ── Routing ──────────────────────────────────────────────
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// Check URL for ?ref= on load
+window.addEventListener('DOMContentLoaded',()=>{
+  loadPaymentSettings();
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('ref');
+  const page = params.get('page');
+  if(ref){
+    document.getElementById('f-ref').value = ref;
+    document.getElementById('reg-ref-banner').style.display='flex';
+    document.getElementById('reg-ref-text').textContent = 'You were referred — your registration will be tracked to your referrer';
+    // Try to show rep name by fetching
+    fetch('/api/rep-stats?id='+ref)
+      .then(r=>r.json())
+      .then(d=>{if(d.rep) document.getElementById('reg-ref-text').textContent='Referred by '+d.rep.name;})
+      .catch(()=>{});
+  }
+  if(page==='admin'){ showPage('admin-page'); restoreAdminSession(); }
+  if(page==='rep') showPage('rep-portal-page');
+});
+
+async function loadPaymentSettings(){
+  try{
+    const res = await fetch('/api/settings');
+    if(!res.ok) throw new Error('Failed to load');
+    paymentSettings = await res.json();
+    COURSES = Array.isArray(paymentSettings.courses) ? paymentSettings.courses : [];
+    BUNDLE_DISCOUNT = Number(paymentSettings.bundleDiscount) || 0;
+    // Backend now supports discount fields directly (see api/settings.js).
+    DISCOUNT_PERCENT = Number(paymentSettings.discountPercent) || 0;
+    DISCOUNT_START = paymentSettings.discountStart ? new Date(paymentSettings.discountStart+'T00:00:00') : null;
+    DISCOUNT_END = paymentSettings.discountEnd ? new Date(paymentSettings.discountEnd+'T23:59:59') : null;
+    applyDiscountBannerVisibility();
+    renderPaymentSettings();
+    renderCourseCards();
+  }catch(e){
+    document.getElementById('pm-telebirr-number').textContent = 'Unavailable — contact us';
+    document.getElementById('pm-cbe-number').textContent = 'Unavailable — contact us';
+  }
+}
+
+// Build the registration course cards from loaded COURSES
+function renderCourseCards(){
+  const grid = document.getElementById('course-grid');
+  if(!grid) return;
+  if(!COURSES.length){
+    grid.innerHTML = '<div style="color:var(--muted);font-size:13px">No courses available yet. Please check back soon.</div>';
+    document.getElementById('bundle-card').style.display = 'none';
+    return;
+  }
+  grid.innerHTML = COURSES.map((c,i)=>{
+    const full = i === COURSES.length-1 && COURSES.length % 2 === 1; // last odd card spans full width
+    const durationLine = c.duration ? `<div class="desc" style="margin-top:2px">⏱ ${escapeHtml(c.duration)}</div>` : '';
+    const disc = isDiscountActive();
+    const priceLine = disc
+      ? `<div class="fee">${effectivePrice(c.price).toLocaleString()} ETB <span style="font-size:12px;font-weight:500;color:var(--muted);text-decoration:line-through;margin-left:4px">${Number(c.price).toLocaleString()} ETB</span></div>`
+      : `<div class="fee">${Number(c.price).toLocaleString()} ETB</div>`;
+    return `<div class="course-card" id="card-${c.id}" onclick="toggleCourse('${c.id}')" ${full?'style="grid-column:1/-1"':''}>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+        <div class="icon">${c.icon||'📚'}</div>
+        <div class="course-check" id="check-${c.id}">✓</div>
+      </div>
+      <h3>${escapeHtml(c.name)}</h3>
+      ${disc?`<div class="discount-tag">-${DISCOUNT_PERCENT}%</div>`:''}
+      ${priceLine}
+      ${c.description?`<div class="desc">${escapeHtml(c.description)}</div>`:''}
+      ${durationLine}
+    </div>`;
+  }).join('');
+
+  // Bundle card only if a discount is configured and 2+ courses exist
+  const bundleCard = document.getElementById('bundle-card');
+  if(BUNDLE_DISCOUNT > 0 && COURSES.length >= 2){
+    const fullTotal = COURSES.reduce((s,c)=>s+effectivePrice(c.price),0);
+    const bundleTotal = Math.round(fullTotal*(1-BUNDLE_DISCOUNT/100));
+    document.getElementById('bundle-price').textContent = bundleTotal.toLocaleString()+' ETB';
+    document.getElementById('bundle-save').textContent = 'Save '+(fullTotal-bundleTotal).toLocaleString()+' ETB';
+    bundleCard.style.display = 'flex';
+  } else {
+    bundleCard.style.display = 'none';
+  }
+}
+
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+function renderPaymentSettings(){
+  if(!paymentSettings) return;
+  const tb = document.getElementById('pm-telebirr-number');
+  const cb = document.getElementById('pm-cbe-number');
+  if(tb) tb.textContent = paymentSettings.telebirr.number + (paymentSettings.telebirr.holder ? ' — '+paymentSettings.telebirr.holder : '');
+  if(cb) cb.textContent = paymentSettings.cbe.number + (paymentSettings.cbe.holder ? ' — '+paymentSettings.cbe.holder : '');
+}
+
+// ── Course multi-select ───────────────────────────────────
+function courseById(id){ return COURSES.find(c=>c.id===id); }
+
+// Every course, including hidden ones. Only the admin page uses this.
+function adminCourses(){ return (adminData?.settings?.courses) || COURSES; }
+
+function toggleCourse(key){
+  if(selectedCourses.has(key)) selectedCourses.delete(key);
+  else selectedCourses.add(key);
+  updateCourseUI();
+}
+
+function selectAllCourses(){
+  const allIds = COURSES.map(c=>c.id);
+  const allSelected = allIds.every(k=>selectedCourses.has(k));
+  if(allSelected){ selectedCourses.clear(); }
+  else { allIds.forEach(k=>selectedCourses.add(k)); }
+  updateCourseUI();
+}
+
+function updateCourseUI(){
+  const allIds = COURSES.map(c=>c.id);
+  const allSelected = allIds.length>0 && allIds.every(k=>selectedCourses.has(k));
+
+  // Update individual card states
+  COURSES.forEach(c=>{
+    const card = document.getElementById('card-'+c.id);
+    if(card) card.classList.toggle('selected', selectedCourses.has(c.id));
+  });
+
+  // Update bundle card state
+  const bundleCard = document.getElementById('bundle-card');
+  if(bundleCard) bundleCard.classList.toggle('selected', allSelected && BUNDLE_DISCOUNT>0);
+
+  // Compute total
+  const rawTotal = [...selectedCourses].reduce((s,k)=>s+effectivePrice(courseById(k)?.price),0);
+  const allBundle = allSelected && BUNDLE_DISCOUNT>0 && COURSES.length>=2;
+  const pairBundle = matchSelectedPairBundle();
+  const isBundle = allBundle || !!pairBundle;
+  let total;
+  if(pairBundle){ total = pairBundle.price; }
+  else if(allBundle){ total = Math.round(rawTotal*(1-BUNDLE_DISCOUNT/100)); }
+  else { total = rawTotal; }
+
+  // Show/hide summary box
+  const box = document.getElementById('course-total-box');
+  if(selectedCourses.size === 0){ box.style.display = 'none'; return; }
+  box.style.display = 'block';
+
+  // Build line items
+  const lines = [...selectedCourses].map(k=>{
+    const c = courseById(k);
+    return `<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span>${escapeHtml(c?.name||k)}</span><span>${effectivePrice(c?.price).toLocaleString()} ETB</span></div>`;
+  }).join('');
+  document.getElementById('course-total-lines').innerHTML = lines;
+  document.getElementById('course-total-amount').textContent = total.toLocaleString()+' ETB';
+
+  const discountNote = document.getElementById('course-discount-note');
+  discountNote.style.display = isBundle ? 'block' : 'none';
+  if(isBundle){
+    const saved = rawTotal - total;
+    discountNote.textContent = pairBundle
+      ? `🎉 Bundle price — you save ${saved.toLocaleString()} ETB!`
+      : `🎉 Bundle discount applied — you save ${saved.toLocaleString()} ETB!`;
+    document.getElementById('course-total-amount').style.color = 'var(--gold)';
+  } else {
+    document.getElementById('course-total-amount').style.color = 'var(--accent)';
+  }
+}
+
+
+function selectClassType(type) {
+  document.getElementById('f-class-type').value = type;
+  const inperson = document.getElementById('ct-inperson');
+  const online = document.getElementById('ct-online');
+  if (type === 'in-person') {
+    inperson.style.cssText = 'border:2px solid var(--accent);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:var(--accent-light);transition:.15s';
+    online.style.cssText = 'border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:#fff;transition:.15s';
+  } else {
+    online.style.cssText = 'border:2px solid #3b82f6;border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:#eff6ff;transition:.15s';
+    inperson.style.cssText = 'border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:#fff;transition:.15s';
+  }
+}
+
+function selectPaymentMethod(method){
+  currentPaymentMethod = method;
+  document.getElementById('f-payment-method').value = method;
+  document.getElementById('pm-telebirr').classList.toggle('selected', method==='telebirr');
+  document.getElementById('pm-cbe').classList.toggle('selected', method==='cbe');
+}
+
+async function handleProofSelect(event){
+  const file = event.target.files[0];
+  if(!file) return;
+
+  const statusEl = document.getElementById('upload-status');
+  const boxEl = document.getElementById('upload-box');
+  const allowed = ['image/jpeg','image/png','image/webp','image/heic','image/heif'];
+
+  if(!allowed.includes(file.type)){
+    statusEl.textContent = 'Please choose a JPG, PNG, WEBP, or HEIC image';
+    statusEl.className = 'upload-status error';
+    boxEl.classList.add('has-error');
+    return;
+  }
+  if(file.size > 5*1024*1024){
+    statusEl.textContent = 'File is too large. Max size is 5MB';
+    statusEl.className = 'upload-status error';
+    boxEl.classList.add('has-error');
+    return;
+  }
+
+  boxEl.classList.remove('has-error');
+
+  // Show local preview immediately
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('upload-preview-img').src = e.target.result;
+    document.getElementById('upload-box-empty').style.display = 'none';
+    document.getElementById('upload-box-preview').style.display = 'block';
+    document.getElementById('upload-filename').textContent = file.name;
+  };
+  reader.readAsDataURL(file);
+
+  // Upload to server
+  proofUploading = true;
+  proofUrl = '';
+  proofPathname = '';
+  statusEl.textContent = 'Uploading...';
+  statusEl.className = 'upload-status uploading';
+
+  try{
+    const res = await fetch('/api/upload',{
+      method:'POST',
+      headers:{'Content-Type':file.type},
+      body:file
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Upload failed');
+    proofUrl = data.url;
+    proofPathname = data.pathname;
+    statusEl.textContent = '✓ Uploaded successfully';
+    statusEl.className = 'upload-status success';
+  }catch(e){
+    statusEl.textContent = e.message;
+    statusEl.className = 'upload-status error';
+    boxEl.classList.add('has-error');
+  }finally{
+    proofUploading = false;
+  }
+}
+
+function clearProofUpload(){
+  proofUrl = '';
+  proofPathname = '';
+  document.getElementById('f-proof').value = '';
+  document.getElementById('upload-box-empty').style.display = 'block';
+  document.getElementById('upload-box-preview').style.display = 'none';
+  document.getElementById('upload-status').textContent = '';
+  document.getElementById('upload-status').className = 'upload-status';
+  document.getElementById('upload-box').classList.remove('has-error');
+}
+
+async function submitReg(){
+  const name = document.getElementById('f-name').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const notes = document.getElementById('f-notes').value.trim();
+  const ref = document.getElementById('f-ref').value.trim();
+  const alert = document.getElementById('reg-alert');
+
+  if(!name){showAlert(alert,'Please enter your full name');return;}
+  if(!phone){showAlert(alert,'Please enter your phone number');return;}
+  if(selectedCourses.size===0){showAlert(alert,'Please select at least one course');return;}
+  if(proofUploading){showAlert(alert,'Please wait for your proof of payment to finish uploading');return;}
+  if(!proofPathname){showAlert(alert,'Please attach your proof of payment before submitting');return;}
+
+  const allIds = COURSES.map(c=>c.id);
+  const coursesArr = [...selectedCourses];
+  const allBundle = allIds.length>=2 && BUNDLE_DISCOUNT>0 && allIds.every(k=>selectedCourses.has(k));
+  const pairBundle = matchSelectedPairBundle();
+  const rawFee = coursesArr.reduce((s,k)=>s+effectivePrice(courseById(k)?.price),0);
+  let fee, courseKey, courseLabel;
+  if(pairBundle){
+    fee = pairBundle.price;
+    courseKey = coursesArr.join('+');
+    courseLabel = pairBundle.label;
+  } else if(allBundle){
+    fee = Math.round(rawFee*(1-BUNDLE_DISCOUNT/100));
+    courseKey = 'all';
+    courseLabel = 'All courses';
+  } else {
+    fee = rawFee;
+    courseKey = coursesArr.length===1 ? coursesArr[0] : coursesArr.join('+');
+    courseLabel = coursesArr.map(k=>courseById(k)?.name||k).join(' + ');
+  }
+
+  const btn = document.getElementById('reg-btn');
+  const spinner = document.getElementById('reg-spinner');
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  document.getElementById('reg-btn-text').textContent = 'Submitting...';
+
+  try{
+    const res = await fetch('/api/register',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,phone,email,notes,course:courseKey,courseLabel,fee,ref,paymentMethod:currentPaymentMethod,proofUrl,proofPathname,classType:document.getElementById('f-class-type').value||'in-person'})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Registration failed');
+    document.getElementById('reg-form-section').style.display='none';
+    document.getElementById('reg-success').style.display='block';
+  }catch(e){
+    showAlert(alert,e.message);
+    btn.disabled=false;
+    spinner.style.display='none';
+    document.getElementById('reg-btn-text').textContent='Complete registration';
+  }
+}
+
+function resetReg(){
+  document.getElementById('f-name').value='';
+  document.getElementById('f-phone').value='';
+  document.getElementById('f-email').value='';
+  document.getElementById('f-notes').value='';
+  clearProofUpload();
+  selectPaymentMethod('telebirr');
+  selectedCourses.clear();
+  updateCourseUI();
+  document.getElementById('reg-btn').disabled=false;
+  document.getElementById('reg-spinner').style.display='none';
+  document.getElementById('reg-btn-text').textContent='Complete registration';
+  document.getElementById('reg-form-section').style.display='block';
+  document.getElementById('reg-success').style.display='none';
+}
+
+// ── Admin ─────────────────────────────────────────────────
+let isSuperAdmin = false;
+async function adminLogin(){
+  const username = document.getElementById('admin-username').value.trim();
+  const pw = document.getElementById('admin-password').value;
+  if(!pw) return;
+  const alertEl = document.getElementById('admin-login-alert');
+  // With a username → "username:password". Without → treat password as the master key.
+  const key = username ? (username + ':' + pw) : pw;
+  try{
+    await activateAdminSession(key);
+    try{ localStorage.setItem('gda_admin_key', key); }catch(e){}
+  }catch(e){
+    showAlert(alertEl,e.message);
+  }
+}
+
+// Validates a key with the server and, if good, shows the dashboard.
+// Throws on failure so callers can decide how to react.
+async function activateAdminSession(key){
+  const res = await fetch('/api/admin',{headers:{'x-admin-key':key}});
+  if(!res.ok) throw new Error('Invalid username or password');
+  adminKey = key;
+  adminData = await res.json();
+  isSuperAdmin = !!(adminData._auth && adminData._auth.isSuper);
+  document.body.classList.toggle('is-super', isSuperAdmin);
+  await loadBatches();
+  document.getElementById('admin-login-screen').style.display='none';
+  document.getElementById('admin-dashboard-screen').style.display='block';
+  renderAdminDashboard();
+}
+
+// On page load, silently restore a saved session if one exists.
+async function restoreAdminSession(){
+  let key='';
+  try{ key = localStorage.getItem('gda_admin_key') || ''; }catch(e){}
+  if(!key) return;
+  try{
+    await activateAdminSession(key);
+  }catch(e){
+    // Saved key no longer valid (e.g. password changed) — clear it and stay on login.
+    try{ localStorage.removeItem('gda_admin_key'); }catch(_){}
+  }
+}
+
+function adminLogout(){
+  adminKey='';adminData=null;isSuperAdmin=false;
+  try{ localStorage.removeItem('gda_admin_key'); }catch(e){}
+  document.body.classList.remove('is-super');
+  document.getElementById('admin-password').value='';
+  const u=document.getElementById('admin-username'); if(u) u.value='';
+  document.getElementById('admin-login-screen').style.display='flex';
+  document.getElementById('admin-dashboard-screen').style.display='none';
+}
+
+// ── Admin accounts (super admin only) ─────────────────────
+async function loadAdmins(){
+  const wrap=document.getElementById('admins-list');
+  wrap.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px">Loading…</div>';
+  try{
+    const res=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({action:'list-admins'})});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Could not load admins');
+    if(!data.admins.length){ wrap.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px">No admins yet. Add one above.</div>'; return; }
+    wrap.innerHTML=data.admins.map(a=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px">
+        <div>
+          <div style="font-weight:700">${escapeHtml(a.username)}</div>
+          <div style="font-size:12px;color:var(--muted)">${a.createdAt?('Added '+new Date(a.createdAt).toLocaleDateString('en-GB')):''}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="action-btn sm" onclick="changeAdminPassword('${escapeHtml(a.username)}')">Change password</button>
+          <button class="action-btn sm danger" onclick="removeAdmin('${escapeHtml(a.username)}')">Remove</button>
+        </div>
+      </div>`).join('');
+  }catch(e){
+    wrap.innerHTML=`<div class="alert alert-danger" style="display:block">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function changeMasterPassword(){
+  const newPassword=document.getElementById('new-master-password').value.trim();
+  const alertEl=document.getElementById('admins-alert');
+  const successEl=document.getElementById('admins-success');
+  const btn=document.getElementById('master-pw-btn');
+  const spinner=document.getElementById('master-pw-spinner');
+  const txt=document.getElementById('master-pw-text');
+  if(newPassword.length<6){ showAlert(alertEl,'Master password must be at least 6 characters'); return; }
+  if(!confirm('Change the master password? You will use this new password to log in as super admin from now on.')) return;
+  btn.disabled=true; spinner.style.display='block'; txt.textContent='Updating…';
+  try{
+    const res=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({action:'change-master-password',newPassword})});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Could not change master password');
+    // The key we're authenticated with just changed — update it so we stay logged in.
+    adminKey=newPassword;
+    try{ localStorage.setItem('gda_admin_key', newPassword); }catch(e){}
+    document.getElementById('new-master-password').value='';
+    successEl.textContent='Master password updated ✓'; successEl.style.display='block';
+    setTimeout(()=>{successEl.style.display='none';},3000);
+  }catch(e){
+    showAlert(alertEl,e.message);
+  }finally{
+    btn.disabled=false; spinner.style.display='none'; txt.textContent='Update master password';
+  }
+}
+
+async function addAdmin(){
+  const username=document.getElementById('new-admin-username').value.trim();
+  const password=document.getElementById('new-admin-password').value.trim();
+  const alertEl=document.getElementById('admins-alert');
+  const successEl=document.getElementById('admins-success');
+  const btn=document.getElementById('add-admin-btn');
+  const spinner=document.getElementById('add-admin-spinner');
+  const txt=document.getElementById('add-admin-text');
+  if(!username){ showAlert(alertEl,'Please enter a username'); return; }
+  if(password.length<4){ showAlert(alertEl,'Password must be at least 4 characters'); return; }
+  btn.disabled=true; spinner.style.display='block'; txt.textContent='Adding…';
+  try{
+    const res=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({action:'add-admin',username,password})});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Could not add admin');
+    document.getElementById('new-admin-username').value='';
+    document.getElementById('new-admin-password').value='';
+    successEl.textContent='Admin added ✓'; successEl.style.display='block';
+    setTimeout(()=>{successEl.style.display='none';},2500);
+    loadAdmins();
+  }catch(e){
+    showAlert(alertEl,e.message);
+  }finally{
+    btn.disabled=false; spinner.style.display='none'; txt.textContent='Add admin';
+  }
+}
+
+async function changeAdminPassword(username){
+  const password=prompt('New password for "'+username+'" (min 4 characters):');
+  if(password===null) return;
+  if(password.trim().length<4){ alert('Password must be at least 4 characters'); return; }
+  try{
+    const res=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({action:'update-admin-password',username,password:password.trim()})});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Could not update password');
+    const successEl=document.getElementById('admins-success');
+    successEl.textContent='Password updated ✓'; successEl.style.display='block';
+    setTimeout(()=>{successEl.style.display='none';},2500);
+  }catch(e){
+    showAlert(document.getElementById('admins-alert'),e.message);
+  }
+}
+
+async function removeAdmin(username){
+  if(!confirm('Remove admin "'+username+'"? They will no longer be able to log in.')) return;
+  try{
+    const res=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({action:'remove-admin',username})});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Could not remove admin');
+    loadAdmins();
+  }catch(e){
+    showAlert(document.getElementById('admins-alert'),e.message);
+  }
+}
+
+// ── Reports ────────────────────────────────────────────────
+let _reportRange='month';
+function _rangeStart(range){
+  const now=new Date();
+  if(range==='today'){ const d=new Date(now); d.setHours(0,0,0,0); return d; }
+  if(range==='week'){ const d=new Date(now); const day=(d.getDay()+6)%7; d.setDate(d.getDate()-day); d.setHours(0,0,0,0); return d; }
+  if(range==='month'){ return new Date(now.getFullYear(),now.getMonth(),1); }
+  return new Date(2000,0,1);
+}
+function _studentDate(s){
+  if(s.createdAt) return new Date(s.createdAt);
+  if(s.date){ const p=s.date.split('/'); if(p.length===3) return new Date(+p[2],+p[1]-1,+p[0]); }
+  return new Date(2000,0,1);
+}
+function _reportData(range){
+  const start=_rangeStart(range);
+  const students=(adminData&&adminData.students)||[];
+  const inRange=students.filter(s=>_studentDate(s)>=start);
+  const paid=inRange.filter(s=>(s.paymentStatus||(s.paid?'verified':''))==='verified');
+  const totalIncome=paid.reduce((t,s)=>t+(s.fee||0),0);
+  const byMethod={Telebirr:0,CBE:0,Cash:0};
+  paid.forEach(s=>{ const m=s.paymentMethodLabel||({telebirr:'Telebirr',cbe:'CBE',cash:'Cash'}[s.paymentMethod])||'Other'; byMethod[m]=(byMethod[m]||0)+(s.fee||0); });
+  const byCourse={};
+  COURSES.forEach(c=>byCourse[c.id]={name:c.name,income:0,count:0});
+  paid.forEach(s=>{ const c=s.course||''; const ids=(c==='all'||c==='all3')?COURSES.map(x=>x.id):c.split('+'); ids.forEach(id=>{ if(byCourse[id]){ byCourse[id].income+=(s.fee||0)/ids.length; byCourse[id].count++; } }); });
+  const compCourse={};
+  COURSES.forEach(c=>compCourse[c.id]={name:c.name,total:0,completed:0});
+  inRange.forEach(s=>{ const c=s.course||''; const ids=(c==='all'||c==='all3')?COURSES.map(x=>x.id):c.split('+'); ids.forEach(id=>{ if(compCourse[id]){ compCourse[id].total++; if(s.status==='completed')compCourse[id].completed++; } }); });
+  return {start,count:inRange.length,paidCount:paid.length,totalIncome,byMethod,byCourse,compCourse,
+    pending:inRange.filter(s=>(s.paymentStatus||'pending')==='pending').length};
+}
+function loadReports(range){
+  _reportRange=range;
+  document.querySelectorAll('#report-range-seg button').forEach(b=>{
+    const oc=b.getAttribute('onclick')||''; if(oc.includes('loadReports')) b.classList.toggle('active', oc.includes("'"+range+"'"));
+  });
+  const r=_reportData(range);
+  const rangeLabel={today:'Today',week:'This week',month:'This month',all:'All time'}[range];
+  const methodRows=Object.entries(r.byMethod).map(([m,v])=>`<div class="rb-row"><span>${m}</span><strong>${v.toLocaleString()} ETB</strong></div>`).join('')||'<div class="rb-row"><span style="color:var(--muted)">No data</span></div>';
+  const maxCourse=Math.max(1,...Object.values(r.byCourse).map(c=>c.income));
+  const courseRows=Object.values(r.byCourse).map(c=>`<div class="rb-row"><span style="min-width:120px">${escapeHtml(c.name)}</span><div class="rb-bar-track"><div class="rb-bar-fill" style="width:${Math.round(c.income/maxCourse*100)}%"></div></div><strong>${Math.round(c.income).toLocaleString()} ETB</strong></div>`).join('')||'<div class="rb-row"><span style="color:var(--muted)">No courses</span></div>';
+  const compRows=Object.values(r.compCourse).map(c=>{const pct=c.total?Math.round(c.completed/c.total*100):0;return `<div class="rb-row"><span style="min-width:120px">${escapeHtml(c.name)}</span><div class="rb-bar-track"><div class="rb-bar-fill" style="width:${pct}%"></div></div><strong>${pct}% <span style="font-weight:400;color:var(--muted)">(${c.completed}/${c.total})</span></strong></div>`;}).join('')||'<div class="rb-row"><span style="color:var(--muted)">No data</span></div>';
+  document.getElementById('reports-body').innerHTML=`
+    <div class="metrics-row">
+      <div class="metric-card accent"><div><div class="val">${r.totalIncome.toLocaleString()}</div><div class="lbl">Income — ${rangeLabel} (ETB)</div></div><div class="tile"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></div></div>
+      <div class="metric-card"><div><div class="val">${r.paidCount}</div><div class="lbl">Paid registrations</div></div><div class="tile"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div></div>
+      <div class="metric-card"><div><div class="val">${r.count}</div><div class="lbl">New students</div></div><div class="tile blue"><svg viewBox="0 0 24 24"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg></div></div>
+    </div>
+    <div class="charts-row">
+      <div class="report-bd-card"><h3>Income by course</h3>${courseRows}</div>
+      <div class="report-bd-card"><h3>Payment method breakdown</h3>${methodRows}</div>
+    </div>
+    <div class="report-bd-card"><h3>Completion rate per course</h3>${compRows}</div>`;
+}
+function exportReportsCSV(){
+  const r=_reportData(_reportRange);
+  const rangeLabel={today:'today',week:'week',month:'month',all:'all-time'}[_reportRange];
+  const rows=[['Ghost Digitals Academy — Income Report ('+rangeLabel+')'],[],
+    ['Metric','Value'],
+    ['Total income (ETB)',r.totalIncome],
+    ['Paid registrations',r.paidCount],
+    ['New students',r.count],
+    ['Pending payments',r.pending],[],
+    ['Payment method','Income (ETB)'],
+    ...Object.entries(r.byMethod).map(([m,v])=>[m,v]),[],
+    ['Course','Income (ETB)','Students'],
+    ...Object.values(r.byCourse).map(c=>[c.name,Math.round(c.income),c.count]),[],
+    ['Course','Completion %','Completed','Total'],
+    ...Object.values(r.compCourse).map(c=>[c.name,c.total?Math.round(c.completed/c.total*100):0,c.completed,c.total]),
+  ];
+  const csv='\uFEFF'+rows.map(row=>row.map(v=>{v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Ghost_Academy_Report_'+rangeLabel+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+const ADMIN_TAB_META={overview:['Overview','Your course business at a glance'],reps:['Sales reps','Manage your team and referral links'],students:['Students','All course registrations'],reports:['Reports','Income & performance'],payments:['Payment settings','Telebirr and CBE account details'],courses:['Courses','Pricing, discounts and course listing'],teachers:['Teacher logins','Course teacher access credentials'],admins:['Admins','Manage admin accounts and passwords']};
+function switchAdminTab(name,el){
+  document.querySelectorAll('.admin-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.admin-tab').forEach(i=>i.classList.remove('active'));
+  document.getElementById('admin-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+  else { const btn=document.querySelector('.admin-tab[data-tab="'+name+'"]'); if(btn)btn.classList.add('active'); }
+  const meta=ADMIN_TAB_META[name];
+  if(meta){ const h=document.getElementById('admin-page-heading'),s=document.getElementById('admin-page-sub'); if(h)h.textContent=meta[0]; if(s)s.textContent=meta[1]; }
+  if(name==='students'){ backToCourses(); }
+  if(name==='reports'){ loadReports(_reportRange); }
+  if(name==='admins'){ loadAdmins(); }
+  closeAdminSidebar();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function toggleAdminSidebar(){
+  document.getElementById('admin-sidebar').classList.toggle('open');
+  document.getElementById('sb-backdrop').classList.toggle('show');
+}
+function closeAdminSidebar(){
+  var sb=document.getElementById('admin-sidebar'); if(sb)sb.classList.remove('open');
+  var bd=document.getElementById('sb-backdrop'); if(bd)bd.classList.remove('show');
+}
+
+function renderAdminDashboard(){
+  if(!adminData) return;
+  const {reps,students} = adminData;
+  const revenue = students.reduce((s,st)=>s+st.fee,0);
+
+  // Count enrollments per dynamic course. A student's course field is like
+  // "digital+ai", a single id, or "all" (bundle = every course).
+  const allIds = COURSES.map(c=>c.id);
+  const counts = {};
+  COURSES.forEach(c=>counts[c.id]=0);
+  students.forEach(s=>{
+    const c = s.course || '';
+    if(c === 'all' || c === 'all3'){ allIds.forEach(id=>counts[id]!==undefined&&counts[id]++); return; }
+    if(c === 'both'){ if(counts['digital']!==undefined)counts['digital']++; if(counts['event']!==undefined)counts['event']++; return; }
+    const parts = c.split('+');
+    parts.forEach(id=>{ if(counts[id]!==undefined) counts[id]++; });
+  });
+  document.getElementById('a-reps').textContent = reps.length;
+  document.getElementById('a-students').textContent = students.length;
+  document.getElementById('a-revenue').textContent = revenue.toLocaleString();
+  const bd = document.getElementById('a-course-breakdown');
+  if(bd){
+    const cols = Math.min(4, Math.max(1, COURSES.length));
+    bd.style.gridTemplateColumns = `repeat(${cols},1fr)`;
+    bd.innerHTML = COURSES.length
+      ? COURSES.map(c=>`<div class="metric-card"><div class="val">${counts[c.id]||0}</div><div class="lbl">${escapeHtml(c.name)}</div></div>`).join('')
+      : '<div style="color:var(--muted);font-size:13px;padding:8px">No courses yet.</div>';
+  }
+  document.getElementById('reps-count-label').textContent = `All reps (${reps.length})`;
+  document.getElementById('students-count-label').textContent = `All students (${students.length})`;
+  renderAdminCharts(counts, students);
+  renderRepsTable(reps);
+  renderStudentsTable(students,reps);
+  renderStudentCourseCards();
+  if(_activeCourse){ /* refresh count label if inside a course */ const c=COURSES.find(x=>x.id===_activeCourse); const lbl=_activeCourse==='__other__'?'Other':(c?c.name:'Course'); const cnt=students.filter(s=>studentInCourse(s,_activeCourse)).length; const el=document.getElementById('students-count-label'); if(el)el.textContent=lbl+' — '+cnt+' student'+(cnt!==1?'s':''); }
+  if(adminData.settings) populateSettingsForm(adminData.settings);
+}
+
+let _chartCourses=null, _chartPayments=null;
+function renderAdminCharts(counts, students){
+  if(!window.Chart) return;
+  // Courses bar
+  const cc=document.getElementById('chart-courses');
+  if(cc){
+    if(_chartCourses)_chartCourses.destroy();
+    const labels=COURSES.map(c=>c.name), data=COURSES.map(c=>counts[c.id]||0);
+    _chartCourses=new Chart(cc,{type:'bar',data:{labels,datasets:[{data,backgroundColor:'#2d5a27',borderRadius:8,barThickness:38,maxBarThickness:52}]},
+      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0},grid:{color:'#e4e8df'}},x:{grid:{display:false}}}}});
+  }
+  // Payments donut
+  const cp=document.getElementById('chart-payments');
+  if(cp){
+    if(_chartPayments)_chartPayments.destroy();
+    let verified=0,pending=0,rejected=0,none=0;
+    students.forEach(s=>{const st=(s.paymentStatus||s.payment_status||'').toLowerCase();
+      if(st==='verified')verified++;else if(st==='pending')pending++;else if(st==='rejected')rejected++;else none++;});
+    _chartPayments=new Chart(cp,{type:'doughnut',data:{labels:['Verified','Pending','Rejected','No proof'],
+      datasets:[{data:[verified,pending,rejected,none],backgroundColor:['#2d5a27','#c4860a','#c0392b','#c9d2c2'],borderWidth:0}]},
+      options:{cutout:'66%',plugins:{legend:{display:false}}}});
+    document.getElementById('payments-legend').innerHTML=[['Verified',verified,'#2d5a27'],['Pending',pending,'#c4860a'],['Rejected',rejected,'#c0392b'],['No proof',none,'#c9d2c2']]
+      .map(x=>`<span style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600"><span style="width:10px;height:10px;border-radius:50%;background:${x[2]}"></span>${x[0]} (${x[1]})</span>`).join('');
+  }
+}
+
+function populateSettingsForm(settings){
+  document.getElementById('set-telebirr-number').value = settings.telebirr?.number || '';
+  document.getElementById('set-telebirr-holder').value = settings.telebirr?.holder || '';
+  document.getElementById('set-cbe-number').value = settings.cbe?.number || '';
+  document.getElementById('set-cbe-holder').value = settings.cbe?.holder || '';
+  // Courses
+  courseDraft = Array.isArray(settings.courses) ? JSON.parse(JSON.stringify(settings.courses)) : [];
+  document.getElementById('set-bundle-discount').value = (settings.bundleDiscount ?? 0);
+  document.getElementById('set-discount-percent').value = (settings.discountPercent ?? 0);
+  document.getElementById('set-discount-start').value = settings.discountStart || '';
+  document.getElementById('set-discount-end').value = settings.discountEnd || '';
+  renderCourseEditor();
+  loadTeacherLogins();
+}
+
+// ── Teacher logins ─────────────────────────────────────────
+let teacherLogins = [];
+async function loadTeacherLogins(){
+  try{
+    const res = await fetch('/api/sessions?action=teacher-logins',{headers:{'x-admin-key':adminKey}});
+    const data = await res.json();
+    teacherLogins = data.logins || [];
+  }catch(e){ teacherLogins = []; }
+  renderTeacherLogins();
+}
+
+function renderTeacherLogins(){
+  const wrap = document.getElementById('teacher-logins-list');
+  if(!wrap) return;
+  if(!teacherLogins.length){ wrap.innerHTML='<div class="empty" style="padding:20px 0">No courses yet — create a course above to get a teacher login.</div>'; return; }
+  wrap.innerHTML = teacherLogins.map(t=>{
+    const pwCell = t.builtin
+      ? `<span class="muted sm">Set via server config</span>`
+      : (t.password
+          ? `<span style="font-family:monospace;font-weight:700;color:var(--accent);cursor:pointer" title="Click to copy" onclick="copyText('${t.password.replace(/'/g,"\\'")}')">${t.password} 📋</span>`
+          : `<span class="muted sm">No password set</span>`);
+    return `<div class="data-card" style="padding:16px 20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div>
+        <div style="font-weight:600;font-size:14px">${t.label} ${t.builtin?'<span class="badge badge-gold" style="font-size:10px">built-in</span>':''}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">Username: <span style="font-family:monospace;font-weight:700;cursor:pointer" title="Click to copy" onclick="copyText('${t.username}')">${t.username} 📋</span></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">Password: ${pwCell}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="action-btn sm primary" onclick="resetTeacherPassword('${t.username}',true)">🎲 Auto-generate</button>
+        <button class="action-btn sm" onclick="resetTeacherPassword('${t.username}',false)">Set password…</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function resetTeacherPassword(username, auto){
+  let password = '';
+  if(!auto){
+    password = prompt('Enter a new password for this teacher login (min 6 characters):');
+    if(password===null) return;
+    if(password.trim().length<6){ alert('Password must be at least 6 characters.'); return; }
+  }
+  const alertEl = document.getElementById('teacher-logins-alert');
+  const successEl = document.getElementById('teacher-logins-success');
+  alertEl.classList.remove('show'); successEl.classList.remove('show');
+  try{
+    const res = await fetch('/api/sessions?action=set-teacher-password',{
+      method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({username,password:auto?'':password.trim()})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed');
+    await loadTeacherLogins();
+    successEl.textContent = `✓ Password for ${data.label} set to: ${data.password} — copy and share it with the teacher.`;
+    successEl.classList.add('show');
+  }catch(e){ showAlert(alertEl,e.message); }
+}
+
+function copyText(t){
+  navigator.clipboard.writeText(t).then(()=>{
+    // brief inline feedback
+    const s=document.getElementById('teacher-logins-success');
+    if(s){ s.textContent='✓ Copied: '+t; s.classList.add('show'); setTimeout(()=>s.classList.remove('show'),1500); }
+  });
+}
+
+// ── Admin course editor ───────────────────────────────────
+let courseDraft = [];
+
+function renderCourseEditor(){
+  const wrap = document.getElementById('courses-editor');
+  if(!wrap) return;
+  if(!courseDraft.length){
+    wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;margin-bottom:14px">No courses yet. Click "Add course" to create one.</div>';
+    return;
+  }
+  wrap.innerHTML = courseDraft.map((c,i)=>`
+    <div class="data-card" style="padding:18px 20px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:var(--muted)">COURSE ${i+1}${c.hidden?' · <span style="color:var(--gold)">HIDDEN FROM STUDENTS</span>':''}</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="action-btn sm" onclick="toggleCourseHidden(${i})" title="${c.hidden?'Show this course on registration':'Hide this course from registration'}">${c.hidden?'👁 Show':'🙈 Hide'}</button>
+          <button onclick="deleteCourseRow(${i})" style="background:none;border:none;color:var(--danger,#e53e3e);cursor:pointer;font-size:16px" title="Delete course">🗑</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Name *</label>
+        <input type="text" value="${escapeAttr(c.name)}" oninput="courseDraft[${i}].name=this.value" placeholder="e.g. Digital Marketing">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field">
+          <label>Price (ETB) *</label>
+          <input type="number" min="0" value="${Number(c.price)||0}" oninput="courseDraft[${i}].price=this.value" placeholder="10000">
+        </div>
+        <div class="field">
+          <label>Duration</label>
+          <input type="text" value="${escapeAttr(c.duration||'')}" oninput="courseDraft[${i}].duration=this.value" placeholder="e.g. 6 weeks">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:80px 1fr;gap:12px">
+        <div class="field" style="margin-bottom:0">
+          <label>Icon</label>
+          <input type="text" value="${escapeAttr(c.icon||'📚')}" oninput="courseDraft[${i}].icon=this.value" placeholder="📚" maxlength="4">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Description</label>
+          <input type="text" value="${escapeAttr(c.description||'')}" oninput="courseDraft[${i}].description=this.value" placeholder="Short summary shown to students">
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escapeAttr(s){return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+
+function addCourseRow(){
+  courseDraft.push({ id:'', name:'', price:0, description:'', duration:'', icon:'📚', hidden:false });
+  renderCourseEditor();
+}
+
+function toggleCourseHidden(i){
+  courseDraft[i].hidden = !courseDraft[i].hidden;
+  renderCourseEditor();
+}
+
+function deleteCourseRow(i){
+  if(!confirm('Delete this course? Students will no longer be able to select it.')) return;
+  courseDraft.splice(i,1);
+  renderCourseEditor();
+}
+
+async function saveCourses(){
+  const alertEl = document.getElementById('courses-alert');
+  const successEl = document.getElementById('courses-success');
+  alertEl.classList.remove('show'); successEl.classList.remove('show');
+
+  for(let i=0;i<courseDraft.length;i++){
+    if(!courseDraft[i].name.trim()){ showAlert(alertEl,`Course ${i+1} needs a name`); return; }
+    const p = Number(courseDraft[i].price);
+    if(!Number.isFinite(p)||p<0){ showAlert(alertEl,`Course ${i+1} has an invalid price`); return; }
+  }
+
+  const btn=document.getElementById('courses-save-btn');
+  const spinner=document.getElementById('courses-spinner');
+  const text=document.getElementById('courses-save-text');
+  btn.disabled=true; spinner.style.display='block'; text.textContent='Saving...';
+
+  try{
+    const res = await fetch('/api/settings',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({
+        action:'courses',
+        courses: courseDraft,
+        bundleDiscount: Number(document.getElementById('set-bundle-discount').value)||0,
+        discountPercent: Number(document.getElementById('set-discount-percent').value)||0,
+        discountStart: document.getElementById('set-discount-start').value || null,
+        discountEnd: document.getElementById('set-discount-end').value || null
+      })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed to save');
+    adminData.settings = data.settings;
+    // Refresh live state so registration + editor reflect new courses.
+    // The save response includes hidden courses, so split them: the registration
+    // list gets visible ones only, and the editor keeps all of them.
+    const allSaved = data.settings.courses || [];
+    COURSES = allSaved.filter(c => !c.hidden);
+    BUNDLE_DISCOUNT = Number(data.settings.bundleDiscount)||0;
+    DISCOUNT_PERCENT = Number(data.settings.discountPercent) || 0;
+    DISCOUNT_START = data.settings.discountStart ? new Date(data.settings.discountStart+'T00:00:00') : null;
+    DISCOUNT_END = data.settings.discountEnd ? new Date(data.settings.discountEnd+'T23:59:59') : null;
+    applyDiscountBannerVisibility();
+    courseDraft = JSON.parse(JSON.stringify(allSaved));
+    renderCourseEditor();
+    renderCourseCards();
+    renderManualCourseList();
+    loadTeacherLogins();
+    successEl.textContent = '✓ Courses updated';
+    successEl.classList.add('show');
+    setTimeout(()=>successEl.classList.remove('show'),3000);
+  }catch(e){
+    showAlert(alertEl,e.message);
+  }finally{
+    btn.disabled=false; spinner.style.display='none'; text.textContent='Save courses';
+  }
+}
+
+async function saveSettings(){
+  const telebirrNumber = document.getElementById('set-telebirr-number').value.trim();
+  const telebirrHolder = document.getElementById('set-telebirr-holder').value.trim();
+  const cbeNumber = document.getElementById('set-cbe-number').value.trim();
+  const cbeHolder = document.getElementById('set-cbe-holder').value.trim();
+  const alertEl = document.getElementById('settings-alert');
+  const successEl = document.getElementById('settings-success');
+  alertEl.classList.remove('show');
+  successEl.classList.remove('show');
+
+  if(!telebirrNumber){showAlert(alertEl,'Telebirr number is required');return;}
+  if(!cbeNumber){showAlert(alertEl,'CBE account number is required');return;}
+
+  const btn = document.getElementById('settings-save-btn');
+  const spinner = document.getElementById('settings-spinner');
+  const text = document.getElementById('settings-save-text');
+  btn.disabled = true; spinner.style.display='block'; text.textContent='Saving...';
+
+  try{
+    const res = await fetch('/api/settings',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({
+        action:'payment',
+        telebirr:{number:telebirrNumber,holder:telebirrHolder},
+        cbe:{number:cbeNumber,holder:cbeHolder}
+      })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed to save');
+    adminData.settings = data.settings;
+    successEl.textContent = '✓ Payment settings updated';
+    successEl.classList.add('show');
+    setTimeout(()=>successEl.classList.remove('show'),3000);
+  }catch(e){
+    showAlert(alertEl,e.message);
+  }finally{
+    btn.disabled=false; spinner.style.display='none'; text.textContent='Save changes';
+  }
+}
+
+function renderRepsTable(reps){
+  const wrap = document.getElementById('reps-table-wrap');
+  if(!reps.length){wrap.innerHTML='<div class="empty"><div class="empty-icon">👥</div>No sales reps yet.</div>';return;}
+  const base = window.location.origin + '/';
+  wrap.innerHTML = `<div style="overflow-x:auto"><table>
+    <thead><tr><th>Name</th><th>Phone</th><th>Signups</th><th>Referral link</th><th></th></tr></thead>
+    <tbody>${reps.map(r=>{
+      const link = base+'?ref='+r.id;
+      const initials = r.name.split(' ').map(n=>n[0]||'').slice(0,2).join('').toUpperCase();
+      return `<tr>
+        <td><div class="rep-name-cell"><div class="avatar">${initials}</div><div><div style="font-weight:500">${r.name}</div></div></div></td>
+        <td style="color:var(--muted)">${r.phone||'—'}</td>
+        <td><span class="badge badge-green" style="font-size:13px">${r.signups||0}</span></td>
+        <td><div style="display:flex;align-items:center;gap:6px">
+          <span class="link-cell">${link}</span>
+          <button class="copy-btn" onclick="copyText('${link}',this)">copy</button>
+        </div></td>
+        <td><button class="action-btn sm danger" onclick="deleteRep('${r.id}')">Remove</button></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+const STATUS_META={
+  ongoing:['pill-ongoing','● Ongoing'],
+  completed:['pill-completed','✓ Completed'],
+  hold:['pill-hold','On Hold'],
+  dropped:['pill-dropped','Dropped']
+};
+function renderStudentsTable(students,reps){
+  const grid = document.getElementById('students-cards');
+  if(!grid) return;
+  if(!students.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1">No registrations yet</div>';return;}
+  grid.innerHTML = [...students].reverse().map(s=>{
+    const rep = s.ref ? reps.find(r=>r.id===s.ref) : null;
+    const payStatus = s.paymentStatus || (s.paid ? 'verified' : 'pending');
+    const enrollStatus = s.status || 'ongoing';
+    const sm = STATUS_META[enrollStatus] || STATUS_META.ongoing;
+    const initial = (s.name||'?').trim().charAt(0).toUpperCase();
+    const avatar = s.photoUrl
+      ? `<div class="st-avatar" style="background-image:url('${s.photoUrl}')"></div>`
+      : `<div class="st-avatar">${initial}</div>`;
+    const sub = [s.gender,s.age?s.age+' yrs':'',s.phone].filter(Boolean).join(' · ');
+    const payPill = payStatus==='verified'
+      ? '<span class="pay-pill pay-verified"><svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;stroke-width:2.5;fill:none"><path d="M20 6L9 17l-5-5"/></svg>Paid</span>'
+      : payStatus==='rejected'
+      ? '<span class="pay-pill pay-rejected">Rejected</span>'
+      : '<span class="pay-pill pay-pending">Pending</span>';
+    const gradIco='<svg viewBox="0 0 24 24"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg>';
+    const classChip = `<span class="st-chip">${s.classType==='online'?'Online':'In-Person'}</span>`;
+    const batchChip = s.batchName?`<span class="st-chip">${escapeHtml(s.batchName)}</span>`:'';
+    const portalLine = s.portalId
+      ? `<span class="st-portal" onclick="copyPortalId('${s.portalId}')" title="Click to copy">${s.portalId}</span>`
+      : `<button class="action-btn sm" onclick="generatePortalId('${s.id}')" style="padding:3px 8px;font-size:11px">Generate ID</button>`;
+    const reviewRow = payStatus==='pending'
+      ? `<div class="st-review"><button class="v" onclick="setPaymentStatus('${s.id}','verified')">Verify payment</button><button class="r" onclick="setPaymentStatus('${s.id}','rejected')">Reject</button></div>`
+      : '';
+    return `<div class="st-card" data-id="${s.id}" data-name="${(s.name||'').toLowerCase()}" data-phone="${s.phone||''}" data-status="${payStatus}" data-estatus="${enrollStatus}" data-batch="${s.batchId||''}" data-course-raw="${s.course||''}">
+      <input type="checkbox" class="student-cb st-cb" data-id="${s.id}" onchange="onStudentCheck()">
+      <div class="st-card-top">
+        ${avatar}
+        <div class="info">
+          <h4>${escapeHtml(s.name||'')}</h4>
+          <div class="sub">${escapeHtml(sub)}</div>
+          <div style="margin-top:7px;display:flex;gap:6px;flex-wrap:wrap"><span class="st-pill ${sm[0]}">${sm[1]}</span>${payPill}</div>
+        </div>
+      </div>
+      <div class="st-chips">
+        <span class="st-chip">${gradIco}${escapeHtml(s.courseLabel||s.course||'—')}</span>
+        ${classChip}${batchChip}
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;font-size:12px">
+        <span style="color:var(--muted)">Fee: <strong style="color:var(--accent-text)">${(s.fee||0).toLocaleString()} ETB</strong></span>
+        ${portalLine}
+      </div>
+      ${rep?`<div style="font-size:11px;color:var(--muted);margin-bottom:10px">Referred by ${escapeHtml(rep.name)}</div>`:''}
+      ${reviewRow}
+      <div class="st-card-foot">
+        <button class="primary" onclick="openEditStudent('${s.id}')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Edit</button>
+        ${s.proofUrl?`<button onclick="window.open('${s.proofUrl}','_blank')"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Proof</button>`:''}
+        <button onclick="deleteStudent('${s.id}')"><svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+  updateBulkBar();
+  if(typeof populateBatchDropdowns==='function') populateBatchDropdowns();
+}
+
+async function setPaymentStatus(id,status){
+  try{
+    const res = await fetch('/api/students?id='+id+'&status='+status,{method:'PATCH',headers:{'x-admin-key':adminKey}});
+    if(!res.ok) throw new Error('Failed to update payment status');
+    const d = await res.json();
+    const student = adminData.students.find(s=>s.id===id);
+    if(student){ student.paymentStatus = d.paymentStatus; student.paid = d.paid; }
+    renderAdminDashboard();
+  }catch(e){alert(e.message);}
+}
+
+let _activeCourse = null; // null = show course cards
+
+function studentInCourse(s, courseId){
+  const c = s.course || '';
+  if(courseId==='__other__') {
+    // students whose course doesn't match any known course id
+    const known = new Set(COURSES.map(x=>x.id));
+    if(c==='all'||c==='all3') return false;
+    return c.split('+').every(id=>!known.has(id));
+  }
+  if(c==='all'||c==='all3') return true;      // bundle = every course
+  if(c==='both') return courseId==='digital'||courseId==='event';
+  return c.split('+').includes(courseId);
+}
+
+function renderStudentCourseCards(){
+  const grid = document.getElementById('course-cards-grid');
+  if(!grid) return;
+  const students = (adminData&&adminData.students)||[];
+  const ico = '<svg viewBox="0 0 24 24"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg>';
+  let cards = COURSES.map(c=>{
+    const count = students.filter(s=>studentInCourse(s,c.id)).length;
+    return `<button class="course-card" onclick="openCourse('${c.id}')">
+      <div class="cc-ic">${ico}</div>
+      <h4>${escapeHtml(c.name)}</h4>
+      <div class="cc-count">${count} student${count!==1?'s':''}</div>
+      <div class="cc-arrow">View students <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+    </button>`;
+  });
+  // "Other / legacy" bucket if any students don't map to a known course
+  const otherCount = students.filter(s=>studentInCourse(s,'__other__')).length;
+  if(otherCount>0){
+    cards.push(`<button class="course-card" onclick="openCourse('__other__')">
+      <div class="cc-ic">${ico}</div><h4>Other</h4>
+      <div class="cc-count">${otherCount} student${otherCount!==1?'s':''}</div>
+      <div class="cc-arrow">View students <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></button>`);
+  }
+  grid.innerHTML = cards.join('') || '<div style="color:var(--muted);font-size:14px;padding:20px">No courses configured yet. Add courses in Settings.</div>';
+}
+
+function openCourse(courseId){
+  _activeCourse = courseId;
+  document.getElementById('students-course-view').style.display='none';
+  document.getElementById('students-list-view').style.display='block';
+  const c = COURSES.find(x=>x.id===courseId);
+  const label = courseId==='__other__' ? 'Other' : (c?c.name:'Course');
+  const count = (adminData.students||[]).filter(s=>studentInCourse(s,courseId)).length;
+  document.getElementById('students-count-label').textContent = `${label} — ${count} student${count!==1?'s':''}`;
+  filterStudents();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function backToCourses(){
+  _activeCourse = null;
+  document.getElementById('students-list-view').style.display='none';
+  document.getElementById('students-course-view').style.display='block';
+  renderStudentCourseCards();
+}
+
+function filterStudents(){
+  const q = document.getElementById('student-search').value.toLowerCase();
+  const filter = document.getElementById('payment-filter').value;
+  const batchF = (document.getElementById('batch-filter')||{}).value || 'all';
+  const statusF = (document.getElementById('status-filter')||{}).value || 'all';
+  document.querySelectorAll('#students-cards .st-card').forEach(row=>{
+    if(!row.dataset.name && row.dataset.name!=='') return;
+    const matchSearch = !q || row.dataset.name.includes(q) || (row.dataset.phone||'').includes(q);
+    const matchPay = filter==='all' || row.dataset.status===filter;
+    const rb = row.dataset.batch || '';
+    const matchBatch = batchF==='all' || (batchF==='none' ? !rb : rb===batchF);
+    const matchStatus = statusF==='all' || row.dataset.estatus===statusF;
+    const matchCourse = !_activeCourse || rowMatchesCourse(row.dataset.courseRaw||'', _activeCourse);
+    row.style.display = matchSearch && matchPay && matchBatch && matchStatus && matchCourse ? '' : 'none';
+  });
+  updateBulkBar();
+}
+function rowMatchesCourse(courseRaw, courseId){
+  return studentInCourse({course:courseRaw}, courseId);
+}
+
+async function deleteStudent(id){
+  if(!confirm('Delete this student? This cannot be undone.')) return;
+  try{
+    const res = await fetch('/api/students?id='+id,{method:'DELETE',headers:{'x-admin-key':adminKey}});
+    if(!res.ok) throw new Error('Failed');
+    adminData.students = adminData.students.filter(s=>s.id!==id);
+    renderAdminDashboard();
+  }catch(e){alert(e.message);}
+}
+
+/* ==================== BATCHES ==================== */
+let batches = [];
+
+async function loadBatches(){
+  try{
+    const res = await fetch('/api/sessions?action=batches',{headers:{'x-admin-key':adminKey}});
+    const data = await res.json();
+    batches = data.batches || [];
+  }catch(e){ batches = []; }
+  populateBatchDropdowns();
+}
+
+function populateBatchDropdowns(){
+  const active = batches.filter(b=>b.status!=='archived');
+  // Filter dropdown
+  const bf = document.getElementById('batch-filter');
+  if(bf){
+    const cur = bf.value;
+    bf.innerHTML = '<option value="all">All batches</option><option value="none">No batch</option>'
+      + batches.map(b=>`<option value="${b.id}">${b.name}${b.status==='archived'?' (archived)':''}</option>`).join('');
+    bf.value = cur || 'all';
+  }
+  // Bulk assign dropdown
+  const bb = document.getElementById('bulk-batch-select');
+  if(bb){
+    bb.innerHTML = '<option value="">Assign to batch…</option><option value="__none__">➖ Remove from batch</option>'
+      + active.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  }
+}
+
+function batchCourseNames(courses){
+  if(!courses||!courses.length) return 'All courses';
+  return courses.map(c=>{
+    const found = (adminData?.settings?.courses||[]).find(x=>x.id===c);
+    return found?found.name:c;
+  }).join(', ');
+}
+
+function openBatchManager(){
+  renderBatchManager();
+  document.getElementById('batch-manager-modal').classList.add('show');
+}
+function closeBatchManager(){ document.getElementById('batch-manager-modal').classList.remove('show'); }
+
+function renderBatchManager(){
+  const wrap = document.getElementById('batch-list');
+  const courseOpts = (adminData?.settings?.courses||[]).map(c=>
+    `<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;margin-right:10px;font-weight:400"><input type="checkbox" class="nb-course" value="${c.id}"> ${c.name}</label>`).join('');
+  document.getElementById('nb-courses').innerHTML = courseOpts || '<span class="muted sm">No courses defined</span>';
+
+  if(!batches.length){
+    wrap.innerHTML = '<div class="empty" style="padding:20px 0">No batches yet. Create your first one above.</div>';
+    return;
+  }
+  wrap.innerHTML = batches.map(b=>{
+    const count = adminData.students.filter(s=>s.batchId===b.id).length;
+    return `<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;${b.status==='archived'?'opacity:.6':''}">
+      <div>
+        <div style="font-weight:600;font-size:14px">${b.name} ${b.status==='archived'?'<span class="badge badge-gold" style="font-size:10px">Archived</span>':''}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">${batchCourseNames(b.courses)} · ${count} student${count!==1?'s':''}${b.startDate?` · starts ${b.startDate}`:''}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="action-btn sm" onclick="toggleBatchArchive('${b.id}')">${b.status==='archived'?'Unarchive':'Archive'}</button>
+        <button class="action-btn sm danger" onclick="deleteBatch('${b.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function createBatch(){
+  const name = document.getElementById('nb-name').value.trim();
+  const startDate = document.getElementById('nb-start').value || null;
+  const courses = [...document.querySelectorAll('.nb-course:checked')].map(c=>c.value);
+  const alertEl = document.getElementById('batch-alert');
+  alertEl.classList.remove('show');
+  if(!name){ showAlert(alertEl,'Batch name is required'); return; }
+  try{
+    const res = await fetch('/api/sessions?action=create-batch',{
+      method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({name,startDate,courses})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed');
+    batches.push(data.batch);
+    document.getElementById('nb-name').value='';
+    document.getElementById('nb-start').value='';
+    document.querySelectorAll('.nb-course:checked').forEach(c=>c.checked=false);
+    populateBatchDropdowns();
+    renderBatchManager();
+  }catch(e){ showAlert(alertEl,e.message); }
+}
+
+async function toggleBatchArchive(id){
+  const b = batches.find(x=>x.id===id); if(!b) return;
+  const next = b.status==='archived'?'active':'archived';
+  try{
+    const res = await fetch('/api/sessions?action=update-batch',{
+      method:'PATCH',headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({batchId:id,status:next})
+    });
+    if(!res.ok) throw new Error('Failed');
+    b.status = next;
+    populateBatchDropdowns(); renderBatchManager();
+  }catch(e){ alert(e.message); }
+}
+
+async function deleteBatch(id){
+  const count = adminData.students.filter(s=>s.batchId===id).length;
+  if(!confirm(`Delete this batch?${count?` ${count} student(s) will be unassigned.`:''} Sessions in this batch become global again. This cannot be undone.`)) return;
+  try{
+    const res = await fetch('/api/sessions?action=delete-batch&batchId='+id,{method:'DELETE',headers:{'x-admin-key':adminKey}});
+    if(!res.ok) throw new Error('Failed');
+    batches = batches.filter(b=>b.id!==id);
+    adminData.students.forEach(s=>{ if(s.batchId===id){ s.batchId=null; s.batchName=null; } });
+    populateBatchDropdowns(); renderBatchManager(); renderAdminDashboard();
+  }catch(e){ alert(e.message); }
+}
+
+async function bulkAssignBatch(){
+  const sel = document.getElementById('bulk-batch-select').value;
+  if(!sel){ alert('Pick a batch (or "Remove from batch") first.'); return; }
+  const ids = getCheckedIds();
+  if(!ids.length){ alert('No students selected.'); return; }
+  const assignBatch = sel==='__none__' ? null : sel;
+  try{
+    const res = await fetch('/api/students',{
+      method:'PATCH',headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({assignBatch,studentIds:ids})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed');
+    const b = assignBatch ? batches.find(x=>x.id===assignBatch) : null;
+    adminData.students.forEach(s=>{ if(ids.includes(s.id)){ s.batchId=b?b.id:null; s.batchName=b?b.name:null; } });
+    clearSelection();
+    renderAdminDashboard();
+    alert(`✅ ${data.updated} student(s) ${b?`assigned to ${b.name}`:'removed from batch'}.`);
+  }catch(e){ alert(e.message); }
+}
+
+/* ==================== FULL PROFILE EDIT ==================== */
+async function handleEsPhoto(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('es-photo-status');
+  statusEl.textContent = 'Uploading…';
+  try{
+    const res = await fetch('/api/upload',{method:'POST',headers:{'Content-Type':file.type,'x-filename':file.name},body:file});
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Upload failed');
+    document.getElementById('es-photo-url').value = data.url;
+    const prev = document.getElementById('es-photo-preview');
+    prev.innerHTML = `<img src="${data.url}" style="width:100%;height:100%;object-fit:cover">`;
+    statusEl.textContent = '✓ Photo uploaded';
+  }catch(e){ statusEl.textContent = e.message; }
+  event.target.value='';
+}
+function toggleGuardian(prefix){
+  const age = parseInt(document.getElementById(prefix+'-age').value);
+  const show = (!isNaN(age) && age>0 && age<=18);
+  if(prefix==='ms'){
+    const w=document.getElementById('ms-guardian-wrap');
+    if(w) w.style.display = show ? 'grid' : 'none';
+  } else {
+    const w1=document.getElementById('es-guardian-wrap');
+    const w2=document.getElementById('es-guardian-phone-wrap');
+    if(w1) w1.style.display = show ? 'block' : 'none';
+    if(w2) w2.style.display = show ? 'block' : 'none';
+  }
+}
+function openEditStudent(id){
+  const s = adminData.students.find(x=>x.id===id);
+  if(!s) return;
+  document.getElementById('es-id').value = s.id;
+  document.getElementById('es-photo-url').value = s.photoUrl||'';
+  const _prev=document.getElementById('es-photo-preview');
+  if(_prev){ _prev.innerHTML = s.photoUrl ? `<img src="${s.photoUrl}" style="width:100%;height:100%;object-fit:cover">` : ((s.name||'?').trim().charAt(0).toUpperCase()); }
+  document.getElementById('es-photo-status').textContent='JPG, PNG or WEBP';
+  document.getElementById('es-name').value = s.name||'';
+  document.getElementById('es-phone').value = s.phone||'';
+  document.getElementById('es-age').value = s.age||'';
+  document.getElementById('es-gender').value = s.gender||'';
+  document.getElementById('es-email').value = s.email||'';
+  document.getElementById('es-fee').value = s.fee||0;
+  document.getElementById('es-guardian').value = s.guardian||'';
+  document.getElementById('es-guardian-phone').value = s.guardianPhone||'';
+  document.getElementById('es-address').value = s.address||'';
+  document.getElementById('es-class').value = s.classType||'in-person';
+  document.getElementById('es-paystatus').value = s.paymentStatus || (s.paid?'verified':'pending');
+  document.getElementById('es-status').value = s.status || 'ongoing';
+  document.getElementById('es-notes').value = s.notes||'';
+  // Course dropdown from settings courses (+ keep current value if legacy)
+  const courseSel = document.getElementById('es-course');
+  const courses = adminData?.settings?.courses||[];
+  let opts = courses.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  // legacy/combo values that may not be in list
+  const known = new Set(courses.map(c=>c.id));
+  const legacyLabels = {both:'Both courses (legacy)',all3:'All courses',all:'All courses',digital:'Digital Marketing',event:'Event Organizing',ai:'Applied AI'};
+  if(s.course && !known.has(s.course)){
+    opts = `<option value="${s.course}">${s.courseLabel||legacyLabels[s.course]||s.course}</option>` + opts;
+  }
+  courseSel.innerHTML = opts;
+  courseSel.value = s.course || (courses[0]?.id||'');
+  // Batch dropdown
+  const batchSel = document.getElementById('es-batch');
+  batchSel.innerHTML = '<option value="">— No batch —</option>' +
+    batches.filter(b=>b.status!=='archived'||b.id===s.batchId).map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  batchSel.value = s.batchId||'';
+  document.getElementById('es-alert').classList.remove('show');
+  toggleGuardian('es');
+  document.getElementById('edit-student-modal').classList.add('show');
+}
+function closeEditStudent(){ document.getElementById('edit-student-modal').classList.remove('show'); }
+
+async function saveEditStudent(){
+  const id = document.getElementById('es-id').value;
+  const alertEl = document.getElementById('es-alert');
+  alertEl.classList.remove('show');
+  const courseSel = document.getElementById('es-course');
+  const courseLabel = courseSel.options[courseSel.selectedIndex]?.text || '';
+  const fields = {
+    name: document.getElementById('es-name').value.trim(),
+    photoUrl: document.getElementById('es-photo-url').value||'',
+    phone: document.getElementById('es-phone').value.trim(),
+    age: parseInt(document.getElementById('es-age').value)||null,
+    gender: document.getElementById('es-gender').value,
+    email: document.getElementById('es-email').value.trim(),
+    fee: parseInt(document.getElementById('es-fee').value)||0,
+    guardian: document.getElementById('es-guardian').value.trim(),
+    guardianPhone: document.getElementById('es-guardian-phone').value.trim(),
+    address: document.getElementById('es-address').value.trim(),
+    classType: document.getElementById('es-class').value,
+    paymentStatus: document.getElementById('es-paystatus').value,
+    status: document.getElementById('es-status').value,
+    notes: document.getElementById('es-notes').value.trim(),
+    course: courseSel.value,
+    courseLabel,
+    batchId: document.getElementById('es-batch').value || null,
+  };
+  if(!fields.name){ showAlert(alertEl,'Name is required'); return; }
+  try{
+    const res = await fetch('/api/students',{
+      method:'PATCH',headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({studentId:id,fields})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed');
+    // update local
+    const s = adminData.students.find(x=>x.id===id);
+    if(s){ Object.assign(s, data.student); }
+    closeEditStudent();
+    renderAdminDashboard();
+  }catch(e){ showAlert(alertEl,e.message); }
+}
+
+// ── Bulk selection ─────────────────────────────────────────
+function getVisibleCheckboxes(){
+  return [...document.querySelectorAll('.student-cb')].filter(cb=>{
+    const card = cb.closest('.st-card');
+    return card && card.style.display !== 'none';
+  });
+}
+
+function getCheckedIds(){
+  return [...document.querySelectorAll('.student-cb:checked')].map(cb=>cb.dataset.id);
+}
+
+function updateBulkBar(){
+  const checked = getCheckedIds();
+  const bar = document.getElementById('bulk-bar');
+  const countEl = document.getElementById('bulk-count');
+  const selectAllCb = document.getElementById('select-all-cb');
+  const visible = getVisibleCheckboxes();
+
+  if(checked.length > 0){
+    bar.style.display = 'flex';
+    countEl.textContent = checked.length + ' student' + (checked.length>1?'s':'') + ' selected';
+  } else {
+    bar.style.display = 'none';
+  }
+
+  // Update select-all checkbox state
+  if(!selectAllCb) return;
+  if(visible.length === 0){ selectAllCb.checked=false; selectAllCb.indeterminate=false; return; }
+  const checkedVisible = visible.filter(cb=>cb.checked).length;
+  if(checkedVisible === 0){ selectAllCb.checked=false; selectAllCb.indeterminate=false; }
+  else if(checkedVisible === visible.length){ selectAllCb.checked=true; selectAllCb.indeterminate=false; }
+  else { selectAllCb.checked=false; selectAllCb.indeterminate=true; }
+}
+
+function onStudentCheck(){ updateBulkBar(); }
+
+function toggleSelectAll(cb){
+  getVisibleCheckboxes().forEach(box=>{ box.checked = cb.checked; });
+  updateBulkBar();
+}
+
+function clearSelection(){
+  document.querySelectorAll('.student-cb').forEach(cb=>cb.checked=false);
+  const selectAllCb = document.getElementById('select-all-cb');
+  if(selectAllCb){ selectAllCb.checked=false; selectAllCb.indeterminate=false; }
+  updateBulkBar();
+}
+
+async function bulkDelete(){
+  const ids = getCheckedIds();
+  if(!ids.length) return;
+  if(!confirm(`Delete ${ids.length} student${ids.length>1?'s':''}? This cannot be undone.`)) return;
+  try{
+    const res = await fetch('/api/students',{
+      method:'DELETE',
+      headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body: JSON.stringify({ids})
+    });
+    if(!res.ok) throw new Error('Bulk delete failed');
+    adminData.students = adminData.students.filter(s=>!ids.includes(s.id));
+    renderAdminDashboard();
+  }catch(e){alert('Delete failed: '+e.message);}
+}
+
+// ── Edit Class Type ────────────────────────────────────────
+function openEditClassType(studentId, currentType) {
+  document.getElementById('edit-ct-student-id').value = studentId;
+  document.getElementById('edit-ct-value').value = currentType;
+  selectEditClassType(currentType);
+  document.getElementById('edit-classtype-modal').classList.add('show');
+}
+function closeEditClassType() { document.getElementById('edit-classtype-modal').classList.remove('show'); }
+function selectEditClassType(type) {
+  document.getElementById('edit-ct-value').value = type;
+  const ip = document.getElementById('edit-ct-inperson');
+  const on = document.getElementById('edit-ct-online');
+  if (type === 'in-person') {
+    ip.style.cssText = 'border:2px solid var(--accent);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:var(--accent-light);transition:.15s';
+    on.style.cssText = 'border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:#fff;transition:.15s';
+  } else {
+    on.style.cssText = 'border:2px solid #3b82f6;border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:#eff6ff;transition:.15s';
+    ip.style.cssText = 'border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;text-align:center;background:#fff;transition:.15s';
+  }
+}
+async function saveEditClassType() {
+  const studentId = document.getElementById('edit-ct-student-id').value;
+  const classType = document.getElementById('edit-ct-value').value;
+  try {
+    const res = await fetch('/api/students', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+      body: JSON.stringify({ studentId, classType })
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Failed');
+    const student = adminData.students.find(s => s.id === studentId);
+    if (student) student.classType = classType;
+    closeEditClassType();
+    renderAdminDashboard();
+  } catch(e) { alert(e.message); }
+}
+
+function copyPortalId(portalId) {
+  navigator.clipboard.writeText(portalId).then(() => {
+    alert(`✅ Copied: ${portalId}\n\nShare this ID with the student to access the student portal at:\ncourse-referral.vercel.app/student-portal.html`);
+  });
+}
+
+async function generatePortalId(studentId) {
+  try {
+    const res = await fetch('/api/student-portal?action=generate-id', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+      body: JSON.stringify({ studentId, classType: 'in-person' })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    const student = adminData.students.find(s => s.id === studentId);
+    if (student) { student.portalId = data.portalId; student.portalActive = true; }
+    renderAdminDashboard();
+    alert(`✅ Portal ID generated!\n\nStudent Portal ID: ${data.portalId}\n\nShare this with the student.`);
+  } catch(e) { alert(e.message); }
+}
+
+async function generateAllPortalIds() {
+  const missing = adminData.students.filter(s => !s.portalId);
+  if (!missing.length) { alert('All students already have Portal IDs!'); return; }
+  if (!confirm(`Generate Portal IDs for ${missing.length} students without IDs?`)) return;
+
+  let generated = 0;
+  for (const s of missing) {
+    try {
+      const res = await fetch('/api/student-portal?action=generate-id', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+        body: JSON.stringify({ studentId: s.id, classType: s.classType || 'in-person' })
+      });
+      const data = await res.json();
+      if (res.ok) { s.portalId = data.portalId; s.portalActive = true; generated++; }
+    } catch(e) {}
+  }
+  renderAdminDashboard();
+  alert(`✅ Generated ${generated} Portal IDs!\n\nRefresh the page and check the Portal ID column to see all IDs.`);
+}
+
+
+async function openGenerateCodesModal() {
+  const ids = getCheckedIds();
+  if (!ids.length) { alert('Select students first'); return; }
+
+  // Show selected students preview
+  const selected = adminData.students.filter(s => ids.includes(s.id));
+  document.getElementById('gen-codes-students-preview').innerHTML =
+    `<div style="font-weight:600;margin-bottom:8px">${selected.length} student${selected.length>1?'s':''} selected:</div>` +
+    selected.map(s => `<div style="padding:3px 0;border-bottom:1px solid var(--border)">👤 ${s.name} — ${s.courseLabel||s.course}</div>`).join('');
+
+  // Load sessions from teacher API
+  const sel = document.getElementById('gen-codes-session');
+  sel.innerHTML = '<option value="">Loading...</option>';
+  try {
+    const res = await fetch('/api/sessions', { headers: { 'x-admin-key': adminKey } });
+    const data = await res.json();
+    const sessions = data.sessions || [];
+    if (!sessions.length) {
+      sel.innerHTML = '<option value="">No sessions found — create one in Teacher Portal first</option>';
+    } else {
+      sel.innerHTML = '<option value="">— Choose a session —</option>' +
+        sessions.map(s => `<option value="${s.id}">Session ${s.sessionNumber}: ${s.title}</option>`).join('');
+    }
+  } catch(e) {
+    sel.innerHTML = '<option value="">Failed to load sessions</option>';
+  }
+
+  document.getElementById('gen-codes-result').style.display = 'none';
+  document.getElementById('gen-codes-actions').style.display = 'flex';
+  document.getElementById('gen-codes-modal').classList.add('show');
+}
+
+function closeGenCodesModal() {
+  document.getElementById('gen-codes-modal').classList.remove('show');
+}
+
+async function generateClassCodes() {
+  const sessionId = document.getElementById('gen-codes-session').value;
+  const alertEl = document.getElementById('gen-codes-alert');
+  if (!sessionId) { showAlert(alertEl, 'Please select a session'); return; }
+
+  const ids = getCheckedIds();
+  const selected = adminData.students.filter(s => ids.includes(s.id));
+
+  const btn = document.getElementById('gen-codes-btn');
+  btn.disabled = true; btn.textContent = 'Generating...';
+
+  try {
+    const res = await fetch('/api/sessions?action=generate-codes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+      body: JSON.stringify({
+        sessionId,
+        count: selected.length,
+        students: selected.map(s => ({ id: s.id, name: s.name, phone: s.phone, course: s.course }))
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+
+    // Show results
+    document.getElementById('gen-codes-result').style.display = 'block';
+    document.getElementById('gen-codes-actions').style.display = 'none';
+    document.getElementById('gen-codes-list').innerHTML = data.codes.map((c, i) => `
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:4px">
+        <div style="font-size:11px;color:var(--muted)">${selected[i]?.name || ''}</div>
+        <div style="font-family:monospace;font-size:18px;font-weight:800;color:var(--accent);letter-spacing:2px">${c.code}</div>
+        <div style="font-size:11px;color:var(--muted)">${selected[i]?.phone || ''}</div>
+      </div>`).join('');
+  } catch(e) { showAlert(alertEl, e.message); }
+
+  btn.disabled = false; btn.textContent = 'Generate Codes';
+}
+
+function copyAllCodes() {
+  const ids = getCheckedIds();
+  const selected = adminData.students.filter(s => ids.includes(s.id));
+  const items = document.getElementById('gen-codes-list').querySelectorAll('div[style]');
+  let text = 'Ghost Digitals Academy — Class Codes\n\n';
+  items.forEach((item, i) => {
+    const name = item.querySelector('div:first-child')?.textContent || '';
+    const code = item.querySelector('div:nth-child(2)')?.textContent || '';
+    const phone = item.querySelector('div:last-child')?.textContent || '';
+    text += `${name} (${phone}): ${code}\n`;
+  });
+  navigator.clipboard.writeText(text).then(() => alert('All codes copied to clipboard!'));
+}
+
+
+let msProofUrl = '';
+let msProofPathname = '';
+let msProofUploading = false;
+
+function openAddStudentModal(){
+  renderManualCourseList();
+  document.getElementById('add-student-modal').classList.add('show');
+  toggleGuardian('ms');
+  document.getElementById('ms-name').focus();
+}
+function closeAddStudentModal(){
+  document.getElementById('add-student-modal').classList.remove('show');
+  document.getElementById('ms-name').value='';
+  document.getElementById('ms-phone').value='';
+  document.getElementById('ms-email').value='';
+  document.getElementById('ms-age').value='';
+  document.getElementById('ms-gender').value='';
+  document.getElementById('ms-guardian').value='';
+  document.getElementById('ms-guardian-phone').value='';
+  document.getElementById('ms-address').value='';
+  document.getElementById('ms-notes').value='';
+  document.querySelectorAll('.ms-course-cb').forEach(cb=>cb.checked=false);
+  document.getElementById('ms-total-row').style.display='none';
+  document.getElementById('ms-discount-note').style.display='none';
+  document.getElementById('add-student-alert').classList.remove('show');
+  document.getElementById('ms-payment-method').value='cash';
+  document.getElementById('ms-payment-status').value='verified';
+  document.getElementById('ms-submit-btn').disabled=false;
+  document.getElementById('ms-submit-text').textContent='Add student';
+  document.getElementById('ms-spinner').style.display='none';
+  clearMsProof();
+}
+function closeAddStudentModalIf(e){if(e.target===document.getElementById('add-student-modal'))closeAddStudentModal();}
+
+function renderManualCourseList(){
+  const wrap = document.getElementById('ms-course-list');
+  if(!wrap) return;
+  const list = adminCourses();
+  if(!list.length){ wrap.innerHTML='<div style="color:var(--muted);font-size:13px">No courses configured yet.</div>'; return; }
+  wrap.innerHTML = list.map(c=>
+    `<label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:400;color:var(--text);cursor:pointer"><input type="checkbox" class="ms-course-cb" value="${c.id}" onchange="updateManualTotal()"> ${c.icon||'📚'} ${escapeHtml(c.name)}${c.hidden?' (hidden)':''} — ${Number(c.price).toLocaleString()} ETB</label>`
+  ).join('');
+}
+
+function updateManualTotal(){
+  const checked = [...document.querySelectorAll('.ms-course-cb:checked')].map(cb=>cb.value);
+  const totalRow = document.getElementById('ms-total-row');
+  const totalEl = document.getElementById('ms-total');
+  const discountNote = document.getElementById('ms-discount-note');
+  if(!checked.length){ totalRow.style.display='none'; return; }
+  totalRow.style.display='block';
+  const allIds = adminCourses().map(c=>c.id);
+  const isBundle = allIds.length>=2 && BUNDLE_DISCOUNT>0 && allIds.every(k=>checked.includes(k));
+  const raw = checked.reduce((s,k)=>s+Number(adminCourses().find(c=>c.id===k)?.price||0),0);
+  const total = isBundle ? Math.round(raw*(1-BUNDLE_DISCOUNT/100)) : raw;
+  totalEl.textContent = total.toLocaleString()+' ETB';
+  totalEl.style.color = isBundle ? 'var(--gold)' : 'var(--accent)';
+  if(discountNote){
+    discountNote.style.display = isBundle ? 'block' : 'none';
+    if(isBundle) discountNote.textContent = `🎉 Bundle discount — saves ${(raw-total).toLocaleString()} ETB`;
+  }
+}
+
+async function handleMsProofSelect(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('ms-upload-status');
+  const boxEl = document.getElementById('ms-upload-box');
+  const allowed = ['image/jpeg','image/png','image/webp','image/heic','image/heif'];
+  if(!allowed.includes(file.type)){
+    statusEl.textContent='Please choose a JPG, PNG, or WEBP image';
+    statusEl.className='upload-status error'; return;
+  }
+  if(file.size > 5*1024*1024){
+    statusEl.textContent='File is too large. Max 5MB';
+    statusEl.className='upload-status error'; return;
+  }
+  // Local preview
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('ms-preview-img').src = e.target.result;
+    document.getElementById('ms-upload-empty').style.display = 'none';
+    document.getElementById('ms-upload-preview').style.display = 'block';
+    document.getElementById('ms-upload-filename').textContent = file.name;
+  };
+  reader.readAsDataURL(file);
+  // Upload
+  msProofUploading = true; msProofUrl = ''; msProofPathname = '';
+  statusEl.textContent = 'Uploading...'; statusEl.className = 'upload-status uploading';
+  try{
+    const res = await fetch('/api/upload',{method:'POST',headers:{'Content-Type':file.type},body:file});
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Upload failed');
+    msProofUrl = data.url; msProofPathname = data.pathname;
+    statusEl.textContent = '✓ Uploaded'; statusEl.className = 'upload-status success';
+  }catch(e){
+    statusEl.textContent = e.message; statusEl.className = 'upload-status error';
+    boxEl.classList.add('has-error');
+  }finally{ msProofUploading = false; }
+}
+
+function clearMsProof(){
+  msProofUrl = ''; msProofPathname = '';
+  const fi = document.getElementById('ms-proof-file');
+  if(fi) fi.value = '';
+  const empty = document.getElementById('ms-upload-empty');
+  const preview = document.getElementById('ms-upload-preview');
+  const status = document.getElementById('ms-upload-status');
+  const box = document.getElementById('ms-upload-box');
+  if(empty) empty.style.display = 'block';
+  if(preview) preview.style.display = 'none';
+  if(status){ status.textContent=''; status.className='upload-status'; }
+  if(box) box.classList.remove('has-error');
+}
+
+async function addStudentManually(){
+  const name = document.getElementById('ms-name').value.trim();
+  const phone = document.getElementById('ms-phone').value.trim();
+  const email = document.getElementById('ms-email').value.trim();
+  const age = parseInt(document.getElementById('ms-age').value)||null;
+  const gender = document.getElementById('ms-gender').value;
+  const guardian = document.getElementById('ms-guardian').value.trim();
+  const guardianPhone = document.getElementById('ms-guardian-phone').value.trim();
+  const address = document.getElementById('ms-address').value.trim();
+  const notes = document.getElementById('ms-notes').value.trim();
+  const paymentMethod = document.getElementById('ms-payment-method').value;
+  const paymentStatus = document.getElementById('ms-payment-status').value;
+  const alertEl = document.getElementById('add-student-alert');
+
+  const checked = [...document.querySelectorAll('.ms-course-cb:checked')].map(cb=>cb.value);
+  if(!name){showAlert(alertEl,'Full name is required');return;}
+  if(!phone){showAlert(alertEl,'Phone number is required');return;}
+  if(!checked.length){showAlert(alertEl,'Please select at least one course');return;}
+  if(msProofUploading){showAlert(alertEl,'Please wait for the proof to finish uploading');return;}
+
+  const allIds = COURSES.map(c=>c.id);
+  const isBundle = allIds.length>=2 && BUNDLE_DISCOUNT>0 && allIds.every(k=>checked.includes(k));
+  const rawFee = checked.reduce((s,k)=>s+Number(courseById(k)?.price||0),0);
+  const fee = isBundle ? Math.round(rawFee*(1-BUNDLE_DISCOUNT/100)) : rawFee;
+  const courseKey = isBundle ? 'all' : (checked.length===1 ? checked[0] : checked.join('+'));
+  const courseLabel = isBundle ? 'All courses' : checked.map(k=>courseById(k)?.name||k).join(' + ');
+  const paymentMethodLabel = {cash:'Cash',telebirr:'Telebirr',cbe:'CBE'}[paymentMethod]||paymentMethod;
+
+  const classType = document.getElementById('ms-class-type').value;
+
+  const btn = document.getElementById('ms-submit-btn');
+  const spinner = document.getElementById('ms-spinner');
+  btn.disabled=true; spinner.style.display='block';
+  document.getElementById('ms-submit-text').textContent='Adding...';
+
+  try{
+    const res = await fetch('/api/register',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({name,phone,email,age,gender,guardian,guardianPhone,address,notes,course:courseKey,courseLabel,fee,paymentMethod,paymentMethodLabel,paymentStatus,classType,proofUrl:msProofUrl,proofPathname:msProofPathname,manualEntry:true})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed to add student');
+    adminData.students.push({...data, courseLabel, fee, paymentStatus, paymentMethodLabel});
+    closeAddStudentModal();
+    renderAdminDashboard();
+    // Show student ID
+    if(data.portalId){
+      alert(`✅ Student added!\n\nStudent Portal ID: ${data.portalId}\n\nShare this ID with the student to access the student portal.`);
+    }
+  }catch(e){
+    showAlert(alertEl,e.message);
+    btn.disabled=false; spinner.style.display='none';
+    document.getElementById('ms-submit-text').textContent='Add student';
+  }
+}
+
+
+function openAddRepModal(){document.getElementById('modal-alert').classList.remove('show');document.getElementById('add-rep-modal').classList.add('show');document.getElementById('modal-rep-name').focus();}
+function closeAddRepModal(){document.getElementById('add-rep-modal').classList.remove('show');document.getElementById('modal-rep-name').value='';document.getElementById('modal-rep-phone').value='';}
+function closeModalIf(e){if(e.target===document.getElementById('add-rep-modal'))closeAddRepModal();}
+
+async function addRep(){
+  const name = document.getElementById('modal-rep-name').value.trim();
+  const phone = document.getElementById('modal-rep-phone').value.trim();
+  const alertEl = document.getElementById('modal-alert');
+  if(!name){showAlert(alertEl,'Name is required');return;}
+  try{
+    const res = await fetch('/api/reps',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({name,phone})
+    });
+    if(!res.ok) throw new Error('Failed to add rep');
+    const rep = await res.json();
+    adminData.reps.push(rep);
+    closeAddRepModal();
+    renderAdminDashboard();
+  }catch(e){showAlert(alertEl,e.message);}
+}
+
+async function deleteRep(id){
+  if(!confirm('Remove this sales rep?')) return;
+  try{
+    const res = await fetch('/api/reps?id='+id,{method:'DELETE',headers:{'x-admin-key':adminKey}});
+    if(!res.ok) throw new Error('Failed');
+    adminData.reps = adminData.reps.filter(r=>r.id!==id);
+    renderAdminDashboard();
+  }catch(e){alert(e.message);}
+}
+
+function exportCSV(){
+  if(!adminData||!adminData.students.length){alert('No students to export yet.');return;}
+  const {students,reps} = adminData;
+  const rows=[['Name','Phone','Email','Course','Fee (ETB)','Referred By','Date','Payment Method','Payment Status','Proof URL'],
+    ...students.map(s=>[s.name,s.phone,s.email||'',s.courseLabel,s.fee,
+      s.ref?(reps.find(r=>r.id===s.ref)?.name||s.ref):'Direct',s.date,
+      s.paymentMethodLabel||'',s.paymentStatus||(s.paid?'verified':'pending'),s.proofUrl||''])];
+  const csv=rows.map(r=>r.map(c=>'"'+String(c||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='students.csv';a.click();
+}
+
+// ── Rep Portal ────────────────────────────────────────────
+async function repLogin(){
+  const code = document.getElementById('rep-code-input').value.trim();
+  const alertEl = document.getElementById('rep-login-alert');
+  if(!code){showAlert(alertEl,'Please enter your rep code');return;}
+  const btn = document.getElementById('rep-login-btn');
+  const spinner = document.getElementById('rep-login-spinner');
+  btn.disabled=true; spinner.style.display='block';
+  document.getElementById('rep-login-btn-text').textContent='Loading...';
+  try{
+    const res = await fetch('/api/rep-stats?id='+encodeURIComponent(code));
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Rep not found');
+    currentRepId = code;
+    renderRepDashboard(data);
+    document.getElementById('rep-login-screen').style.display='none';
+    document.getElementById('rep-dashboard-screen').style.display='block';
+  }catch(e){
+    showAlert(alertEl,e.message);
+    btn.disabled=false; spinner.style.display='none';
+    document.getElementById('rep-login-btn-text').textContent='View my stats';
+  }
+}
+
+function renderRepDashboard(data){
+  const {rep,signups,revenue,breakdown,students} = data;
+  const base = window.location.origin + '/';
+  const myLink = base+'?ref='+rep.id;
+  document.getElementById('rep-welcome').textContent = 'Hello, '+rep.name+'!';
+  document.getElementById('rep-my-link').textContent = myLink;
+  document.getElementById('rep-signups').textContent = signups;
+  document.getElementById('rep-revenue').textContent = revenue.toLocaleString();
+
+  // This month count
+  const thisMonth = students.filter(s=>{
+    const d = new Date(s.date.split('/').reverse().join('-'));
+    const now = new Date();
+    return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+  }).length;
+  document.getElementById('rep-this-month').textContent = thisMonth;
+
+  document.getElementById('rep-bd-digital').textContent = (breakdown.digital||0)+' students';
+  document.getElementById('rep-bd-event').textContent = (breakdown.event||0)+' students';
+  document.getElementById('rep-bd-ai').textContent = (breakdown.ai||0)+' students';
+  document.getElementById('rep-bd-both').textContent = (breakdown.all3||0)+' students';
+
+  const tbody = document.getElementById('rep-students-tbody');
+  if(!students.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty">No students yet. Share your link to start!</div></td></tr>';return;}
+  tbody.innerHTML = students.map(s=>{
+    const status = s.paymentStatus || (s.paid ? 'verified' : 'pending');
+    let payBadge;
+    if(status==='verified') payBadge = '<span style="padding:3px 10px;border-radius:20px;background:#edf5ec;color:#1e4019;font-size:12px;font-weight:600">✅ Verified</span>';
+    else if(status==='rejected') payBadge = '<span style="padding:3px 10px;border-radius:20px;background:#fdf0ee;color:#c0392b;font-size:12px;font-weight:600">❌ Rejected</span>';
+    else payBadge = '<span style="padding:3px 10px;border-radius:20px;background:#fdf6e3;color:#c4860a;font-size:12px;font-weight:600">⏳ Pending</span>';
+    return `<tr>
+    <td style="font-weight:500">${s.name}</td>
+    <td><span class="badge badge-green">${s.course}</span></td>
+    <td>${(s.fee||0).toLocaleString()}</td>
+    <td style="color:var(--muted)">${s.date}</td>
+    <td>${payBadge}</td>
+  </tr>`;
+  }).join('');
+}
+
+function repLogout(){
+  currentRepId='';
+  document.getElementById('rep-code-input').value='';
+  document.getElementById('rep-login-btn').disabled=false;
+  document.getElementById('rep-login-spinner').style.display='none';
+  document.getElementById('rep-login-btn-text').textContent='View my stats';
+  document.getElementById('rep-login-screen').style.display='flex';
+  document.getElementById('rep-dashboard-screen').style.display='none';
+}
+
+function copyRepLink(){
+  const link = document.getElementById('rep-my-link').textContent;
+  copyText(link,null);
+  const btn = event.currentTarget;
+  btn.textContent='✓ Copied!';
+  setTimeout(()=>btn.textContent='Copy link',2000);
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function showAlert(el,msg){
+  el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),4000);
+}
+
+function copyText(text,btn){
+  navigator.clipboard.writeText(text).then(()=>{
+    if(!btn) return;
+    const orig=btn.textContent;btn.textContent='✓';
+    setTimeout(()=>btn.textContent=orig,2000);
+  });
+}
+</script>
+</body>
+</html>
