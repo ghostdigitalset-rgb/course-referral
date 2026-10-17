@@ -1,6 +1,6 @@
 import { getData, setData } from './_store.js';
 import { verifyAdmin } from './_auth.js';
-import { seatInfo, DEFAULT_ROUND_ID } from './_seats.js';
+import { seatInfo, courseIdsFor, DEFAULT_ROUND_ID } from './_seats.js';
 
 const BASE_FEES = { digital: 10000, event: 8000, ai: 10000 };
 const BASE_LABELS = { digital: 'Digital Marketing', event: 'Event Organizing', ai: 'Applied AI' };
@@ -165,12 +165,6 @@ export default async function handler(req, res) {
   const isAdmin = verifyAdmin(req.headers['x-admin-key'], data).ok;
   const isManual = !!manualEntry && isAdmin;
 
-  // The current round can be closed by the admin between rounds.
-  const round = data?.settings?.currentRound || { id: DEFAULT_ROUND_ID, label: '2nd round', open: data?.settings?.registrationOpen !== false, seats: {} };
-  if (!isAdmin && round.open === false) {
-    return res.status(403).json({ error: 'Registration is closed right now. Please check back for the next round.' });
-  }
-
   // Hidden courses can't be picked by the public. Admins (manual entry) can still
   // assign students to them.
   const dynamicCourses = isAdmin ? allCourses : allCourses.filter(c => !c.hidden);
@@ -178,14 +172,26 @@ export default async function handler(req, res) {
   const resolved = resolveCourse(course, courseLabel, fee, dynamicCourses, bundleDiscount);
   if (!resolved) return res.status(400).json({ error: 'Invalid course selection' });
 
-  // Seat check for public registrations: each round has its own seats for in-person and
-  // online. Only confirmed students use them. Admin manual entries skip this check.
-  if (!isManual) {
-    const ct = classType === 'online' ? 'online' : 'in-person';
-    const info = seatInfo(data.students, round, ct);
-    if (info.left === 0) {
-      return res.status(409).json({ error: `Sorry, ${ct === 'online' ? 'online' : 'in-person'} seats are full for ${round.label || 'this round'}.` });
+  // Each course has its own round. For every course in this registration, record the round
+  // the student joins. Public registrations must be to an open round with seats left for
+  // the chosen class type. Admin manual entries skip these checks.
+  const ct = classType === 'online' ? 'online' : 'in-person';
+  const coveredCourses = courseIdsFor(resolved.courseKey, dynamicCourses)
+    .map(id => dynamicCourses.find(c => String(c.id) === id))
+    .filter(Boolean);
+  const roundIds = {};
+  for (const c of coveredCourses) {
+    const round = c.round || {};
+    if (!isManual) {
+      if (!isAdmin && round.open === false) {
+        return res.status(403).json({ error: `Registration for ${c.name} is closed right now. Please check back for the next round.` });
+      }
+      const info = seatInfo(data.students, c, ct);
+      if (info.left === 0) {
+        return res.status(409).json({ error: `Sorry, ${ct === 'online' ? 'online' : 'in-person'} seats are full for ${c.name} (${round.label || 'this round'}).` });
+      }
     }
+    roundIds[String(c.id)] = round.id || DEFAULT_ROUND_ID;
   }
 
   if (!paymentMethod || !PAYMENT_METHODS[paymentMethod]) {
@@ -228,7 +234,7 @@ export default async function handler(req, res) {
     paid: isVerified,
     manualEntry: isManual,
     classType: classType || 'in-person',
-    round: round.id,
+    roundIds,
     status: 'ongoing',
     portalId,
     portalActive: true,
