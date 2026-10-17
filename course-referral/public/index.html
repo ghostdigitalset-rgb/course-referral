@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ghost Digitals Academy — Courses in Addis Ababa</title>
 <meta name="description" content="Practical courses in digital marketing, event organizing and applied AI, taught by industry professionals in Addis Ababa. Register online.">
-<link rel="icon" type="image/png" href="/logo.png">
+<link rel="icon" type="image/png" href="/gd-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -32,13 +32,6 @@ html{scroll-behavior:smooth;scroll-padding-top:90px}
 body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:16px;line-height:1.6}
 a{color:inherit}
 .wrap{max-width:1140px;margin:0 auto;padding:0 24px}
-
-/* Utility bar */
-.util{background:var(--accent-text);color:#dfe9dc;font-size:13px}
-.util .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
-.util .items{display:flex;gap:20px;flex-wrap:wrap}
-.util a{text-decoration:none;opacity:.9}
-.util a:hover{opacity:1;text-decoration:underline}
 
 /* Main nav */
 .nav{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
@@ -167,7 +160,6 @@ footer p{color:#b9cab4;margin-top:14px;max-width:320px}
 }
 @media(max-width:560px){
   .wrap{padding:0 18px}
-  .util .items{display:none}
   .hero{padding:48px 0 56px}
   section.block{padding:64px 0}
   .strip .wrap{grid-template-columns:1fr}
@@ -180,26 +172,11 @@ footer p{color:#b9cab4;margin-top:14px;max-width:320px}
 </head>
 <body>
 
-<!-- Utility bar -->
-<div class="util">
-  <div class="wrap">
-    <div class="items">
-      <span>📍 Addis Ababa, Ethiopia</span>
-      <a href="tel:+251985340983">📞 +251 98 534 0983</a>
-      <a href="https://t.me/GhostDigitalsAcademySupport" target="_blank" rel="noopener">✈️ @GhostDigitalsAcademySupport</a>
-    </div>
-    <div class="items">
-      <a href="register.html?page=rep">Sales rep login</a>
-      <a href="register.html?page=admin">Staff login</a>
-    </div>
-  </div>
-</div>
-
 <!-- Main nav -->
 <header class="nav" id="top">
   <div class="wrap">
     <a class="brand" href="index.html">
-      <img src="/logo.png" alt="Ghost Digitals Academy logo">
+      <img src="/gd-logo.png" alt="Ghost Digitals Academy logo">
       <div><strong>Ghost Digitals</strong><span>ACADEMY · ADDIS ABABA</span></div>
     </a>
     <nav class="links" id="main-links">
@@ -350,7 +327,7 @@ footer p{color:#b9cab4;margin-top:14px;max-width:320px}
     <div class="foot-grid">
       <div>
         <a class="brand" href="index.html" style="display:flex">
-          <img src="/logo.png" alt="" style="height:40px;width:auto">
+          <img src="/gd-logo.png" alt="" style="height:40px;width:auto">
           <div><strong>Ghost Digitals</strong><span>ACADEMY · ADDIS ABABA</span></div>
         </a>
         <p>Practical courses in digital marketing, event organizing and applied AI.</p>
@@ -366,8 +343,6 @@ footer p{color:#b9cab4;margin-top:14px;max-width:320px}
         <h4>Contact</h4>
         <a href="https://t.me/GhostDigitalsAcademySupport" target="_blank" rel="noopener">Telegram</a>
         <a href="tel:+251985340983">+251 98 534 0983</a>
-        <a href="register.html?page=rep">Sales rep login</a>
-        <a href="register.html?page=admin">Staff login</a>
       </div>
     </div>
     <div class="foot-bottom">
@@ -450,5 +425,49 @@ async function loadCourses(){
 }
 loadCourses();
 </script>
+<!-- Telegram quick contact (floating) -->
+<div class="gda-tg" id="gda-tg">
+  <div class="gda-tg-menu" id="gda-tg-menu" role="menu" aria-hidden="true">
+    <a href="https://t.me/GhostDigitalsAcademySupport" target="_blank" rel="noopener" role="menuitem">
+      <span class="gda-tg-ic">💬</span>
+      <span><strong>Chat with us</strong><small>Ask questions and get help</small></span>
+    </a>
+    <a href="https://t.me/GhostDigitalsAcademy" target="_blank" rel="noopener" role="menuitem">
+      <span class="gda-tg-ic">📢</span>
+      <span><strong>Join our channel</strong><small>News, updates and announcements</small></span>
+    </a>
+  </div>
+  <button class="gda-tg-btn" id="gda-tg-btn" aria-label="Contact us on Telegram" aria-expanded="false" onclick="gdaTgToggle()">
+    <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path fill="#fff" d="M9.04 15.27 8.9 19.2c.42 0 .6-.18.82-.4l1.97-1.89 4.08 2.99c.75.41 1.28.2 1.48-.69l2.68-12.56c.27-1.12-.4-1.56-1.13-1.29L3.87 10.4c-1.1.43-1.08 1.05-.19 1.33l4.02 1.25 9.33-5.88c.44-.29.84-.13.51.16z"/></svg>
+  </button>
+</div>
+<style>
+.gda-tg{position:fixed;right:18px;bottom:18px;z-index:999;display:flex;flex-direction:column;align-items:flex-end;gap:12px;font-family:'Plus Jakarta Sans',system-ui,sans-serif}
+.gda-tg-btn{width:58px;height:58px;border-radius:50%;border:none;background:#229ED9;box-shadow:0 10px 26px rgba(34,158,217,.45);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.gda-tg-btn:hover{transform:scale(1.06);box-shadow:0 12px 30px rgba(34,158,217,.55)}
+.gda-tg-btn:focus-visible{outline:3px solid rgba(34,158,217,.4);outline-offset:3px}
+.gda-tg-menu{display:flex;flex-direction:column;gap:10px;opacity:0;transform:translateY(8px) scale(.98);pointer-events:none;transition:opacity .18s,transform .18s}
+.gda-tg.open .gda-tg-menu{opacity:1;transform:none;pointer-events:auto}
+.gda-tg-menu a{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e4e8df;border-radius:16px;padding:12px 16px 12px 12px;box-shadow:0 10px 28px rgba(20,40,15,.16);text-decoration:none;color:#161a14;min-width:250px}
+.gda-tg-menu a:hover{border-color:#229ED9}
+.gda-tg-ic{width:40px;height:40px;border-radius:12px;background:#e6f4fb;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.gda-tg-menu strong{display:block;font-size:14.5px;font-weight:700;line-height:1.2}
+.gda-tg-menu small{display:block;font-size:12px;color:#697062;margin-top:2px}
+body:has(#admin-page.active) .gda-tg{display:none}
+@media(max-width:560px){.gda-tg{right:14px;bottom:14px}.gda-tg-menu a{min-width:0;width:calc(100vw - 110px)}}
+</style>
+<script>
+function gdaTgToggle(){
+  const w = document.getElementById('gda-tg');
+  const open = w.classList.toggle('open');
+  document.getElementById('gda-tg-btn').setAttribute('aria-expanded', open);
+  document.getElementById('gda-tg-menu').setAttribute('aria-hidden', !open);
+}
+document.addEventListener('click', e => {
+  const w = document.getElementById('gda-tg');
+  if (w && w.classList.contains('open') && !w.contains(e.target)) gdaTgToggle();
+});
+</script>
+
 </body>
 </html>
