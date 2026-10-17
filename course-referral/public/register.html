@@ -996,6 +996,12 @@ tr:last-child td{border-bottom:none}
             <span id="courses-save-text">Save courses</span>
             <div class="spinner" id="courses-spinner"></div>
           </button>
+          <div style="max-width:720px;margin-top:28px">
+            <h3 style="margin:0 0 4px">Frequently asked questions</h3>
+            <p style="font-size:13px;color:var(--muted);margin:0 0 14px">These appear on the landing page, and the chat bot answers students from them automatically. Saved with "Save courses" above.</p>
+            <div id="faq-editor"></div>
+            <button class="action-btn sm" onclick="addFaqRow()">+ Add question</button>
+          </div>
         </div>
 
         <!-- ===== TEACHER LOGINS ===== -->
@@ -1582,6 +1588,7 @@ function renderCourseCards(){
   }
   grid.innerHTML = COURSES.map((c,i)=>{
     const full = i === COURSES.length-1 && COURSES.length % 2 === 1; // last odd card spans full width
+    const scheduleLine = c.schedule ? `<div class="desc" style="margin-top:2px">🗓 ${escapeHtml(c.schedule)}</div>` : '';
     const durationLine = c.duration ? `<div class="desc" style="margin-top:2px">⏱ ${escapeHtml(c.duration)}</div>` : '';
     const disc = isDiscountActive();
     const priceLine = disc
@@ -1604,6 +1611,7 @@ function renderCourseCards(){
       ${priceLine}
       ${c.description?`<div class="desc">${escapeHtml(c.description)}</div>`:''}
       ${durationLine}
+      ${scheduleLine}
       ${roundLine}
       ${seatLine}
     </div>`;
@@ -2214,6 +2222,8 @@ function populateSettingsForm(settings){
   document.getElementById('set-cbe-holder').value = settings.cbe?.holder || '';
   // Courses
   courseDraft = Array.isArray(settings.courses) ? JSON.parse(JSON.stringify(settings.courses)) : [];
+  faqDraft = Array.isArray(settings.faqs) ? JSON.parse(JSON.stringify(settings.faqs)) : [];
+  renderFaqEditor();
   document.getElementById('set-bundle-discount').value = (settings.bundleDiscount ?? 0);
   document.getElementById('set-discount-percent').value = (settings.discountPercent ?? 0);
   document.getElementById('set-badge-text').value = settings.badgeText || '';
@@ -2424,12 +2434,54 @@ function renderCourseEditor(){
           <input type="text" value="${escapeAttr(c.description||'')}" oninput="courseDraft[${i}].description=this.value" placeholder="Short summary shown to students">
         </div>
       </div>
+      <div class="field">
+        <label>Class schedule (students see this before they register)</label>
+        <input type="text" value="${escapeAttr(c.schedule||'')}" oninput="courseDraft[${i}].schedule=this.value" placeholder="e.g. Mon &amp; Wed, 6:00-8:00 PM">
+      </div>
       ${roundEditorHtml(c,i)}
     </div>
   `).join('');
 }
 
 function escapeAttr(s){return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+
+// ── FAQ editor (shown on the landing page and used by the chat bot) ──
+let faqDraft = [];
+
+function renderFaqEditor(){
+  const wrap = document.getElementById('faq-editor');
+  if(!wrap) return;
+  wrap.innerHTML = faqDraft.map((f,i)=>`
+    <div class="data-card" style="padding:16px 18px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:var(--muted)">QUESTION ${i+1}</div>
+        <button onclick="deleteFaqRow(${i})" style="background:none;border:none;color:var(--danger,#e53e3e);cursor:pointer;font-size:16px" title="Delete question">🗑</button>
+      </div>
+      <div class="field">
+        <label>Question</label>
+        <input type="text" value="${escapeAttr(f.q)}" oninput="faqDraft[${i}].q=this.value" placeholder="e.g. How do I pay?">
+      </div>
+      <div class="field">
+        <label>Automatic answer</label>
+        <textarea rows="3" oninput="faqDraft[${i}].a=this.value" placeholder="The answer students see">${escapeHtml(f.a)}</textarea>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Other ways to ask (optional, comma-separated)</label>
+        <input type="text" value="${escapeAttr((f.keywords||[]).join(', '))}" oninput="faqDraft[${i}].keywords=this.value.split(',').map(s=>s.trim()).filter(Boolean)" placeholder="e.g. payment, pay, telebirr, cbe">
+      </div>
+    </div>`).join('') || '<div style="color:var(--muted);font-size:13px;margin-bottom:12px">No questions yet. Click "Add question".</div>';
+}
+
+function addFaqRow(){
+  faqDraft.push({ q:'', a:'', keywords:[] });
+  renderFaqEditor();
+}
+
+function deleteFaqRow(i){
+  if(!confirm('Delete this question?')) return;
+  faqDraft.splice(i,1);
+  renderFaqEditor();
+}
 
 function addCourseRow(){
   courseDraft.push({ id:'', name:'', price:0, description:'', duration:'', icon:'📚', hidden:false });
@@ -2458,6 +2510,10 @@ async function saveCourses(){
     if(!Number.isFinite(p)||p<0){ showAlert(alertEl,`Course ${i+1} has an invalid price`); return; }
   }
 
+  for(let i=0;i<faqDraft.length;i++){
+    if(!faqDraft[i].q.trim() || !faqDraft[i].a.trim()){ showAlert(alertEl,`Question ${i+1} needs both a question and an answer`); return; }
+  }
+
   const btn=document.getElementById('courses-save-btn');
   const spinner=document.getElementById('courses-spinner');
   const text=document.getElementById('courses-save-text');
@@ -2471,6 +2527,7 @@ async function saveCourses(){
         action:'courses',
         courses: courseDraft,
         badgeText: document.getElementById('set-badge-text').value,
+        faqs: faqDraft.map(f=>({ q:f.q.trim(), a:f.a.trim(), keywords:f.keywords||[] })),
         bundleDiscount: Number(document.getElementById('set-bundle-discount').value)||0,
         discountPercent: Number(document.getElementById('set-discount-percent').value)||0,
         discountStart: document.getElementById('set-discount-start').value || null,
@@ -2491,7 +2548,9 @@ async function saveCourses(){
     DISCOUNT_END = data.settings.discountEnd ? new Date(data.settings.discountEnd+'T23:59:59') : null;
     applyDiscountBannerVisibility();
     courseDraft = JSON.parse(JSON.stringify(allSaved));
+    faqDraft = JSON.parse(JSON.stringify(data.settings.faqs || []));
     renderCourseEditor();
+    renderFaqEditor();
     renderCourseCards();
     loadPaymentSettings();
     renderManualCourseList();
