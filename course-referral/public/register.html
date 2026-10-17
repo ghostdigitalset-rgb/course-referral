@@ -79,6 +79,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .course-card{border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;background:var(--surface);text-align:left}
 .course-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:#c7d3c2}
 .course-card.selected{border-color:var(--accent);background:var(--accent-light)}
+.course-card.closed{opacity:.55;cursor:not-allowed;background:var(--bg)}
+.course-card.closed:hover{transform:none;box-shadow:none}
+.course-seats{font-size:11.5px;color:var(--muted);margin-top:6px;font-weight:600}
+.course-round{font-size:11.5px;font-weight:700;margin-top:8px;color:var(--accent-text)}
+.course-round.closed-tag{color:var(--muted)}
 .course-card .icon{width:36px;height:36px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:all .15s}
 .course-card.selected .icon{background:var(--accent);color:#fff}
 .course-card .course-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;flex-shrink:0;transition:all 0.15s}
@@ -955,38 +960,6 @@ tr:last-child td{border-bottom:none}
             </div>
           </div>
 
-          <!-- ===== REGISTRATION ROUND ===== -->
-          <div class="data-card" style="max-width:720px;padding:20px 24px;margin-bottom:20px">
-            <h3 style="font-size:15px;font-weight:600;margin-bottom:4px">🎓 Registration round</h3>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Seats are counted per round. Confirmed students in this round use up its seats. Leave seats at 0 for unlimited. Start a new round when the current one is full or finished.</div>
-            <div class="grid-2">
-              <div class="field">
-                <label>Round name</label>
-                <input type="text" id="set-round-label" maxlength="40" placeholder="2nd round">
-              </div>
-              <div class="field">
-                <label>Registration</label>
-                <select id="set-reg-open">
-                  <option value="open">Open</option>
-                  <option value="closed">Closed</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>In-person seats</label>
-                <input type="number" min="0" id="set-seats-inperson" placeholder="0">
-              </div>
-              <div class="field">
-                <label>Online seats</label>
-                <input type="number" min="0" id="set-seats-online" placeholder="0">
-              </div>
-            </div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
-              <button class="action-btn primary" onclick="saveRound()">Save round</button>
-              <button class="action-btn" onclick="startNewRound()">+ Start new round</button>
-            </div>
-            <div id="round-alert" class="alert alert-danger" style="margin-top:12px"></div>
-            <div id="round-success" class="alert alert-success" style="margin-top:12px"></div>
-          </div>
 
           <!-- ===== OFFER BADGE ===== -->
           <div class="data-card" style="max-width:720px;padding:20px 24px;margin-bottom:20px">
@@ -1537,39 +1510,65 @@ async function loadPaymentSettings(){
   }
 }
 
-// Round name, open/closed state and seats per class type, set by the admin in Settings.
+// Each course has its own round: name, open/closed and seats per class type.
 let SEAT_FULL = { 'in-person': false, online: false };
 
-function setSeatChip(id, total, left){
+function courseClosed(c){ return !!c && !!c.round && c.round.open === false; }
+
+function courseSeatInfo(c, type){
+  const r = c.round || {};
+  const total = Number((r.seats || {})[type]) || 0;
+  const left = total > 0 ? (((r.seatsLeft || {})[type]) ?? total) : null;
+  return { total, left };
+}
+
+function seatLineFor(c){
+  const parts = [];
+  [['in-person','In-person'],['online','Online']].forEach(([t,label])=>{
+    const info = courseSeatInfo(c,t);
+    if(info.total > 0) parts.push(info.left === 0 ? label+' full' : label+' '+info.left+' left');
+  });
+  return parts.join(' · ');
+}
+
+function setSeatChipEl(id, text, cls){
   const el = document.getElementById(id);
   if(!el) return;
-  if(!total){ el.textContent = 'Open seats'; el.className = 'seat-chip'; return; }
-  if(left === 0){ el.textContent = 'Full'; el.className = 'seat-chip seat-chip-out'; return; }
-  el.textContent = left + ' seat' + (left === 1 ? '' : 's') + ' left';
-  el.className = 'seat-chip' + (left <= 3 ? ' seat-chip-low' : '');
+  el.textContent = text;
+  el.className = 'seat-chip' + (cls ? ' '+cls : '');
+}
+
+// Class type cards show seats for the courses the student has selected.
+function updateSeatChips(){
+  const sel = [...selectedCourses].map(courseById).filter(Boolean);
+  ['in-person','online'].forEach(t=>{
+    const id = t === 'online' ? 'seats-online' : 'seats-inperson';
+    const limited = sel.map(c=>courseSeatInfo(c,t)).filter(x=>x.total > 0);
+    const full = limited.some(x=>x.left === 0);
+    SEAT_FULL[t] = full;
+    if(!sel.length){ setSeatChipEl(id, 'Choose a course first', ''); return; }
+    if(full){ setSeatChipEl(id, 'Full for your course', 'seat-chip-out'); return; }
+    if(!limited.length){ setSeatChipEl(id, 'Open seats', ''); return; }
+    const minLeft = Math.min(...limited.map(x=>x.left));
+    setSeatChipEl(id, minLeft+' seat'+(minLeft===1?'':'s')+' left', minLeft <= 3 ? 'seat-chip-low' : '');
+  });
 }
 
 function applyRoundState(){
-  const s = paymentSettings || {};
-  const r = s.currentRound || {};
-  const round = (r.label || '2nd round').trim();
-  const open = r.open !== false;
+  const open = COURSES.filter(c=>!courseClosed(c));
+  const names = [...new Set(open.map(c=>(c.round?.label||'').trim()).filter(Boolean))];
   document.querySelectorAll('[data-round-text]').forEach(el=>{
-    el.textContent = open ? round+' registration is now open' : round+' registration is closed';
+    el.textContent = open.length
+      ? (names.join(' & ') || 'Registration') + ' is now open'
+      : 'Registration is closed right now';
   });
   const btn = document.getElementById('reg-btn');
   const btnText = document.getElementById('reg-btn-text');
-  if(btn) btn.disabled = !open;
-  if(btnText) btnText.textContent = open ? 'Complete registration' : 'Registration closed';
-
-  const total = r.seats || {};
-  const left = r.seatsLeft || {};
-  setSeatChip('seats-inperson', total['in-person'], left['in-person']);
-  setSeatChip('seats-online', total.online, left.online);
-  SEAT_FULL = {
-    'in-person': total['in-person'] > 0 && left['in-person'] === 0,
-    online: total.online > 0 && left.online === 0
-  };
+  if(btn) btn.disabled = open.length === 0;
+  if(btnText) btnText.textContent = open.length ? 'Complete registration' : 'Registration closed';
+  // A course that closed after it was picked is dropped from the selection.
+  for(const id of [...selectedCourses]){ if(courseClosed(courseById(id))) selectedCourses.delete(id); }
+  updateCourseUI();
 }
 
 // Build the registration course cards from loaded COURSES
@@ -1588,7 +1587,14 @@ function renderCourseCards(){
     const priceLine = disc
       ? `<div class="fee">${effectivePrice(c.price).toLocaleString()} ETB <span style="font-size:12px;font-weight:500;color:var(--muted);text-decoration:line-through;margin-left:4px">${Number(c.price).toLocaleString()} ETB</span></div>`
       : `<div class="fee">${Number(c.price).toLocaleString()} ETB</div>`;
-    return `<div class="course-card" id="card-${c.id}" onclick="toggleCourse('${c.id}')" ${full?'style="grid-column:1/-1"':''}>
+    const closed = courseClosed(c);
+    const roundLine = c.round && c.round.label
+      ? (closed
+          ? `<div class="course-round closed-tag">🔒 ${escapeHtml(c.round.label)} registration is closed</div>`
+          : `<div class="course-round">${escapeHtml(c.round.label)} · open</div>`)
+      : '';
+    const seatLine = !closed && seatLineFor(c) ? `<div class="course-seats">${seatLineFor(c)}</div>` : '';
+    return `<div class="course-card${closed?' closed':''}" id="card-${c.id}" onclick="toggleCourse('${c.id}')" ${full?'style="grid-column:1/-1"':''}>
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
         <div class="icon">${c.icon||'📚'}</div>
         <div class="course-check" id="check-${c.id}">✓</div>
@@ -1598,6 +1604,8 @@ function renderCourseCards(){
       ${priceLine}
       ${c.description?`<div class="desc">${escapeHtml(c.description)}</div>`:''}
       ${durationLine}
+      ${roundLine}
+      ${seatLine}
     </div>`;
   }).join('');
 
@@ -1631,12 +1639,20 @@ function courseById(id){ return COURSES.find(c=>c.id===id); }
 function adminCourses(){ return (adminData?.settings?.courses) || COURSES; }
 
 function toggleCourse(key){
+  if(courseClosed(courseById(key)) && !selectedCourses.has(key)){
+    alert('Registration for this course is closed right now.');
+    return;
+  }
   if(selectedCourses.has(key)) selectedCourses.delete(key);
   else selectedCourses.add(key);
   updateCourseUI();
 }
 
 function selectAllCourses(){
+  if(COURSES.some(courseClosed)){
+    alert('The bundle needs every course to be open. Some courses are closed right now.');
+    return;
+  }
   const allIds = COURSES.map(c=>c.id);
   const allSelected = allIds.every(k=>selectedCourses.has(k));
   if(allSelected){ selectedCourses.clear(); }
@@ -1645,6 +1661,7 @@ function selectAllCourses(){
 }
 
 function updateCourseUI(){
+  updateSeatChips();
   const allIds = COURSES.map(c=>c.id);
   const allSelected = allIds.length>0 && allIds.every(k=>selectedCourses.has(k));
 
@@ -2200,7 +2217,6 @@ function populateSettingsForm(settings){
   document.getElementById('set-bundle-discount').value = (settings.bundleDiscount ?? 0);
   document.getElementById('set-discount-percent').value = (settings.discountPercent ?? 0);
   document.getElementById('set-badge-text').value = settings.badgeText || '';
-  fillRoundFields(settings);
   document.getElementById('set-discount-start').value = settings.discountStart || '';
   document.getElementById('set-discount-end').value = settings.discountEnd || '';
   renderCourseEditor();
@@ -2276,39 +2292,72 @@ function copyText(t){
 // ── Admin course editor ───────────────────────────────────
 let courseDraft = [];
 
-function fillRoundFields(settings){
-  const cr = settings.currentRound || {};
-  document.getElementById('set-round-label').value = cr.label || '';
-  document.getElementById('set-reg-open').value = cr.open === false ? 'closed' : 'open';
-  document.getElementById('set-seats-inperson').value = cr.seats?.['in-person'] || 0;
-  document.getElementById('set-seats-online').value = cr.seats?.online || 0;
+function roundEditorHtml(c,i){
+  if(!c.id) return '<div style="font-size:12.5px;color:var(--muted);border-top:1px solid var(--border);margin-top:16px;padding-top:14px">Save the course first to set its registration round.</div>';
+  const r = c.round || {};
+  const s = r.seats || {};
+  const open = r.open !== false;
+  return `<div style="border-top:1px solid var(--border);margin-top:16px;padding-top:14px">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px">🎓 REGISTRATION ROUND · ${escapeHtml(r.label||'not set')} · <span style="color:${open?'var(--accent-text)':'var(--danger,#e53e3e)'}">${open?'OPEN':'CLOSED'}</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="field">
+            <label>Round name</label>
+            <input type="text" id="cr-label-${i}" maxlength="40" value="${escapeAttr(r.label||'')}" placeholder="2nd round">
+          </div>
+          <div class="field">
+            <label>Registration</label>
+            <select id="cr-open-${i}">
+              <option value="open" ${open?'selected':''}>Open</option>
+              <option value="closed" ${open?'':'selected'}>Closed</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>In-person seats</label>
+            <input type="number" min="0" id="cr-inp-${i}" value="${Number(s['in-person'])||0}" placeholder="0">
+          </div>
+          <div class="field">
+            <label>Online seats</label>
+            <input type="number" min="0" id="cr-onl-${i}" value="${Number(s.online)||0}" placeholder="0">
+          </div>
+        </div>
+        <div style="font-size:11.5px;color:var(--muted);margin:-4px 0 10px">0 seats = unlimited. Seats are counted per course and per round, using confirmed payments.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="action-btn primary" onclick="saveCourseRound(${i})">Save round</button>
+          <button class="action-btn" onclick="startCourseNewRound(${i})">+ Start new round</button>
+        </div>
+      </div>`;
 }
 
-function roundFormBody(){
+function readCourseRoundForm(i){
+  const seats = {
+    'in-person': Math.max(0, Math.round(Number(document.getElementById('cr-inp-'+i).value) || 0)),
+    online: Math.max(0, Math.round(Number(document.getElementById('cr-onl-'+i).value) || 0))
+  };
   return {
-    label: document.getElementById('set-round-label').value,
-    open: document.getElementById('set-reg-open').value === 'open',
-    seats: {
-      'in-person': Math.max(0, Math.round(Number(document.getElementById('set-seats-inperson').value) || 0)),
-      online: Math.max(0, Math.round(Number(document.getElementById('set-seats-online').value) || 0))
-    }
+    label: document.getElementById('cr-label-'+i).value,
+    open: document.getElementById('cr-open-'+i).value === 'open',
+    seats
   };
 }
 
-async function postRound(action, body, okMsg){
-  const alertEl = document.getElementById('round-alert');
-  const successEl = document.getElementById('round-success');
+async function postCourseRound(action, i, body, okMsg){
+  const alertEl = document.getElementById('courses-alert');
+  const successEl = document.getElementById('courses-success');
   alertEl.classList.remove('show'); successEl.classList.remove('show');
   try{
     const res = await fetch('/api/settings',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-admin-key':adminKey},
-      body:JSON.stringify({action, ...body})
+      body:JSON.stringify({action, courseId: courseDraft[i].id, ...body})
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error || 'Failed to save');
     adminData.settings = data.settings;
-    fillRoundFields(data.settings);
+    // Refresh this course's round in the editor without losing unsaved name/price edits.
+    const saved = (data.settings.courses || []).find(c => String(c.id) === String(courseDraft[i].id));
+    if(saved){ courseDraft[i].round = saved.round; courseDraft[i].roundHistory = saved.roundHistory; }
+    renderCourseEditor();
+    loadPaymentSettings();
     successEl.textContent = '✓ ' + okMsg;
     successEl.classList.add('show');
     setTimeout(()=>successEl.classList.remove('show'), 3000);
@@ -2317,18 +2366,22 @@ async function postRound(action, body, okMsg){
   }
 }
 
-function saveRound(){
-  const body = roundFormBody();
-  if(!body.label.trim()){ showAlert(document.getElementById('round-alert'), 'Round name is required'); return; }
-  postRound('round', body, 'Round saved');
+function saveCourseRound(i){
+  const c = courseDraft[i];
+  if(!c || !c.id) return;
+  const body = readCourseRoundForm(i);
+  if(!body.label.trim()){ showAlert(document.getElementById('courses-alert'), 'Round name is required for ' + (c.name || 'this course')); return; }
+  postCourseRound('course-round', i, body, 'Round saved for ' + (c.name || 'course'));
 }
 
-function startNewRound(){
-  const body = roundFormBody();
-  const name = prompt('Name for the new round (for example: 3rd round)', '');
+function startCourseNewRound(i){
+  const c = courseDraft[i];
+  if(!c || !c.id) return;
+  const name = prompt('Name for the new round of ' + (c.name||'this course') + ' (for example: 3rd round)', '');
   if(!name || !name.trim()) return;
-  if(!confirm('Start "' + name.trim() + '"?\n\nThe current round will be closed. The new round starts with empty seats.')) return;
-  postRound('new-round', { ...body, label: name.trim(), open: true }, 'New round started');
+  if(!confirm('Start "' + name.trim() + '" for ' + (c.name||'this course') + '?\n\nThe current round closes. The new round starts with empty seats.')) return;
+  const body = readCourseRoundForm(i);
+  postCourseRound('course-new-round', i, { ...body, label: name.trim(), open: true }, 'New round started for ' + (c.name||'course'));
 }
 
 function renderCourseEditor(){
@@ -2371,6 +2424,7 @@ function renderCourseEditor(){
           <input type="text" value="${escapeAttr(c.description||'')}" oninput="courseDraft[${i}].description=this.value" placeholder="Short summary shown to students">
         </div>
       </div>
+      ${roundEditorHtml(c,i)}
     </div>
   `).join('');
 }
@@ -2439,6 +2493,7 @@ async function saveCourses(){
     courseDraft = JSON.parse(JSON.stringify(allSaved));
     renderCourseEditor();
     renderCourseCards();
+    loadPaymentSettings();
     renderManualCourseList();
     loadTeacherLogins();
     successEl.textContent = '✓ Courses updated';
