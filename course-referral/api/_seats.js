@@ -1,30 +1,30 @@
-// Seat counting. A student takes a seat in a course once their payment is confirmed
-// (paid / verified) and they haven't dropped out. Bundles count against every course they include.
+// Seats are counted per registration round and per class type (in-person / online).
+// A student takes a seat once their payment is confirmed (paid / verified) and they haven't dropped out.
+// Students saved before rounds existed have no `round` field and belong to DEFAULT_ROUND_ID.
 
-function coversCourse(student, courseId) {
-  const key = String(student.course || '');
-  if (!key) return false;
-  if (key === 'all' || key === 'all3' || key === 'both') return true;
-  if (key === courseId) return true;
-  if (key.includes('+')) return key.split('+').includes(courseId);
-  return false;
+export const DEFAULT_ROUND_ID = 'r1';
+
+export function roundIdOf(student) {
+  return student.round || DEFAULT_ROUND_ID;
 }
 
 function isConfirmed(student) {
   return student.paid === true || student.paymentStatus === 'verified';
 }
 
-export function enrolledCount(students, courseId) {
+export function takenSeats(students, roundId, classType) {
   return (students || []).filter(
-    (s) => isConfirmed(s) && s.status !== 'dropped' && coversCourse(s, String(courseId))
+    (s) =>
+      isConfirmed(s) &&
+      s.status !== 'dropped' &&
+      roundIdOf(s) === roundId &&
+      (s.classType || 'in-person') === classType
   ).length;
 }
 
-// Course ids a resolved course key covers, e.g. 'all' -> every dynamic course,
-// 'abc+def' -> ['abc','def'], 'abc' -> ['abc'].
-export function courseIdsFor(courseKey, dynamicCourses) {
-  if (courseKey === 'all' || courseKey === 'all3') {
-    return dynamicCourses.map((c) => String(c.id));
-  }
-  return String(courseKey).split('+').filter((k) => dynamicCourses.some((c) => String(c.id) === k));
+// total 0 = unlimited (left is null).
+export function seatInfo(students, round, classType) {
+  const total = Number(round?.seats?.[classType]) || 0;
+  const taken = takenSeats(students, round?.id || DEFAULT_ROUND_ID, classType);
+  return { total, taken, left: total > 0 ? Math.max(0, total - taken) : null };
 }
