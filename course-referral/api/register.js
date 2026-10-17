@@ -156,13 +156,17 @@ export default async function handler(req, res) {
   if (!phone || !phone.trim()) return res.status(400).json({ error: 'Phone is required' });
 
   const data = await getData();
-  const dynamicCourses = (data?.settings?.courses) || [];
+  const allCourses = (data?.settings?.courses) || [];
   const bundleDiscount = Number(data?.settings?.bundleDiscount) || 0;
 
   // A manual (admin-entered) registration is only honored for an authenticated admin.
   // Public visitors always go through the normal proof-of-payment flow.
   const isAdmin = verifyAdmin(req.headers['x-admin-key'], data).ok;
   const isManual = !!manualEntry && isAdmin;
+
+  // Hidden courses can't be picked by the public. Admins (manual entry) can still
+  // assign students to them.
+  const dynamicCourses = isAdmin ? allCourses : allCourses.filter(c => !c.hidden);
 
   const resolved = resolveCourse(course, courseLabel, fee, dynamicCourses, bundleDiscount);
   if (!resolved) return res.status(400).json({ error: 'Invalid course selection' });
