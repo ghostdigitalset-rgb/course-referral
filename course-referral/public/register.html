@@ -501,7 +501,7 @@ tr:last-child td{border-bottom:none}
   <!-- TRUST STRIP -->
   <div class="gda-trust">
     <div class="gda-trust-inner">
-      <span><i></i>2nd round registration open</span>
+      <span><i></i><span data-round-text>2nd round registration is now open</span></span>
       <span><i></i><span id="trust-discount-text">Discount active</span></span>
       <span><i></i>Certified instructors</span>
     </div>
@@ -526,7 +526,7 @@ tr:last-child td{border-bottom:none}
 
       <div class="gda-panel-left">
         <div class="discount-strip" style="display:none"></div>
-        <div class="gda-eyebrow">✦ 2nd round registration is now open</div>
+        <div class="gda-eyebrow">✦ <span data-round-text>2nd round registration is now open</span></div>
         <h2>Where Skills Meet Real Results</h2>
         <p>Digital marketing and event organizing courses taught by industry professionals in Addis Ababa.</p>
         <a class="gda-pill" href="#course-select">Register now <span aria-hidden="true">→</span></a>
@@ -950,6 +950,25 @@ tr:last-child td{border-bottom:none}
               <label>Bundle discount (%) — applied when a student selects ALL courses</label>
               <input type="number" id="set-bundle-discount" min="0" max="90" placeholder="10" style="max-width:160px">
               <div style="font-size:12px;color:var(--muted);margin-top:6px">Set to 0 for no bundle discount.</div>
+            </div>
+          </div>
+
+          <!-- ===== REGISTRATION ROUND ===== -->
+          <div class="data-card" style="max-width:720px;padding:20px 24px;margin-bottom:20px">
+            <h3 style="font-size:15px;font-weight:600;margin-bottom:4px">🎓 Registration round</h3>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Shown to students on the website. Close registration between rounds to stop new sign-ups.</div>
+            <div class="grid-2">
+              <div class="field" style="margin-bottom:0">
+                <label>Round name</label>
+                <input type="text" id="set-round-label" maxlength="40" placeholder="2nd round">
+              </div>
+              <div class="field" style="margin-bottom:0">
+                <label>Registration</label>
+                <select id="set-reg-open">
+                  <option value="open">Open</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -1495,10 +1514,25 @@ async function loadPaymentSettings(){
     applyDiscountBannerVisibility();
     renderPaymentSettings();
     renderCourseCards();
+    applyRoundState();
   }catch(e){
     document.getElementById('pm-telebirr-number').textContent = 'Unavailable — contact us';
     document.getElementById('pm-cbe-number').textContent = 'Unavailable — contact us';
   }
+}
+
+// Round name + open/closed state, set by the admin in Settings.
+function applyRoundState(){
+  const s = paymentSettings || {};
+  const round = (s.roundLabel || '2nd round').trim();
+  const open = s.registrationOpen !== false;
+  document.querySelectorAll('[data-round-text]').forEach(el=>{
+    el.textContent = open ? round+' registration is now open' : round+' registration is closed';
+  });
+  const btn = document.getElementById('reg-btn');
+  const btnText = document.getElementById('reg-btn-text');
+  if(btn) btn.disabled = !open;
+  if(btnText) btnText.textContent = open ? 'Complete registration' : 'Registration closed';
 }
 
 // Build the registration course cards from loaded COURSES
@@ -2138,6 +2172,8 @@ function populateSettingsForm(settings){
   document.getElementById('set-bundle-discount').value = (settings.bundleDiscount ?? 0);
   document.getElementById('set-discount-percent').value = (settings.discountPercent ?? 0);
   document.getElementById('set-badge-text').value = settings.badgeText || '';
+  document.getElementById('set-round-label').value = settings.roundLabel || '';
+  document.getElementById('set-reg-open').value = settings.registrationOpen === false ? 'closed' : 'open';
   document.getElementById('set-discount-start').value = settings.discountStart || '';
   document.getElementById('set-discount-end').value = settings.discountEnd || '';
   renderCourseEditor();
@@ -2303,6 +2339,8 @@ async function saveCourses(){
         action:'courses',
         courses: courseDraft,
         badgeText: document.getElementById('set-badge-text').value,
+        roundLabel: document.getElementById('set-round-label').value,
+        registrationOpen: document.getElementById('set-reg-open').value === 'open',
         bundleDiscount: Number(document.getElementById('set-bundle-discount').value)||0,
         discountPercent: Number(document.getElementById('set-discount-percent').value)||0,
         discountStart: document.getElementById('set-discount-start').value || null,
