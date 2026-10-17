@@ -1404,6 +1404,9 @@ function renderPaymentSettings(){
 // ── Course multi-select ───────────────────────────────────
 function courseById(id){ return COURSES.find(c=>c.id===id); }
 
+// Every course, including hidden ones. Only the admin page uses this.
+function adminCourses(){ return (adminData?.settings?.courses) || COURSES; }
+
 function toggleCourse(key){
   if(selectedCourses.has(key)) selectedCourses.delete(key);
   else selectedCourses.add(key);
@@ -2054,8 +2057,11 @@ function renderCourseEditor(){
   wrap.innerHTML = courseDraft.map((c,i)=>`
     <div class="data-card" style="padding:18px 20px;margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div style="font-size:12px;font-weight:700;color:var(--muted)">COURSE ${i+1}</div>
-        <button onclick="deleteCourseRow(${i})" style="background:none;border:none;color:var(--danger,#e53e3e);cursor:pointer;font-size:16px" title="Delete course">🗑</button>
+        <div style="font-size:12px;font-weight:700;color:var(--muted)">COURSE ${i+1}${c.hidden?' · <span style="color:var(--gold)">HIDDEN FROM STUDENTS</span>':''}</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="action-btn sm" onclick="toggleCourseHidden(${i})" title="${c.hidden?'Show this course on registration':'Hide this course from registration'}">${c.hidden?'👁 Show':'🙈 Hide'}</button>
+          <button onclick="deleteCourseRow(${i})" style="background:none;border:none;color:var(--danger,#e53e3e);cursor:pointer;font-size:16px" title="Delete course">🗑</button>
+        </div>
       </div>
       <div class="field">
         <label>Name *</label>
@@ -2088,7 +2094,12 @@ function renderCourseEditor(){
 function escapeAttr(s){return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 
 function addCourseRow(){
-  courseDraft.push({ id:'', name:'', price:0, description:'', duration:'', icon:'📚' });
+  courseDraft.push({ id:'', name:'', price:0, description:'', duration:'', icon:'📚', hidden:false });
+  renderCourseEditor();
+}
+
+function toggleCourseHidden(i){
+  courseDraft[i].hidden = !courseDraft[i].hidden;
   renderCourseEditor();
 }
 
@@ -2130,14 +2141,17 @@ async function saveCourses(){
     const data = await res.json();
     if(!res.ok) throw new Error(data.error||'Failed to save');
     adminData.settings = data.settings;
-    // Refresh live state so registration + editor reflect new courses
-    COURSES = data.settings.courses || [];
+    // Refresh live state so registration + editor reflect new courses.
+    // The save response includes hidden courses, so split them: the registration
+    // list gets visible ones only, and the editor keeps all of them.
+    const allSaved = data.settings.courses || [];
+    COURSES = allSaved.filter(c => !c.hidden);
     BUNDLE_DISCOUNT = Number(data.settings.bundleDiscount)||0;
     DISCOUNT_PERCENT = Number(data.settings.discountPercent) || 0;
     DISCOUNT_START = data.settings.discountStart ? new Date(data.settings.discountStart+'T00:00:00') : null;
     DISCOUNT_END = data.settings.discountEnd ? new Date(data.settings.discountEnd+'T23:59:59') : null;
     applyDiscountBannerVisibility();
-    courseDraft = JSON.parse(JSON.stringify(COURSES));
+    courseDraft = JSON.parse(JSON.stringify(allSaved));
     renderCourseEditor();
     renderCourseCards();
     renderManualCourseList();
@@ -2909,9 +2923,10 @@ function closeAddStudentModalIf(e){if(e.target===document.getElementById('add-st
 function renderManualCourseList(){
   const wrap = document.getElementById('ms-course-list');
   if(!wrap) return;
-  if(!COURSES.length){ wrap.innerHTML='<div style="color:var(--muted);font-size:13px">No courses configured yet.</div>'; return; }
-  wrap.innerHTML = COURSES.map(c=>
-    `<label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:400;color:var(--text);cursor:pointer"><input type="checkbox" class="ms-course-cb" value="${c.id}" onchange="updateManualTotal()"> ${c.icon||'📚'} ${escapeHtml(c.name)} — ${Number(c.price).toLocaleString()} ETB</label>`
+  const list = adminCourses();
+  if(!list.length){ wrap.innerHTML='<div style="color:var(--muted);font-size:13px">No courses configured yet.</div>'; return; }
+  wrap.innerHTML = list.map(c=>
+    `<label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:400;color:var(--text);cursor:pointer"><input type="checkbox" class="ms-course-cb" value="${c.id}" onchange="updateManualTotal()"> ${c.icon||'📚'} ${escapeHtml(c.name)}${c.hidden?' (hidden)':''} — ${Number(c.price).toLocaleString()} ETB</label>`
   ).join('');
 }
 
@@ -2922,9 +2937,9 @@ function updateManualTotal(){
   const discountNote = document.getElementById('ms-discount-note');
   if(!checked.length){ totalRow.style.display='none'; return; }
   totalRow.style.display='block';
-  const allIds = COURSES.map(c=>c.id);
+  const allIds = adminCourses().map(c=>c.id);
   const isBundle = allIds.length>=2 && BUNDLE_DISCOUNT>0 && allIds.every(k=>checked.includes(k));
-  const raw = checked.reduce((s,k)=>s+Number(courseById(k)?.price||0),0);
+  const raw = checked.reduce((s,k)=>s+Number(adminCourses().find(c=>c.id===k)?.price||0),0);
   const total = isBundle ? Math.round(raw*(1-BUNDLE_DISCOUNT/100)) : raw;
   totalEl.textContent = total.toLocaleString()+' ETB';
   totalEl.style.color = isBundle ? 'var(--gold)' : 'var(--accent)';
