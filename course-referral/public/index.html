@@ -385,14 +385,30 @@ function renderCourses(s){
     const priceHtml = disc
       ? `${money(sale)}<s>${money(price)}</s>`
       : money(price);
-    const btn = '<a class="btn btn-primary btn-sm" href="register.html">Register for this course</a>';
+    const r = c.round || {};
+    const closed = r.open === false;
+    const btn = closed
+      ? '<span class="btn btn-ghost btn-sm" style="opacity:.6;cursor:not-allowed" aria-disabled="true">Registration closed</span>'
+      : '<a class="btn btn-primary btn-sm" href="register.html">Register for this course</a>';
+    const roundTag = r.label
+      ? `<div class="meta" style="color:${closed?'var(--muted)':'var(--accent-text)'};font-weight:700">${closed?'🔒 ':''}${esc(r.label)} · ${closed?'closed':'open'}</div>`
+      : '';
+    const seats = [];
+    const sInfo = r.seats || {}, sLeft = r.seatsLeft || {};
+    if (!closed){
+      if (sInfo['in-person'] > 0) seats.push('In-person: ' + (sLeft['in-person'] === 0 ? 'full' : sLeft['in-person'] + ' left'));
+      if (sInfo.online > 0) seats.push('Online: ' + (sLeft.online === 0 ? 'full' : sLeft.online + ' left'));
+    }
+    const seatHtml = seats.length ? `<div class="meta">🪑 ${esc(seats.join(' · '))}</div>` : '';
     return `
-      <article class="course">
+      <article class="course"${closed ? ' style="opacity:.75"' : ''}>
         ${disc ? `<span class="tag">-${pct}% offer</span>` : ''}
         <div class="course-ic">${esc(c.icon || '📚')}</div>
         <h3>${esc(c.name)}</h3>
         <p class="desc">${esc(c.description || '')}</p>
         ${c.duration ? `<div class="meta">⏱ ${esc(c.duration)}</div>` : ''}
+        ${roundTag}
+        ${seatHtml}
         <div class="price">${priceHtml}</div>
         ${btn}
       </article>`;
@@ -414,28 +430,22 @@ function renderCourses(s){
   }
 }
 
+// Each course has its own round. The headline shows the open rounds.
 function applyLandingRound(s){
-  const r = s.currentRound || {};
-  const round = (r.label || '').trim();
-  const open = r.open !== false;
+  const courses = Array.isArray(s.courses) ? s.courses : [];
+  const open = courses.filter(c => !c.round || c.round.open !== false);
+  const names = [...new Set(open.map(c => ((c.round && c.round.label) || '').trim()).filter(Boolean))];
   const tag = document.getElementById('round-tag');
   const desc = document.getElementById('round-desc');
-  if(tag) tag.textContent = open
-    ? (round ? round+' registration is open' : 'Registration is open')
-    : (round ? round+' registration is closed' : 'Registration is closed');
+  if(tag) tag.textContent = open.length
+    ? (names.join(' & ') ? names.join(' & ') + ' registration is open' : 'Registration is open')
+    : 'Registration is closed right now';
   if(!desc) return;
-  if(!open){
+  if(!open.length){
     desc.textContent = 'Registration is closed for now. Message us on Telegram to get notified about the next round.';
     return;
   }
-  const total = r.seats || {};
-  const left = r.seatsLeft || {};
-  const parts = [];
-  if(total['in-person'] > 0) parts.push('In-person: ' + (left['in-person'] === 0 ? 'full' : left['in-person'] + ' left'));
-  if(total.online > 0) parts.push('Online: ' + (left.online === 0 ? 'full' : left.online + ' left'));
-  desc.textContent = parts.length
-    ? 'Seats left: ' + parts.join(' · ')
-    : 'Secure your place. It takes a few minutes.';
+  desc.textContent = 'Seats are shown on each course. Secure your place. It takes a few minutes.';
 }
 
 async function loadCourses(){
