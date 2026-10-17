@@ -1,6 +1,6 @@
 import { getData, setData } from './_store.js';
 import { verifyAdmin } from './_auth.js';
-import { enrolledCount } from './_seats.js';
+import { seatInfo, DEFAULT_ROUND_ID } from './_seats.js';
 
 // Default courses (used only if none saved yet — preserves your original 3)
 const DEFAULT_COURSES = [
@@ -8,6 +8,12 @@ const DEFAULT_COURSES = [
   { id: 'event',   name: 'Event Organizing',  price: 8000,  description: 'Planning, logistics & execution', duration: '', icon: '🎪' },
   { id: 'ai',      name: 'Applied AI: Tools, Techniques, and Real-World Use Cases', price: 10000, description: 'AI tools, prompt engineering & practical applications', duration: '', icon: '🤖' }
 ];
+
+const cleanSeats = (v) => Math.max(0, Math.round(Number(v) || 0));
+
+function newRoundId() {
+  return 'r' + Date.now().toString(36);
+}
 
 function ensureDefaults(data) {
   if (!data.settings) data.settings = {};
@@ -17,11 +23,45 @@ function ensureDefaults(data) {
   if (!('discountStart' in data.settings)) data.settings.discountStart = null; // 'YYYY-MM-DD'
   if (!('discountEnd' in data.settings)) data.settings.discountEnd = null;     // 'YYYY-MM-DD'
   if (typeof data.settings.badgeText !== 'string') data.settings.badgeText = ''; // offer banner text, empty = hidden
-  if (typeof data.settings.roundLabel !== 'string') data.settings.roundLabel = '2nd round'; // e.g. '3rd round'
-  if (typeof data.settings.registrationOpen !== 'boolean') data.settings.registrationOpen = true;
+  if (!Array.isArray(data.settings.roundHistory)) data.settings.roundHistory = [];
+  if (!data.settings.currentRound) {
+    // Migrate from the old single-round settings. The round that is active now keeps the
+    // default id, so students saved before rounds existed stay counted in it.
+    const legacyLabel = typeof data.settings.roundLabel === 'string' ? data.settings.roundLabel.trim() : '';
+    data.settings.currentRound = {
+      id: DEFAULT_ROUND_ID,
+      label: legacyLabel || '2nd round',
+      open: data.settings.registrationOpen !== false,
+      seats: { 'in-person': 0, online: 0 },
+      createdAt: new Date().toISOString()
+    };
+  }
+  delete data.settings.roundLabel;
+  delete data.settings.registrationOpen;
   if (!data.settings.telebirr) data.settings.telebirr = { number: '', holder: 'Ghost Digitals Academy' };
   if (!data.settings.cbe) data.settings.cbe = { number: '', holder: 'Ghost Digitals Academy' };
   return data;
+}
+
+// What students see about the current round: name, open state, seats total and seats left.
+function publicRound(round, students) {
+  const inP = seatInfo(students, round, 'in-person');
+  const onl = seatInfo(students, round, 'online');
+  return {
+    id: round.id,
+    label: round.label,
+    open: round.open !== false,
+    seats: { 'in-person': inP.total, online: onl.total },
+    seatsLeft: { 'in-person': inP.left, online: onl.left }
+  };
+}
+
+function applyRoundFields(round, body) {
+  if (typeof body.label === 'string' && body.label.trim()) round.label = body.label.trim().slice(0, 40);
+  if (typeof body.open === 'boolean') round.open = body.open;
+  if (body.seats && typeof body.seats === 'object') {
+    round.seats = { 'in-person': cleanSeats(body.seats['in-person']), online: cleanSeats(body.seats.online) };
+  }
 }
 
 export default async function handler(req, res) {
@@ -31,23 +71,17 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method === 'GET') {
-    // Public: registration page needs account numbers + course list
+    // Public: registration page needs account numbers, course list and round info
     let data = await getData();
     data = ensureDefaults(data);
     await setData(data);
-    // Hidden courses are left out for public visitors. The admin page reads
-    // everything from /api/admin, so it still sees hidden courses.
+    // Hidden courses and round history are left out for public visitors.
+    const { roundHistory, ...rest } = data.settings;
     const students = data.students || [];
-    const publicCourses = data.settings.courses
-      .filter(c => !c.hidden)
-      .map(c => {
-        const seats = Number(c.seats) || 0; // 0 = unlimited
-        const taken = enrolledCount(students, String(c.id));
-        return { ...c, seats, seatsLeft: seats > 0 ? Math.max(0, seats - taken) : null };
-      });
     return res.status(200).json({
-      ...data.settings,
-      courses: publicCourses
+      ...rest,
+      courses: data.settings.courses.filter(c => !c.hidden),
+      currentRound: publicRound(data.settings.currentRound, students)
     });
   }
 
@@ -83,7 +117,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, settings: data.settings });
     }
 
-    // ── Save courses + bundle discount + sitewide discount ────
+    // ── Save courses + bundle discount + sitewide discount + offer badge ────
     if (action === 'courses') {
       const { courses, bundleDiscount, discountPercent, discountStart, discountEnd } = req.body;
       if (!Array.isArray(courses)) {
@@ -102,8 +136,7 @@ export default async function handler(req, res) {
           description: (c.description || '').trim(),
           duration: (c.duration || '').trim(),
           icon: (c.icon || '📚').trim() || '📚',
-          hidden: c.hidden === true,
-          seats: Math.max(0, Math.round(Number(c.seats) || 0))
+          hidden: c.hidden === true
         });
       }
       let disc = Number(bundleDiscount);
@@ -124,8 +157,33 @@ export default async function handler(req, res) {
       data.settings.discountStart = cleanStart;
       data.settings.discountEnd = cleanEnd;
       if (typeof req.body.badgeText === 'string') data.settings.badgeText = req.body.badgeText.trim().slice(0, 80);
-      if (typeof req.body.roundLabel === 'string' && req.body.roundLabel.trim()) data.settings.roundLabel = req.body.roundLabel.trim().slice(0, 40);
-      if (typeof req.body.registrationOpen === 'boolean') data.settings.registrationOpen = req.body.registrationOpen;
+      await setData(data);
+      return res.status(200).json({ ok: true, settings: data.settings });
+    }
+
+    // ── Update the current round (name, open/closed, seats) ────
+    if (action === 'round') {
+      applyRoundFields(data.settings.currentRound, req.body);
+      await setData(data);
+      return res.status(200).json({ ok: true, settings: data.settings });
+    }
+
+    // ── Start a new round: closes the current one and starts fresh seats ────
+    if (action === 'new-round') {
+      const prev = data.settings.currentRound;
+      prev.open = false;
+      prev.endedAt = new Date().toISOString();
+      data.settings.roundHistory.push(prev);
+
+      const next = {
+        id: newRoundId(),
+        label: 'New round',
+        open: true,
+        seats: { 'in-person': 0, online: 0 },
+        createdAt: new Date().toISOString()
+      };
+      applyRoundFields(next, req.body);
+      data.settings.currentRound = next;
       await setData(data);
       return res.status(200).json({ ok: true, settings: data.settings });
     }
