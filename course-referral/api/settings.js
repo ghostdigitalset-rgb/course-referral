@@ -163,6 +163,7 @@ export default async function handler(req, res) {
           description: (c.description || '').trim(),
           duration: (c.duration || '').trim(),
           schedule: String(c.schedule || '').trim().slice(0, 160),
+          scheduleOnline: String(c.scheduleOnline || '').trim().slice(0, 160),
           icon: (c.icon || '📚').trim() || '📚',
           hidden: c.hidden === true,
           round: existing?.round || makeRound(DEFAULT_ROUND_ID, '2nd round', true, null),
