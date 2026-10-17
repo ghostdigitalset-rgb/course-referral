@@ -385,15 +385,25 @@ function renderCourses(s){
     const priceHtml = disc
       ? `${money(sale)}<s>${money(price)}</s>`
       : money(price);
+    const soldOut = c.seatsLeft === 0;
+    const seatsChip = c.seats > 0
+      ? (soldOut
+          ? '<span class="tag" style="background:#fdf0ee;color:#c0392b;border-color:#f0c0bb">Sold out</span>'
+          : `<span class="tag" style="background:var(--accent-light);color:var(--accent-text);border-color:#b8d9b4">${c.seatsLeft} seat${c.seatsLeft===1?'':'s'} left</span>`)
+      : '';
+    const btn = soldOut
+      ? '<span class="btn btn-ghost btn-sm" style="opacity:.6;cursor:not-allowed">Fully booked</span>'
+      : '<a class="btn btn-primary btn-sm" href="register.html">Register for this course</a>';
     return `
       <article class="course">
+        ${seatsChip}
         ${disc ? `<span class="tag">-${pct}% offer</span>` : ''}
         <div class="course-ic">${esc(c.icon || '📚')}</div>
         <h3>${esc(c.name)}</h3>
         <p class="desc">${esc(c.description || '')}</p>
         ${c.duration ? `<div class="meta">⏱ ${esc(c.duration)}</div>` : ''}
         <div class="price">${priceHtml}</div>
-        <a class="btn btn-primary btn-sm" href="register.html">Register for this course</a>
+        ${btn}
       </article>`;
   }).join('');
 
