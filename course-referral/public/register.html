@@ -1588,7 +1588,7 @@ function renderCourseCards(){
   }
   grid.innerHTML = COURSES.map((c,i)=>{
     const full = i === COURSES.length-1 && COURSES.length % 2 === 1; // last odd card spans full width
-    const scheduleLine = c.schedule ? `<div class="desc" style="margin-top:2px">🗓 ${escapeHtml(c.schedule)}</div>` : '';
+    const scheduleLine = [c.schedule ? `🏫 In-person: ${escapeHtml(c.schedule)}` : '', c.scheduleOnline ? `💻 Online: ${escapeHtml(c.scheduleOnline)}` : ''].filter(Boolean).map(t => `<div class="desc" style="margin-top:2px">🗓 ${t}</div>`).join('');
     const durationLine = c.duration ? `<div class="desc" style="margin-top:2px">⏱ ${escapeHtml(c.duration)}</div>` : '';
     const disc = isDiscountActive();
     const priceLine = disc
@@ -2435,8 +2435,12 @@ function renderCourseEditor(){
         </div>
       </div>
       <div class="field">
-        <label>Class schedule (students see this before they register)</label>
+        <label>In-person schedule (students see this before they register)</label>
         <input type="text" value="${escapeAttr(c.schedule||'')}" oninput="courseDraft[${i}].schedule=this.value" placeholder="e.g. Mon &amp; Wed, 6:00-8:00 PM">
+      </div>
+      <div class="field">
+        <label>Online schedule</label>
+        <input type="text" value="${escapeAttr(c.scheduleOnline||'')}" oninput="courseDraft[${i}].scheduleOnline=this.value" placeholder="e.g. Tue &amp; Thu, 7:00-8:30 PM">
       </div>
       ${roundEditorHtml(c,i)}
     </div>
