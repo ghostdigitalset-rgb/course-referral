@@ -9,6 +9,14 @@ const DEFAULT_COURSES = [
   { id: 'ai',      name: 'Applied AI: Tools, Techniques, and Real-World Use Cases', price: 10000, description: 'AI tools, prompt engineering & practical applications', duration: '', icon: '🤖' }
 ];
 
+// Starter FAQ. The admin can edit or delete these on the admin page.
+const DEFAULT_FAQS = [
+  { q: 'How do I register?', a: 'Choose your course, pick In-Person or Online, pay through Telebirr or CBE, and upload your receipt. Our team confirms your payment after that.', keywords: ['sign up', 'enroll', 'join', 'apply'] },
+  { q: 'How do I pay?', a: 'You can pay by Telebirr or CBE Bank. Send the course fee to the account shown on the registration page, then upload your screenshot or receipt.', keywords: ['payment', 'pay', 'telebirr', 'cbe', 'bank'] },
+  { q: 'Can I attend online?', a: 'Yes. Choose Online when you register and you will join the classes by video call.', keywords: ['online', 'remote', 'video', 'virtual'] },
+  { q: 'Who do I contact for help?', a: 'Message us on Telegram at @GhostDigitalsAcademySupport, or call +251 98 534 0983.', keywords: ['contact', 'help', 'support', 'telegram', 'phone'] }
+];
+
 const cleanSeats = (v) => Math.max(0, Math.round(Number(v) || 0));
 
 function newRoundId() {
@@ -28,6 +36,7 @@ function makeRound(id, label, open, seats) {
 function ensureDefaults(data) {
   if (!data.settings) data.settings = {};
   if (!Array.isArray(data.settings.courses)) data.settings.courses = DEFAULT_COURSES;
+  if (!Array.isArray(data.settings.faqs)) data.settings.faqs = DEFAULT_FAQS;
   if (typeof data.settings.bundleDiscount !== 'number') data.settings.bundleDiscount = 10; // percent off when ALL courses selected
   if (typeof data.settings.discountPercent !== 'number') data.settings.discountPercent = 0; // sitewide discount, 0 = off
   if (!('discountStart' in data.settings)) data.settings.discountStart = null; // 'YYYY-MM-DD'
@@ -153,6 +162,7 @@ export default async function handler(req, res) {
           price: Math.round(price),
           description: (c.description || '').trim(),
           duration: (c.duration || '').trim(),
+          schedule: String(c.schedule || '').trim().slice(0, 160),
           icon: (c.icon || '📚').trim() || '📚',
           hidden: c.hidden === true,
           round: existing?.round || makeRound(DEFAULT_ROUND_ID, '2nd round', true, null),
@@ -171,6 +181,13 @@ export default async function handler(req, res) {
       const cleanStart = typeof discountStart === 'string' && dateRe.test(discountStart) ? discountStart : null;
       const cleanEnd = typeof discountEnd === 'string' && dateRe.test(discountEnd) ? discountEnd : null;
 
+      if (Array.isArray(req.body.faqs)) {
+        data.settings.faqs = req.body.faqs.slice(0, 60).map(f => ({
+          q: String(f.q || '').trim().slice(0, 200),
+          a: String(f.a || '').trim().slice(0, 1000),
+          keywords: Array.isArray(f.keywords) ? f.keywords.map(k => String(k).trim().slice(0, 40)).filter(Boolean).slice(0, 20) : []
+        })).filter(f => f.q && f.a);
+      }
       data.settings.courses = cleaned;
       data.settings.bundleDiscount = Math.round(disc);
       data.settings.discountPercent = Math.round(sitewideDisc);
