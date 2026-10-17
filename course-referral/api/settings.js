@@ -17,6 +17,8 @@ function ensureDefaults(data) {
   if (!('discountStart' in data.settings)) data.settings.discountStart = null; // 'YYYY-MM-DD'
   if (!('discountEnd' in data.settings)) data.settings.discountEnd = null;     // 'YYYY-MM-DD'
   if (typeof data.settings.badgeText !== 'string') data.settings.badgeText = ''; // offer banner text, empty = hidden
+  if (typeof data.settings.roundLabel !== 'string') data.settings.roundLabel = '2nd round'; // e.g. '3rd round'
+  if (typeof data.settings.registrationOpen !== 'boolean') data.settings.registrationOpen = true;
   if (!data.settings.telebirr) data.settings.telebirr = { number: '', holder: 'Ghost Digitals Academy' };
   if (!data.settings.cbe) data.settings.cbe = { number: '', holder: 'Ghost Digitals Academy' };
   return data;
@@ -122,6 +124,8 @@ export default async function handler(req, res) {
       data.settings.discountStart = cleanStart;
       data.settings.discountEnd = cleanEnd;
       if (typeof req.body.badgeText === 'string') data.settings.badgeText = req.body.badgeText.trim().slice(0, 80);
+      if (typeof req.body.roundLabel === 'string' && req.body.roundLabel.trim()) data.settings.roundLabel = req.body.roundLabel.trim().slice(0, 40);
+      if (typeof req.body.registrationOpen === 'boolean') data.settings.registrationOpen = req.body.registrationOpen;
       await setData(data);
       return res.status(200).json({ ok: true, settings: data.settings });
     }
