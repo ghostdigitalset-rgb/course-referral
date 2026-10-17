@@ -661,12 +661,14 @@ tr:last-child td{border-bottom:none}
               <div style="font-size:24px;margin-bottom:6px">🏫</div>
               <div style="font-weight:700;font-size:14px;color:var(--accent-text)">In-Person</div>
               <div style="font-size:11px;color:var(--muted);margin-top:3px">Attend physical classes</div>
+              <div id="seats-inperson" class="seat-chip" style="margin-top:8px"></div>
             </div>
             <div id="ct-online" onclick="selectClassType('online')"
               style="border:2px solid var(--border);border-radius:16px;padding:14px;cursor:pointer;text-align:center;background:#fff;transition:.15s">
               <div style="font-size:24px;margin-bottom:6px">💻</div>
               <div style="font-weight:700;font-size:14px;color:var(--text)">Online</div>
               <div style="font-size:11px;color:var(--muted);margin-top:3px">Join via video call</div>
+              <div id="seats-online" class="seat-chip" style="margin-top:8px"></div>
             </div>
           </div>
           <input type="hidden" id="f-class-type" value="in-person">
@@ -956,20 +958,34 @@ tr:last-child td{border-bottom:none}
           <!-- ===== REGISTRATION ROUND ===== -->
           <div class="data-card" style="max-width:720px;padding:20px 24px;margin-bottom:20px">
             <h3 style="font-size:15px;font-weight:600;margin-bottom:4px">🎓 Registration round</h3>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Shown to students on the website. Close registration between rounds to stop new sign-ups.</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Seats are counted per round. Confirmed students in this round use up its seats. Leave seats at 0 for unlimited. Start a new round when the current one is full or finished.</div>
             <div class="grid-2">
-              <div class="field" style="margin-bottom:0">
+              <div class="field">
                 <label>Round name</label>
                 <input type="text" id="set-round-label" maxlength="40" placeholder="2nd round">
               </div>
-              <div class="field" style="margin-bottom:0">
+              <div class="field">
                 <label>Registration</label>
                 <select id="set-reg-open">
                   <option value="open">Open</option>
                   <option value="closed">Closed</option>
                 </select>
               </div>
+              <div class="field">
+                <label>In-person seats</label>
+                <input type="number" min="0" id="set-seats-inperson" placeholder="0">
+              </div>
+              <div class="field">
+                <label>Online seats</label>
+                <input type="number" min="0" id="set-seats-online" placeholder="0">
+              </div>
             </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+              <button class="action-btn primary" onclick="saveRound()">Save round</button>
+              <button class="action-btn" onclick="startNewRound()">+ Start new round</button>
+            </div>
+            <div id="round-alert" class="alert alert-danger" style="margin-top:12px"></div>
+            <div id="round-success" class="alert alert-success" style="margin-top:12px"></div>
           </div>
 
           <!-- ===== OFFER BADGE ===== -->
@@ -1521,11 +1537,23 @@ async function loadPaymentSettings(){
   }
 }
 
-// Round name + open/closed state, set by the admin in Settings.
+// Round name, open/closed state and seats per class type, set by the admin in Settings.
+let SEAT_FULL = { 'in-person': false, online: false };
+
+function setSeatChip(id, total, left){
+  const el = document.getElementById(id);
+  if(!el) return;
+  if(!total){ el.textContent = 'Open seats'; el.className = 'seat-chip'; return; }
+  if(left === 0){ el.textContent = 'Full'; el.className = 'seat-chip seat-chip-out'; return; }
+  el.textContent = left + ' seat' + (left === 1 ? '' : 's') + ' left';
+  el.className = 'seat-chip' + (left <= 3 ? ' seat-chip-low' : '');
+}
+
 function applyRoundState(){
   const s = paymentSettings || {};
-  const round = (s.roundLabel || '2nd round').trim();
-  const open = s.registrationOpen !== false;
+  const r = s.currentRound || {};
+  const round = (r.label || '2nd round').trim();
+  const open = r.open !== false;
   document.querySelectorAll('[data-round-text]').forEach(el=>{
     el.textContent = open ? round+' registration is now open' : round+' registration is closed';
   });
@@ -1533,6 +1561,15 @@ function applyRoundState(){
   const btnText = document.getElementById('reg-btn-text');
   if(btn) btn.disabled = !open;
   if(btnText) btnText.textContent = open ? 'Complete registration' : 'Registration closed';
+
+  const total = r.seats || {};
+  const left = r.seatsLeft || {};
+  setSeatChip('seats-inperson', total['in-person'], left['in-person']);
+  setSeatChip('seats-online', total.online, left.online);
+  SEAT_FULL = {
+    'in-person': total['in-person'] > 0 && left['in-person'] === 0,
+    online: total.online > 0 && left.online === 0
+  };
 }
 
 // Build the registration course cards from loaded COURSES
@@ -1551,19 +1588,12 @@ function renderCourseCards(){
     const priceLine = disc
       ? `<div class="fee">${effectivePrice(c.price).toLocaleString()} ETB <span style="font-size:12px;font-weight:500;color:var(--muted);text-decoration:line-through;margin-left:4px">${Number(c.price).toLocaleString()} ETB</span></div>`
       : `<div class="fee">${Number(c.price).toLocaleString()} ETB</div>`;
-    const soldOut = c.seatsLeft === 0;
-    const seatsChip = c.seats > 0
-      ? (soldOut
-          ? '<span class="seat-chip seat-chip-out">Sold out</span>'
-          : `<span class="seat-chip ${c.seatsLeft <= 3 ? 'seat-chip-low' : ''}">${c.seatsLeft} seat${c.seatsLeft===1?'':'s'} left</span>`)
-      : '';
-    return `<div class="course-card${soldOut?' sold-out':''}" id="card-${c.id}" onclick="toggleCourse('${c.id}')" ${full?'style="grid-column:1/-1"':''}>
+    return `<div class="course-card" id="card-${c.id}" onclick="toggleCourse('${c.id}')" ${full?'style="grid-column:1/-1"':''}>
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
         <div class="icon">${c.icon||'📚'}</div>
         <div class="course-check" id="check-${c.id}">✓</div>
       </div>
       <h3>${escapeHtml(c.name)}</h3>
-      ${seatsChip}
       ${disc?`<div class="discount-tag">-${DISCOUNT_PERCENT}%</div>`:''}
       ${priceLine}
       ${c.description?`<div class="desc">${escapeHtml(c.description)}</div>`:''}
@@ -1600,10 +1630,7 @@ function courseById(id){ return COURSES.find(c=>c.id===id); }
 // Every course, including hidden ones. Only the admin page uses this.
 function adminCourses(){ return (adminData?.settings?.courses) || COURSES; }
 
-function isSoldOut(id){ const c = COURSES.find(x=>x.id===id); return !!(c && c.seatsLeft === 0); }
-
 function toggleCourse(key){
-  if(!selectedCourses.has(key) && isSoldOut(key)){ alert('Sorry, this course is fully booked.'); return; }
   if(selectedCourses.has(key)) selectedCourses.delete(key);
   else selectedCourses.add(key);
   updateCourseUI();
@@ -1611,9 +1638,6 @@ function toggleCourse(key){
 
 function selectAllCourses(){
   const allIds = COURSES.map(c=>c.id);
-  if(!allIds.every(k=>selectedCourses.has(k)) && allIds.some(isSoldOut)){
-    alert('One of the courses is fully booked, so the bundle is not available right now.'); return;
-  }
   const allSelected = allIds.every(k=>selectedCourses.has(k));
   if(allSelected){ selectedCourses.clear(); }
   else { allIds.forEach(k=>selectedCourses.add(k)); }
@@ -1672,6 +1696,10 @@ function updateCourseUI(){
 
 
 function selectClassType(type) {
+  if (SEAT_FULL[type]) {
+    alert('Sorry, ' + (type === 'online' ? 'online' : 'in-person') + ' seats are full for this round.');
+    return;
+  }
   document.getElementById('f-class-type').value = type;
   const inperson = document.getElementById('ct-inperson');
   const online = document.getElementById('ct-online');
@@ -2172,8 +2200,7 @@ function populateSettingsForm(settings){
   document.getElementById('set-bundle-discount').value = (settings.bundleDiscount ?? 0);
   document.getElementById('set-discount-percent').value = (settings.discountPercent ?? 0);
   document.getElementById('set-badge-text').value = settings.badgeText || '';
-  document.getElementById('set-round-label').value = settings.roundLabel || '';
-  document.getElementById('set-reg-open').value = settings.registrationOpen === false ? 'closed' : 'open';
+  fillRoundFields(settings);
   document.getElementById('set-discount-start').value = settings.discountStart || '';
   document.getElementById('set-discount-end').value = settings.discountEnd || '';
   renderCourseEditor();
@@ -2249,6 +2276,61 @@ function copyText(t){
 // ── Admin course editor ───────────────────────────────────
 let courseDraft = [];
 
+function fillRoundFields(settings){
+  const cr = settings.currentRound || {};
+  document.getElementById('set-round-label').value = cr.label || '';
+  document.getElementById('set-reg-open').value = cr.open === false ? 'closed' : 'open';
+  document.getElementById('set-seats-inperson').value = cr.seats?.['in-person'] || 0;
+  document.getElementById('set-seats-online').value = cr.seats?.online || 0;
+}
+
+function roundFormBody(){
+  return {
+    label: document.getElementById('set-round-label').value,
+    open: document.getElementById('set-reg-open').value === 'open',
+    seats: {
+      'in-person': Math.max(0, Math.round(Number(document.getElementById('set-seats-inperson').value) || 0)),
+      online: Math.max(0, Math.round(Number(document.getElementById('set-seats-online').value) || 0))
+    }
+  };
+}
+
+async function postRound(action, body, okMsg){
+  const alertEl = document.getElementById('round-alert');
+  const successEl = document.getElementById('round-success');
+  alertEl.classList.remove('show'); successEl.classList.remove('show');
+  try{
+    const res = await fetch('/api/settings',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-admin-key':adminKey},
+      body:JSON.stringify({action, ...body})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Failed to save');
+    adminData.settings = data.settings;
+    fillRoundFields(data.settings);
+    successEl.textContent = '✓ ' + okMsg;
+    successEl.classList.add('show');
+    setTimeout(()=>successEl.classList.remove('show'), 3000);
+  }catch(e){
+    showAlert(alertEl, e.message);
+  }
+}
+
+function saveRound(){
+  const body = roundFormBody();
+  if(!body.label.trim()){ showAlert(document.getElementById('round-alert'), 'Round name is required'); return; }
+  postRound('round', body, 'Round saved');
+}
+
+function startNewRound(){
+  const body = roundFormBody();
+  const name = prompt('Name for the new round (for example: 3rd round)', '');
+  if(!name || !name.trim()) return;
+  if(!confirm('Start "' + name.trim() + '"?\n\nThe current round will be closed. The new round starts with empty seats.')) return;
+  postRound('new-round', { ...body, label: name.trim(), open: true }, 'New round started');
+}
+
 function renderCourseEditor(){
   const wrap = document.getElementById('courses-editor');
   if(!wrap) return;
@@ -2269,7 +2351,7 @@ function renderCourseEditor(){
         <label>Name *</label>
         <input type="text" value="${escapeAttr(c.name)}" oninput="courseDraft[${i}].name=this.value" placeholder="e.g. Digital Marketing">
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="field">
           <label>Price (ETB) *</label>
           <input type="number" min="0" value="${Number(c.price)||0}" oninput="courseDraft[${i}].price=this.value" placeholder="10000">
@@ -2277,10 +2359,6 @@ function renderCourseEditor(){
         <div class="field">
           <label>Duration</label>
           <input type="text" value="${escapeAttr(c.duration||'')}" oninput="courseDraft[${i}].duration=this.value" placeholder="e.g. 6 weeks">
-        </div>
-        <div class="field">
-          <label>Seats <span style="color:var(--muted);font-weight:400">(0 = unlimited)</span></label>
-          <input type="number" min="0" value="${Number(c.seats)||0}" oninput="courseDraft[${i}].seats=Math.max(0,Math.round(Number(this.value)||0))" placeholder="0">
         </div>
       </div>
       <div style="display:grid;grid-template-columns:80px 1fr;gap:12px">
@@ -2300,7 +2378,7 @@ function renderCourseEditor(){
 function escapeAttr(s){return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 
 function addCourseRow(){
-  courseDraft.push({ id:'', name:'', price:0, description:'', duration:'', icon:'📚', hidden:false, seats:0 });
+  courseDraft.push({ id:'', name:'', price:0, description:'', duration:'', icon:'📚', hidden:false });
   renderCourseEditor();
 }
 
@@ -2339,8 +2417,6 @@ async function saveCourses(){
         action:'courses',
         courses: courseDraft,
         badgeText: document.getElementById('set-badge-text').value,
-        roundLabel: document.getElementById('set-round-label').value,
-        registrationOpen: document.getElementById('set-reg-open').value === 'open',
         bundleDiscount: Number(document.getElementById('set-bundle-discount').value)||0,
         discountPercent: Number(document.getElementById('set-discount-percent').value)||0,
         discountStart: document.getElementById('set-discount-start').value || null,
