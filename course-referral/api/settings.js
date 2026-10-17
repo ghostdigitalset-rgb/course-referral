@@ -31,7 +31,12 @@ export default async function handler(req, res) {
     let data = await getData();
     data = ensureDefaults(data);
     await setData(data);
-    return res.status(200).json(data.settings);
+    // Hidden courses are left out for public visitors. The admin page reads
+    // everything from /api/admin, so it still sees hidden courses.
+    return res.status(200).json({
+      ...data.settings,
+      courses: data.settings.courses.filter(c => !c.hidden)
+    });
   }
 
   if (req.method === 'POST') {
@@ -84,7 +89,8 @@ export default async function handler(req, res) {
           price: Math.round(price),
           description: (c.description || '').trim(),
           duration: (c.duration || '').trim(),
-          icon: (c.icon || '📚').trim() || '📚'
+          icon: (c.icon || '📚').trim() || '📚',
+          hidden: c.hidden === true
         });
       }
       let disc = Number(bundleDiscount);
