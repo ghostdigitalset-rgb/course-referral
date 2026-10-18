@@ -1,0 +1,6 @@
+Options -Indexes
+RewriteEngine On
+# Protected files: never served to a browser
+RewriteRule ^(lib/|config\.php|config\.sample\.php|import\.php|schema\.sql|DEPLOY\.md) - [F,L]
+# /api/<name> -> api/<name>.php
+RewriteRule ^api/([a-zA-Z-]+)/?$ api/$1.php [L,QSA]

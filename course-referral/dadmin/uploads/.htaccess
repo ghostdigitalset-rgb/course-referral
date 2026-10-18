@@ -1,0 +1,4 @@
+# Uploaded files are data only. Never run PHP from this folder.
+RemoveHandler .php .phtml .php5
+php_flag engine off
+Options -ExecCGI -Indexes
